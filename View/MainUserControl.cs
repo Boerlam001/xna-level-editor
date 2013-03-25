@@ -38,13 +38,17 @@ namespace View
         bool mouseDown;
         int mouseTempX;
         int mouseTempY;
+        BasicEffect basicEffect;
     
         public MainUserControl()
         {
             InitializeComponent();
             modelPosition = new Vector3(0, 0, 0);
             modelRotation = 0;
-            cameraPosition = new Vector3(0, 0, 10);
+            cameraPosition = new Vector3(0, 5, 10);
+            Vector3 cameraTarget = modelPosition;
+            //Quaternion q = Quaternion.Identity;
+            //Matrix rotationVector = Matrix.CreateLookAt(cameraPosition, modelPosition, Vector3.UnitY).Decompose(null, q, null);
             cameraRotationX = 0;
             cameraRotationY = 180;
             fieldOfViewAngle = MathHelper.ToRadians(45);
@@ -59,13 +63,13 @@ namespace View
             graphicsDeviceControl1.GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
             if (myModel == null)
                 return;
-            modelRotation = (modelRotation + 0.5f) % 360;
             
             Matrix world = Matrix.CreateTranslation(modelPosition) * Matrix.CreateRotationY(MathHelper.ToRadians(modelRotation));
 
             Matrix cameraRotationMatrix = Matrix.CreateRotationX(MathHelper.ToRadians(cameraRotationX)) * Matrix.CreateRotationY(MathHelper.ToRadians(cameraRotationY));
             Vector3 cameraTarget = cameraPosition + Vector3.Transform(cameraPosition, cameraRotationMatrix);
             Matrix view = Matrix.CreateLookAt(cameraPosition, cameraTarget, Vector3.UnitY);
+            
             textBox1.Text =
                 "cameraPosition: " + cameraPosition.X + " " + cameraPosition.Y + " " + cameraPosition.Z + "\r\n" +
                 "cameraTarget: " + cameraTarget.X + " " + cameraTarget.Y + " " + cameraTarget.Z + "\r\n" +
@@ -73,7 +77,7 @@ namespace View
 
             float aspectRatio = (float)graphicsDeviceControl1.Width / graphicsDeviceControl1.Height;
             Matrix projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
-            
+
             foreach (ModelMesh mesh in myModel.Meshes)
             {
                 foreach (BasicEffect effect in mesh.Effects)
@@ -86,6 +90,17 @@ namespace View
                     effect.SpecularPower = 16;
                 }
                 mesh.Draw();
+            }
+
+            basicEffect.View = view;
+            basicEffect.Projection = projection;
+            basicEffect.CurrentTechnique.Passes[0].Apply();
+            for (int i = 0; i < 10; i++)
+            {
+                var vertices = new[] { new VertexPositionColor(new Vector3(i * 2 - 5, -1, -10), Microsoft.Xna.Framework.Color.White), new VertexPositionColor(new Vector3(i * 2 - 5, -1, 10), Microsoft.Xna.Framework.Color.White) };
+                graphicsDeviceControl1.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertices, 0, 1);
+                vertices = new[] { new VertexPositionColor(new Vector3(-10, -1, (i - 1) * 2 - 5), Microsoft.Xna.Framework.Color.White), new VertexPositionColor(new Vector3(10, -1, (i - 1) * 2 - 5), Microsoft.Xna.Framework.Color.White) };
+                graphicsDeviceControl1.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertices, 0, 1);
             }
         }
 
@@ -117,6 +132,7 @@ namespace View
             if (string.IsNullOrEmpty(errorBuild))
             {
                 myModel = content.Load<Model>("Kenny");
+                basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
                 timer1.Enabled = true;
             }
         }
