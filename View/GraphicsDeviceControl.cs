@@ -29,6 +29,51 @@ namespace View
     /// </summary>
     public class GraphicsDeviceControl : Panel
     {
+        public GraphicsDeviceControl()
+        {
+            this.SetStyle(ControlStyles.Selectable, true);
+            this.TabStop = true;
+        }
+
+        #region focusable
+
+        private KeyEventHandler keyUp;
+
+        public KeyEventHandler KeyUp
+        {
+            get { return keyUp; }
+            set { keyUp = value; }
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            this.Focus();
+            base.OnMouseDown(e);
+        }
+        protected override bool IsInputKey(Keys keyData)
+        {
+            return true;
+            //if (keyData == Keys.Up || keyData == Keys.Down || keyData == Keys.Left || keyData == Keys.Right) return true;
+            //return base.IsInputKey(keyData);
+        }
+        protected override void OnKeyUp(KeyEventArgs e)
+        {
+            keyUp(this, e);
+            base.OnKeyUp(e);
+        }
+        protected override void OnEnter(EventArgs e)
+        {
+            this.Invalidate();
+            base.OnEnter(e);
+        }
+        protected override void OnLeave(EventArgs e)
+        {
+            this.Invalidate();
+            base.OnLeave(e);
+        }
+
+        #endregion
+
         #region Fields
 
 

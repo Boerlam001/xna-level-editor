@@ -33,6 +33,13 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.splitter2 = new System.Windows.Forms.Splitter();
+            this.txt_rotX = new System.Windows.Forms.TextBox();
+            this.txt_rotY = new System.Windows.Forms.TextBox();
+            this.txt_rotZ = new System.Windows.Forms.TextBox();
+            this.txt_qW = new System.Windows.Forms.TextBox();
+            this.txt_qX = new System.Windows.Forms.TextBox();
+            this.txt_qY = new System.Windows.Forms.TextBox();
+            this.txt_qZ = new System.Windows.Forms.TextBox();
             this.graphicsDeviceControl1 = new View.GraphicsDeviceControl();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
@@ -42,7 +49,9 @@
             this.toolStripButton4 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton6 = new System.Windows.Forms.ToolStripButton();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.txt_rotXFromQ = new System.Windows.Forms.TextBox();
+            this.txt_rotYFromQ = new System.Windows.Forms.TextBox();
+            this.txt_rotZFromQ = new System.Windows.Forms.TextBox();
             this.graphicsDeviceControl1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -60,24 +69,81 @@
             // splitter2
             // 
             this.splitter2.Dock = System.Windows.Forms.DockStyle.Top;
-            this.splitter2.Location = new System.Drawing.Point(0, 346);
+            this.splitter2.Location = new System.Drawing.Point(0, 0);
             this.splitter2.Name = "splitter2";
-            this.splitter2.Size = new System.Drawing.Size(1030, 3);
+            this.splitter2.Size = new System.Drawing.Size(852, 3);
             this.splitter2.TabIndex = 6;
             this.splitter2.TabStop = false;
+            // 
+            // txt_rotX
+            // 
+            this.txt_rotX.Location = new System.Drawing.Point(749, 9);
+            this.txt_rotX.Name = "txt_rotX";
+            this.txt_rotX.Size = new System.Drawing.Size(100, 20);
+            this.txt_rotX.TabIndex = 7;
+            this.txt_rotX.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.txt_rot_PreviewKeyDown);
+            // 
+            // txt_rotY
+            // 
+            this.txt_rotY.Location = new System.Drawing.Point(749, 35);
+            this.txt_rotY.Name = "txt_rotY";
+            this.txt_rotY.Size = new System.Drawing.Size(100, 20);
+            this.txt_rotY.TabIndex = 8;
+            this.txt_rotY.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.txt_rot_PreviewKeyDown);
+            // 
+            // txt_rotZ
+            // 
+            this.txt_rotZ.Location = new System.Drawing.Point(749, 61);
+            this.txt_rotZ.Name = "txt_rotZ";
+            this.txt_rotZ.Size = new System.Drawing.Size(100, 20);
+            this.txt_rotZ.TabIndex = 9;
+            this.txt_rotZ.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.txt_rot_PreviewKeyDown);
+            // 
+            // txt_qW
+            // 
+            this.txt_qW.Location = new System.Drawing.Point(749, 124);
+            this.txt_qW.Name = "txt_qW";
+            this.txt_qW.Size = new System.Drawing.Size(100, 20);
+            this.txt_qW.TabIndex = 10;
+            this.txt_qW.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.txt_q_PreviewKeyDown);
+            // 
+            // txt_qX
+            // 
+            this.txt_qX.Location = new System.Drawing.Point(749, 151);
+            this.txt_qX.Name = "txt_qX";
+            this.txt_qX.Size = new System.Drawing.Size(100, 20);
+            this.txt_qX.TabIndex = 11;
+            this.txt_qX.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.txt_q_PreviewKeyDown);
+            // 
+            // txt_qY
+            // 
+            this.txt_qY.Location = new System.Drawing.Point(750, 178);
+            this.txt_qY.Name = "txt_qY";
+            this.txt_qY.Size = new System.Drawing.Size(100, 20);
+            this.txt_qY.TabIndex = 12;
+            this.txt_qY.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.txt_q_PreviewKeyDown);
+            // 
+            // txt_qZ
+            // 
+            this.txt_qZ.Location = new System.Drawing.Point(750, 205);
+            this.txt_qZ.Name = "txt_qZ";
+            this.txt_qZ.Size = new System.Drawing.Size(100, 20);
+            this.txt_qZ.TabIndex = 13;
+            this.txt_qZ.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.txt_q_PreviewKeyDown);
             // 
             // graphicsDeviceControl1
             // 
             this.graphicsDeviceControl1.Controls.Add(this.toolStrip1);
-            this.graphicsDeviceControl1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.graphicsDeviceControl1.Location = new System.Drawing.Point(0, 0);
+            this.graphicsDeviceControl1.Location = new System.Drawing.Point(3, 3);
             this.graphicsDeviceControl1.Name = "graphicsDeviceControl1";
-            this.graphicsDeviceControl1.Size = new System.Drawing.Size(1030, 346);
+            this.graphicsDeviceControl1.Size = new System.Drawing.Size(740, 450);
             this.graphicsDeviceControl1.TabIndex = 4;
+            this.graphicsDeviceControl1.TabStop = true;
             this.graphicsDeviceControl1.Paint += new System.Windows.Forms.PaintEventHandler(this.graphicsDeviceControl1_Paint);
             this.graphicsDeviceControl1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.graphicsDeviceControl1_MouseDown);
             this.graphicsDeviceControl1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.graphicsDeviceControl1_MouseMove);
             this.graphicsDeviceControl1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.graphicsDeviceControl1_MouseUp);
+            this.graphicsDeviceControl1.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.graphicsDeviceControl1_KeyDown);
             // 
             // toolStrip1
             // 
@@ -92,7 +158,7 @@
             this.toolStripButton6});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(24, 346);
+            this.toolStrip1.Size = new System.Drawing.Size(24, 450);
             this.toolStrip1.TabIndex = 0;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -156,23 +222,45 @@
             this.toolStripButton6.Text = "toolStripButton6";
             this.toolStripButton6.Click += new System.EventHandler(this.toolStripButton6_Click);
             // 
-            // textBox1
+            // txt_rotXFromQ
             // 
-            this.textBox1.Location = new System.Drawing.Point(139, 355);
-            this.textBox1.Multiline = true;
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(299, 111);
-            this.textBox1.TabIndex = 7;
+            this.txt_rotXFromQ.Location = new System.Drawing.Point(750, 257);
+            this.txt_rotXFromQ.Name = "txt_rotXFromQ";
+            this.txt_rotXFromQ.Size = new System.Drawing.Size(100, 20);
+            this.txt_rotXFromQ.TabIndex = 14;
+            // 
+            // txt_rotYFromQ
+            // 
+            this.txt_rotYFromQ.Location = new System.Drawing.Point(750, 284);
+            this.txt_rotYFromQ.Name = "txt_rotYFromQ";
+            this.txt_rotYFromQ.Size = new System.Drawing.Size(100, 20);
+            this.txt_rotYFromQ.TabIndex = 15;
+            // 
+            // txt_rotZFromQ
+            // 
+            this.txt_rotZFromQ.Location = new System.Drawing.Point(750, 311);
+            this.txt_rotZFromQ.Name = "txt_rotZFromQ";
+            this.txt_rotZFromQ.Size = new System.Drawing.Size(100, 20);
+            this.txt_rotZFromQ.TabIndex = 16;
             // 
             // MainUserControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.txt_rotZFromQ);
+            this.Controls.Add(this.txt_rotYFromQ);
+            this.Controls.Add(this.txt_rotXFromQ);
+            this.Controls.Add(this.txt_qZ);
+            this.Controls.Add(this.txt_qY);
+            this.Controls.Add(this.txt_qX);
+            this.Controls.Add(this.txt_qW);
+            this.Controls.Add(this.txt_rotZ);
+            this.Controls.Add(this.txt_rotY);
+            this.Controls.Add(this.txt_rotX);
             this.Controls.Add(this.splitter2);
             this.Controls.Add(this.graphicsDeviceControl1);
             this.Name = "MainUserControl";
-            this.Size = new System.Drawing.Size(1030, 551);
+            this.Size = new System.Drawing.Size(852, 456);
             this.Load += new System.EventHandler(this.UserControl1_Load);
             this.graphicsDeviceControl1.ResumeLayout(false);
             this.graphicsDeviceControl1.PerformLayout();
@@ -197,6 +285,15 @@
         private System.Windows.Forms.ToolStripButton toolStripButton4;
         private System.Windows.Forms.ToolStripButton toolStripButton5;
         private System.Windows.Forms.ToolStripButton toolStripButton6;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox txt_rotX;
+        private System.Windows.Forms.TextBox txt_rotY;
+        private System.Windows.Forms.TextBox txt_rotZ;
+        private System.Windows.Forms.TextBox txt_qW;
+        private System.Windows.Forms.TextBox txt_qX;
+        private System.Windows.Forms.TextBox txt_qY;
+        private System.Windows.Forms.TextBox txt_qZ;
+        private System.Windows.Forms.TextBox txt_rotXFromQ;
+        private System.Windows.Forms.TextBox txt_rotYFromQ;
+        private System.Windows.Forms.TextBox txt_rotZFromQ;
     }
 }

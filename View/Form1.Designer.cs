@@ -36,14 +36,14 @@
             this.mainUserControl1.ApplicationObject = null;
             this.mainUserControl1.Location = new System.Drawing.Point(12, 12);
             this.mainUserControl1.Name = "mainUserControl1";
-            this.mainUserControl1.Size = new System.Drawing.Size(1030, 551);
+            this.mainUserControl1.Size = new System.Drawing.Size(1030, 477);
             this.mainUserControl1.TabIndex = 0;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1054, 575);
+            this.ClientSize = new System.Drawing.Size(1054, 563);
             this.Controls.Add(this.mainUserControl1);
             this.Name = "Form1";
             this.Text = "Form1";

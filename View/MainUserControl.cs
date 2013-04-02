@@ -10,6 +10,7 @@ using EnvDTE80;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+using EditorModel;
 
 namespace View
 {
@@ -26,92 +27,84 @@ namespace View
         ContentManager content;
         ContentBuilder contentBuilder;
 
-        Model myModel;
-        Vector3 modelPosition;
-        float modelRotation;
-        Vector3 cameraPosition;
-        float cameraRotationY;
-        float cameraRotationX;
-        float fieldOfViewAngle;
-        float nearPlaneDistance;
-        float farPlaneDistance;
+        //Model myModel;
+        DrawingObject ball;
+        //Vector3 modelPosition;
+
         bool mouseDown;
         int mouseTempX;
         int mouseTempY;
         BasicEffect basicEffect;
+
+        bool moveForward;
+        bool moveBackward;
+        bool moveRight;
+        bool moveLeft;
+
+        Camera camera;
     
         public MainUserControl()
         {
             InitializeComponent();
-            modelPosition = new Vector3(0, 0, 0);
-            modelRotation = 0;
-            cameraPosition = new Vector3(0, 5, 10);
-            Vector3 cameraTarget = modelPosition;
-            //Quaternion q = Quaternion.Identity;
-            //Matrix rotationVector = Matrix.CreateLookAt(cameraPosition, modelPosition, Vector3.UnitY).Decompose(null, q, null);
-            cameraRotationX = 0;
-            cameraRotationY = 180;
-            fieldOfViewAngle = MathHelper.ToRadians(45);
-            nearPlaneDistance = 0.01f;
-            farPlaneDistance = 100f;
 
-            mouseDown = false;
+            mouseDown    = false;
+            moveForward  = false;
+            moveBackward = false;
+            moveRight    = false;
+            moveLeft     = false;
+
+            camera = new Camera();
+            camera.Position = new Vector3(0, 0, -10);
+            camera.AspectRatio = (float)graphicsDeviceControl1.Width / graphicsDeviceControl1.Height;
+
+            ball = new DrawingObject();
+            ball.RotationChanged += ball_RotationChanged;
         }
 
         private void graphicsDeviceControl1_Paint(object sender, PaintEventArgs e)
         {
-            graphicsDeviceControl1.GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.CornflowerBlue);
-            if (myModel == null)
-                return;
-            
-            Matrix world = Matrix.CreateTranslation(modelPosition) * Matrix.CreateRotationY(MathHelper.ToRadians(modelRotation));
+            graphicsDeviceControl1.GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
 
-            Matrix cameraRotationMatrix = Matrix.CreateRotationX(MathHelper.ToRadians(cameraRotationX)) * Matrix.CreateRotationY(MathHelper.ToRadians(cameraRotationY));
-            Vector3 cameraTarget = cameraPosition + Vector3.Transform(cameraPosition, cameraRotationMatrix);
-            Matrix view = Matrix.CreateLookAt(cameraPosition, cameraTarget, Vector3.UnitY);
-            
-            textBox1.Text =
-                "cameraPosition: " + cameraPosition.X + " " + cameraPosition.Y + " " + cameraPosition.Z + "\r\n" +
-                "cameraTarget: " + cameraTarget.X + " " + cameraTarget.Y + " " + cameraTarget.Z + "\r\n" +
-                "cameraRotation: " + cameraRotationX + " " + cameraRotationY;
+            ball.Draw(camera.World, camera.Projection);
 
-            float aspectRatio = (float)graphicsDeviceControl1.Width / graphicsDeviceControl1.Height;
-            Matrix projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
-
-            foreach (ModelMesh mesh in myModel.Meshes)
-            {
-                foreach (BasicEffect effect in mesh.Effects)
-                {
-                    effect.World = world;
-                    effect.View = view;
-                    effect.Projection = projection;
-                    effect.EnableDefaultLighting();
-                    effect.PreferPerPixelLighting = true;
-                    effect.SpecularPower = 16;
-                }
-                mesh.Draw();
-            }
-
-            basicEffect.View = view;
-            basicEffect.Projection = projection;
+            basicEffect.View = camera.World;
+            basicEffect.Projection = camera.Projection;
             basicEffect.CurrentTechnique.Passes[0].Apply();
+            VertexPositionColor[] vertices;
             for (int i = 0; i < 10; i++)
             {
-                var vertices = new[] { new VertexPositionColor(new Vector3(i * 2 - 5, -1, -10), Microsoft.Xna.Framework.Color.White), new VertexPositionColor(new Vector3(i * 2 - 5, -1, 10), Microsoft.Xna.Framework.Color.White) };
+                vertices = new[] { new VertexPositionColor(new Vector3(i * 2 - 5, -1, -10), Microsoft.Xna.Framework.Color.White), new VertexPositionColor(new Vector3(i * 2 - 5, -1, 10), Microsoft.Xna.Framework.Color.White) };
                 graphicsDeviceControl1.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertices, 0, 1);
-                vertices = new[] { new VertexPositionColor(new Vector3(-10, -1, (i - 1) * 2 - 5), Microsoft.Xna.Framework.Color.White), new VertexPositionColor(new Vector3(10, -1, (i - 1) * 2 - 5), Microsoft.Xna.Framework.Color.White) };
+                vertices = new[] {
+                    new VertexPositionColor(new Vector3(-10, -1, (i - 1) * 2 - 5), Microsoft.Xna.Framework.Color.White),
+                    new VertexPositionColor(new Vector3(10, -1, (i - 1) * 2 - 5), Microsoft.Xna.Framework.Color.White)
+                };
                 graphicsDeviceControl1.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertices, 0, 1);
             }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            graphicsDeviceControl1.Refresh();
+            Vector3 position = camera.Position;
+            if (moveRight)
+                position.X += 1;
+            if (moveLeft)
+                position.X -= 1;
+            if (moveForward)
+                position.Z += 1;
+            if (moveBackward)
+                position.Z -= 1;
+            if (moveRight || moveLeft || moveForward || moveBackward)
+                camera.Position = position;
+            graphicsDeviceControl1.Invalidate();
         }
 
         private void UserControl1_Load(object sender, EventArgs e)
         {
-            int x = 0;
+            contentBuilder = new ContentBuilder();
+            content = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
+            basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
+            graphicsDeviceControl1.KeyUp += graphicsDeviceControl1_KeyUp;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -121,18 +114,15 @@ namespace View
 
         private void loadModel()
         {
-            contentBuilder = new ContentBuilder();
-            content = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
             if (openFileDialog1.ShowDialog() != DialogResult.OK)
             {
                 return;
             }
-            contentBuilder.Add(openFileDialog1.FileName, "Kenny", null, "ModelProcessor");
+            contentBuilder.Add(openFileDialog1.FileName, openFileDialog1.SafeFileName, null, "ModelProcessor");
             string errorBuild = contentBuilder.Build();
             if (string.IsNullOrEmpty(errorBuild))
             {
-                myModel = content.Load<Model>("Kenny");
-                basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
+                ball.DrawingModel = content.Load<Model>(openFileDialog1.SafeFileName);
                 timer1.Enabled = true;
             }
         }
@@ -160,18 +150,19 @@ namespace View
         {
             if (!mouseDown)
                 return;
-            float diffX = (float)(e.X - mouseTempX) / 10;
-            float diffY = (float)(e.Y - mouseTempY) / 10;
-            cameraRotationX = (cameraRotationX + diffY) % 360;
-            if (cameraRotationX < 0)
-                cameraRotationX = 360 - cameraRotationX;
-            if (cameraRotationX > 90 && cameraRotationX < 270)
-                cameraRotationX = (cameraRotationX + 90) % 360;
-            cameraRotationY = (cameraRotationY - diffX) % 360;
-            //cameraPosition.X += diffX;
-            //cameraPosition.Y -= diffY;
-            //cameraTarget.X += diffX;
-            //cameraTarget.Y -= diffY;
+            float diffX = (float)(e.X - mouseTempX);
+            float diffY = (float)(e.Y - mouseTempY);
+
+            camera.Rotate(diffY / 10, -diffX / 10, 0);
+
+            //camera.RotationX += diffY;
+            //camera.RotationY += diffX;
+            
+            //if (!float.IsNaN(diffY))
+            //    camera.RotationX += diffY;
+            //if (!float.IsNaN(diffX))
+            //    camera.RotationY -= diffX;
+            
             mouseTempX = e.X;
             mouseTempY = e.Y;
         }
@@ -179,6 +170,111 @@ namespace View
         private void graphicsDeviceControl1_MouseUp(object sender, MouseEventArgs e)
         {
             mouseDown = false;
+        }
+
+        private void graphicsDeviceControl1_KeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode == Keys.W)
+                moveForward = true;
+            if (e.KeyCode == Keys.S)
+                moveBackward = true;
+            if (e.KeyCode == Keys.A)
+                moveLeft = true;
+            if (e.KeyCode == Keys.D)
+                moveRight = true;
+        }
+
+        private void graphicsDeviceControl1_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.W)
+                moveForward = false;
+            if (e.KeyCode == Keys.S)
+                moveBackward = false;
+            if (e.KeyCode == Keys.A)
+                moveLeft = false;
+            if (e.KeyCode == Keys.D)
+                moveRight = false;
+        }
+
+        private void txt_rot_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter)
+                return;
+            if (ball.DrawingModel == null)
+                return;
+            SetBallRotation();
+        }
+
+        private void SetBallRotation()
+        {
+            float f;
+            if (float.TryParse(txt_rotX.Text, out f))
+                ball.RotationX = f;
+            txt_rotX.Text = ball.RotationX.ToString();
+            if (float.TryParse(txt_rotY.Text, out f))
+                ball.RotationY = f;
+            txt_rotY.Text = ball.RotationY.ToString();
+            if (float.TryParse(txt_rotZ.Text, out f))
+                ball.RotationZ = f;
+            txt_rotZ.Text = ball.RotationZ.ToString();
+        }
+
+        private void ball_RotationChanged(object sender, EventArgs e)
+        {
+            Vector3 s, t;
+            Quaternion q;
+            ball.World.Decompose(out s, out q, out t);
+            txt_qW.Text = q.W.ToString();
+            txt_qX.Text = q.X.ToString();
+            txt_qY.Text = q.Y.ToString();
+            txt_qZ.Text = q.Z.ToString();
+            float rX, rY, rZ;
+            Helper.QuaternionToEuler(q, out rX, out rY, out rZ);
+            txt_rotXFromQ.Text = Math.Round(MathHelper.ToDegrees(rX), 4).ToString();
+            txt_rotYFromQ.Text = Math.Round(MathHelper.ToDegrees(rY), 4).ToString();
+            txt_rotZFromQ.Text = Math.Round(MathHelper.ToDegrees(rZ), 4).ToString();
+        }
+
+        private void txt_q_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter)
+                return;
+            if (ball.DrawingModel == null)
+                return;
+            SetBallQuaternion();
+        }
+
+        private void SetBallQuaternion()
+        {
+            float f;
+            Quaternion q = new Quaternion();
+            
+            if (float.TryParse(txt_qW.Text, out f))
+                q.W = f;
+            else
+                q.W = ball.Rotation.W;
+            
+            if (float.TryParse(txt_qX.Text, out f))
+                q.X = f;
+            else
+                q.X = ball.Rotation.X;
+            
+            if (float.TryParse(txt_qY.Text, out f))
+                q.Y = f;
+            else
+                q.Y = ball.Rotation.Y;
+            
+            if (float.TryParse(txt_qZ.Text, out f))
+                q.Z = f;
+            else
+                q.Z = ball.Rotation.Z;
+            
+            ball.Rotation = q;
+
+            txt_qW.Text = q.W.ToString();
+            txt_qX.Text = q.X.ToString();
+            txt_qY.Text = q.Y.ToString();
+            txt_qZ.Text = q.Z.ToString();
         }
     }
 }
