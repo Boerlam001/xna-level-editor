@@ -92,7 +92,12 @@ namespace View
         /// </summary>
         public GraphicsDevice GraphicsDevice
         {
-            get { return graphicsDeviceService.GraphicsDevice; }
+            get
+            {
+                if (graphicsDeviceService == null)
+                    return null;
+                return graphicsDeviceService.GraphicsDevice;
+            }
         }
 
 
@@ -168,6 +173,8 @@ namespace View
             {
                 // Draw the control using the GraphicsDevice.
                 Draw();
+
+                base.OnPaint(e);
                 EndDraw();
             }
             else
@@ -175,7 +182,6 @@ namespace View
                 // If BeginDraw failed, show an error message using System.Drawing.
                 PaintUsingSystemDrawing(e.Graphics, beginDrawError);
             }
-            base.OnPaint(e);
         }
 
 
@@ -337,6 +343,18 @@ namespace View
         /// </summary>
         protected void Initialize()
         {
+            Viewport viewport = new Viewport();
+
+            viewport.X = 0;
+            viewport.Y = 0;
+
+            viewport.Width = ClientSize.Width;
+            viewport.Height = ClientSize.Height;
+
+            viewport.MinDepth = 0;
+            viewport.MaxDepth = 1;
+
+            GraphicsDevice.Viewport = viewport;
         }
 
 

@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace EditorModel
 {
-    public class BaseObject
+    public class BaseObject : Subject
     {
         protected Vector3 position;
         protected Quaternion rotation;
@@ -22,79 +22,69 @@ namespace EditorModel
 
         public static Vector3 rotationReference = new Vector3(0, 0, 10);
         
-        public Vector3 Position
+        public virtual Vector3 Position
         {
             get { return position; }
             set
             {
                 position = value;
-                world = Matrix.CreateTranslation(position) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ));
+                world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             }
         }
 
-        public Quaternion Rotation
+        public virtual Quaternion Rotation
         {
             get { return rotation; }
             set
             {
                 rotation = value;
-                world = Matrix.CreateTranslation(position) * Matrix.CreateFromQuaternion(rotation);
+                world = Matrix.CreateScale(scale) * Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
                 Helper.QuaternionToEuler(rotation, out rotationX, out rotationY, out rotationZ);
                 
-                RotationChanged(this, null);
+                OnRotationChanged(this, null);
             }
         }
 
-        public float RotationX
+        public virtual float RotationX
         {
             get { return rotationX; }
             set
             {
                 rotationX = value % 360;
-                //if (rotationX < 0)
-                //    rotationX = 360 + rotationX;
-                //if (rotationX > 90 && rotationX < 180)
-                //    rotationX = 90;
-                //if (rotationX >= 180 && rotationX < 270)
-                //    rotationX = 270;
-                world = Matrix.CreateTranslation(position) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ));
+                world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
                 world.Decompose(out scale, out rotation, out position);
 
-                RotationChanged(this, null);
+                OnRotationChanged(this, null);
             }
         }
 
-        public float RotationY
+        public virtual float RotationY
         {
             get { return rotationY; }
             set
             {
                 rotationY = value % 360;
-                //if (rotationY < 0)
-                //    rotationY = 360 + rotationY;
-                world = Matrix.CreateTranslation(position) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ));
+                world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
                 world.Decompose(out scale, out rotation, out position);
 
-                RotationChanged(this, null);
+                OnRotationChanged(this, null);
             }
         }
 
-        public float RotationZ
+        public virtual float RotationZ
         {
             get { return rotationZ; }
             set
             {
                 rotationZ = value % 360;
-                //if (rotationZ < 0)
-                //    rotationZ = 360 + rotationZ;
-                world = Matrix.CreateTranslation(position) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ));
+                world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
                 world.Decompose(out scale, out rotation, out position);
 
-                RotationChanged(this, null);
+                OnRotationChanged(this, null);
             }
         }
 
-        public Matrix World
+        public virtual Matrix World
         {
             get { return world; }
         }
@@ -103,19 +93,50 @@ namespace EditorModel
         {
             position = new Vector3(0, 0, 0);
             rotationX = rotationY = rotationZ = 0;
-            world = Matrix.CreateTranslation(position) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ));
+            scale = Vector3.One;
+            world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             world.Decompose(out scale, out rotation, out position);
         }
 
-        public void Rotate(float x, float y, float z)
+        public virtual void Rotate(float x, float y, float z)
         {
             rotationY += y;
             rotationX += x;
             rotationZ += z;
-            Matrix rotationMatrix = Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ));
-            Vector3 transformedReference = Vector3.Transform(rotationReference, rotationMatrix);
-            Vector3 lookAtVector = position + transformedReference;
-            world = Matrix.CreateLookAt(position, lookAtVector, Vector3.Up);
+            world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
+            world.Decompose(out scale, out rotation, out position);
+        }
+
+        public void LookAt(Vector3 target)
+        {
+            world = Matrix.CreateLookAt(position, target, Vector3.Up);
+            world.Decompose(out scale, out rotation, out position);
+        }
+
+        protected void OnRotationChanged(object sender, EventArgs e)
+        {
+            if (RotationChanged != null)
+                RotationChanged(this, e);
+        }
+
+        public void MoveForward(float speed)
+        {
+            Vector3 v = new Vector3(0, 0, speed);
+            v = Vector3.Transform(v, Matrix.CreateFromQuaternion(rotation));
+            v.X += position.X;
+            v.Y += position.Y;
+            v.Z += position.Z;
+            Position = v;
+        }
+
+        public void MoveRight(float speed)
+        {
+            Vector3 v = new Vector3(-speed, 0, 0);
+            v = Vector3.Transform(v, Matrix.CreateFromQuaternion(rotation));
+            v.X += position.X;
+            v.Y += position.Y;
+            v.Z += position.Z;
+            Position = v;
         }
     }
 }
