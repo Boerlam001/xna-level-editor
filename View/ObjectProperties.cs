@@ -48,7 +48,7 @@ namespace View
 
         private void txt_rot_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
-            if (e.KeyCode != Keys.Enter)
+            if (e.KeyCode != Keys.Enter || model == null)
                 return;
 
             float f;
@@ -66,7 +66,7 @@ namespace View
 
         private void txt_q_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
-            if (e.KeyCode != Keys.Enter)
+            if (e.KeyCode != Keys.Enter || model == null)
                 return;
 
             float f;
@@ -104,7 +104,7 @@ namespace View
 
         private void txt_pos_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
-            if (e.KeyCode != Keys.Enter)
+            if (e.KeyCode != Keys.Enter || model == null)
                 return;
 
             float f;
