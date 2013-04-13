@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="EditorModel.Subject">
+    <Position X="1" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAAAAAAAIAAAAAAAAAAIAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Subject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EditorModel.BaseObject" Collapsed="true">
+    <Position X="1" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAABAAAIAgAACAIAACEAQgAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>BaseObject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EditorModel.TrueModel">
+    <Position X="3.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>TrueModel.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="EditorModel.IObserver">
+    <Position X="3.5" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>IObserver.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

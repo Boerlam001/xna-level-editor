@@ -22,15 +22,15 @@ namespace View
         private void MainUserControl_Load(object sender, EventArgs e)
         {
             trueModel = new TrueModel();
-            for (int i = 0; i < 1; i++)
-            {
-                DrawingObject obj = new DrawingObject();
-                obj.Attach(editor1);
-                obj.Attach(objectProperties1);
-                objectProperties1.Model = obj;
-                trueModel.Objects.Add(obj);
-                obj.Notify();
-            }
+            //for (int i = 0; i < 1; i++)
+            //{
+            //    DrawingObject obj = new DrawingObject();
+            //    obj.Attach(editor1);
+            //    obj.Attach(objectProperties1);
+            //    objectProperties1.Model = obj;
+            //    trueModel.Objects.Add(obj);
+            //    obj.Notify();
+            //}
             editor1.TrueModel = trueModel;
 
             editor1.MainUserControl = this;

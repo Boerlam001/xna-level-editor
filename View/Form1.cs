@@ -12,8 +12,6 @@ namespace View
 {
     public partial class Form1 : Form
     {
-        TrueModel trueModel;
-
         public Form1()
         {
             InitializeComponent();

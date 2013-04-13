@@ -8,6 +8,14 @@ namespace EditorModel
 {
     public class BaseObject : Subject
     {
+        protected string name;
+
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
+
         protected Vector3 position;
         protected Quaternion rotation;
         protected Vector3 scale;

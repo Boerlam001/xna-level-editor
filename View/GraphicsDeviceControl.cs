@@ -12,6 +12,7 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using Microsoft.Xna.Framework.Graphics;
+using System.ComponentModel;
 #endregion
 
 namespace View
@@ -35,32 +36,31 @@ namespace View
             this.TabStop = true;
         }
 
-        #region focusable
+        #region make it focusable
 
-        private KeyEventHandler keyUp;
-
-        public KeyEventHandler KeyUp
-        {
-            get { return keyUp; }
-            set { keyUp = value; }
-        }
+        [Browsable(true)]
+        [EditorBrowsable(EditorBrowsableState.Always)]
+        public event KeyEventHandler KeyUp;
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
             this.Focus();
             base.OnMouseDown(e);
         }
+
         protected override bool IsInputKey(Keys keyData)
         {
             return true;
             //if (keyData == Keys.Up || keyData == Keys.Down || keyData == Keys.Left || keyData == Keys.Right) return true;
             //return base.IsInputKey(keyData);
         }
+
         protected override void OnKeyUp(KeyEventArgs e)
         {
-            keyUp(this, e);
+            KeyUp(this, e);
             base.OnKeyUp(e);
         }
+
         protected override void OnEnter(EventArgs e)
         {
             this.Invalidate();

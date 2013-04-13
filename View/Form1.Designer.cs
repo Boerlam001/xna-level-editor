@@ -33,19 +33,16 @@
             // 
             // mainUserControl1
             // 
-            this.mainUserControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.mainUserControl1.Location = new System.Drawing.Point(13, 13);
+            this.mainUserControl1.Location = new System.Drawing.Point(12, 12);
             this.mainUserControl1.Name = "mainUserControl1";
-            this.mainUserControl1.Size = new System.Drawing.Size(673, 491);
+            this.mainUserControl1.Size = new System.Drawing.Size(674, 526);
             this.mainUserControl1.TabIndex = 0;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(698, 563);
+            this.ClientSize = new System.Drawing.Size(707, 563);
             this.Controls.Add(this.mainUserControl1);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -57,6 +54,7 @@
         #endregion
 
         private MainUserControl mainUserControl1;
+
 
 
     }

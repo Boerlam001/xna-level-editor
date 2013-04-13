@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="View.Editor" Collapsed="true">
+    <Position X="5.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgwCAQGAEzkAAAQAAFPIxV4SAJAQoAAEAAWISkAIAAg=</HashCode>
+      <FileName>Editor.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="editorMode" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="View.ObjectProperties" Collapsed="true">
+    <Position X="3.75" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAQAAACQAIAAAAgCAAAgCQRAEAACAAAgAAQAIAIA=</HashCode>
+      <FileName>ObjectProperties.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="View.EditorMode" Collapsed="true">
+    <Position X="1.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAgAAQAAAABAAEAAQAgAAEAAAAAgEAAAAAAAAACAAAA=</HashCode>
+      <FileName>EditorMode.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="editor" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="View.EditorMode_Select">
+    <Position X="1" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>EditorMode_Select.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

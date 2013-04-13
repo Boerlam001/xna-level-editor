@@ -126,6 +126,7 @@ namespace EditorModel
 
         public Camera()
         {
+            name = "camera";
             fieldOfViewAngle = MathHelper.ToRadians(45);
             nearPlaneDistance = 0.01f;
             farPlaneDistance = 100f;

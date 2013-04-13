@@ -18,7 +18,7 @@ using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 #endregion
 
-namespace View
+namespace EditorModel
 {
     /// <summary>
     /// This class wraps the MSBuild functionality needed to build XNA Framework
@@ -28,7 +28,7 @@ namespace View
     /// in a temporary directory. After the build finishes, you can use a regular
     /// ContentManager to load these temporary .xnb files in the usual way.
     /// </summary>
-    class ContentBuilder : IDisposable
+    public class ContentBuilder : IDisposable
     {
         #region Fields
 
@@ -133,8 +133,13 @@ namespace View
             if (!isDisposed)
             {
                 isDisposed = true;
-
-                DeleteTempDirectory();
+                try
+                {
+                    DeleteTempDirectory();
+                }
+                catch
+                {
+                }
             }
         }
 
@@ -294,20 +299,26 @@ namespace View
         /// </summary>
         void DeleteTempDirectory()
         {
-            Directory.Delete(buildDirectory, true);
-
-            // If there are no other instances of ContentBuilder still using their
-            // own temp directories, we can delete the process directory as well.
-            if (Directory.GetDirectories(processDirectory).Length == 0)
+            try
             {
-                Directory.Delete(processDirectory);
+                Directory.Delete(buildDirectory, true);
 
-                // If there are no other copies of the program still using their
-                // own temp directories, we can delete the base directory as well.
-                if (Directory.GetDirectories(baseDirectory).Length == 0)
+                // If there are no other instances of ContentBuilder still using their
+                // own temp directories, we can delete the process directory as well.
+                if (Directory.GetDirectories(processDirectory).Length == 0)
                 {
-                    Directory.Delete(baseDirectory);
+                    Directory.Delete(processDirectory);
+
+                    // If there are no other copies of the program still using their
+                    // own temp directories, we can delete the base directory as well.
+                    if (Directory.GetDirectories(baseDirectory).Length == 0)
+                    {
+                        Directory.Delete(baseDirectory);
+                    }
                 }
+            }
+            catch
+            {
             }
         }
 
@@ -340,8 +351,14 @@ namespace View
                     }
                     catch (ArgumentException)
                     {
-                        // If the process is gone, we can delete its temp directory.
-                        Directory.Delete(directory, true);
+                        try
+                        {
+                            // If the process is gone, we can delete its temp directory.
+                            Directory.Delete(directory, true);
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
