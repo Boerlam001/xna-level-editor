@@ -15,13 +15,19 @@ namespace EditorModel
         public DrawingObject Model
         {
             get { return model; }
-            set { model = value; }
+            set
+            {
+                model = value;
+                axisLine.Model = model;
+            }
         }
 
         private VertexBuffer vertexBuffer;
         private int vertexCount;
         private IndexBuffer indices;
         private int primitiveCount;
+
+        AxisLine axisLine;
 
         private GraphicsDevice graphicsDevice;
 
@@ -46,7 +52,7 @@ namespace EditorModel
 
                 List<VertexPositionColor> vertices = new List<VertexPositionColor>();
 
-                const float ratio = 5.0f;
+                float ratio = 5.0f;
 
                 Vector3 xOffset = new Vector3((boundingBox.Max.X - boundingBox.Min.X) / ratio, 0, 0);
                 Vector3 yOffset = new Vector3(0, (boundingBox.Max.Y - boundingBox.Min.Y) / ratio, 0);
@@ -122,12 +128,18 @@ namespace EditorModel
                 IndexBuffer indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, vertexCount, BufferUsage.WriteOnly);
                 indexBuffer.SetData(Enumerable.Range(0, vertexCount).Select(i => (short)i).ToArray());
                 indices = indexBuffer;
+
+                //axis
+                ratio = 3;
+                xOffset = new Vector3(ratio, 0, 0);
+                yOffset = new Vector3(0, ratio, 0);
+                zOffset = new Vector3(0, 0, ratio);
             }
         }
 
         private static void AddVertex(List<VertexPositionColor> vertices, Vector3 position)
         {
-            vertices.Add(new VertexPositionColor(position, Color.White));
+            vertices.Add(new VertexPositionColor(position, Color.Green));
         }
 
         public BoundingBoxBuffer(GraphicsDevice graphicsDevice)
@@ -136,24 +148,30 @@ namespace EditorModel
             vertexCount = 48;
             this.graphicsDevice = graphicsDevice;
             vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), vertexCount, BufferUsage.WriteOnly);
+            axisLine = new AxisLine();
         }
 
         public void Draw(BasicEffect effect)
         {
             graphicsDevice.SetVertexBuffer(vertexBuffer);
             graphicsDevice.Indices = indices;
-
             effect.World = model.World;
-            
+
+            effect.VertexColorEnabled = true;
+
+            DepthStencilState d = new DepthStencilState();
+            d.DepthBufferEnable = false;
+
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
                 graphicsDevice.DrawIndexedPrimitives(PrimitiveType.LineList, 0, 0, vertexCount, 0, primitiveCount);
             }
 
+            effect.World = Matrix.Identity;
             graphicsDevice.SetVertexBuffer(null);
             graphicsDevice.Indices = null;
-            effect.World = Matrix.Identity;
+            axisLine.Draw(effect, graphicsDevice);
         }
 
         public void Update()

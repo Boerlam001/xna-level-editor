@@ -127,6 +127,10 @@
     <None Include="View.cd" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Generator\Generator.csproj">
+      <Project>{8DB1B768-F1B7-4A90-A915-6591C13304B6}</Project>
+      <Name>Generator</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model\EditorModel.csproj">
       <Project>{2B7EF3A1-D1AA-424E-AF58-9A1BBD5F23B5}</Project>
       <Name>EditorModel</Name>

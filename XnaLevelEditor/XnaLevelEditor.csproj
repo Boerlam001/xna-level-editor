@@ -114,8 +114,11 @@
   <ItemGroup>
     <Content Include="..\..\..\Addins\XnaLevelEditor - For Testing.AddIn">
       <Link>XnaLevelEditor - For Testing.AddIn</Link>
+      <SubType>Designer</SubType>
     </Content>
-    <Content Include="XnaLevelEditor.AddIn" />
+    <Content Include="XnaLevelEditor.AddIn">
+      <SubType>Designer</SubType>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\View\View.csproj">

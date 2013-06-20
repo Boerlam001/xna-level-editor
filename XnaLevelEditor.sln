@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "View", "View\View.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EditorModel", "Model\EditorModel.csproj", "{2B7EF3A1-D1AA-424E-AF58-9A1BBD5F23B5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generator", "Generator\Generator.csproj", "{8DB1B768-F1B7-4A90-A915-6591C13304B6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,16 @@ Global
 		{2B7EF3A1-D1AA-424E-AF58-9A1BBD5F23B5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{2B7EF3A1-D1AA-424E-AF58-9A1BBD5F23B5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{2B7EF3A1-D1AA-424E-AF58-9A1BBD5F23B5}.Release|x86.ActiveCfg = Release|Any CPU
+		{8DB1B768-F1B7-4A90-A915-6591C13304B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DB1B768-F1B7-4A90-A915-6591C13304B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DB1B768-F1B7-4A90-A915-6591C13304B6}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8DB1B768-F1B7-4A90-A915-6591C13304B6}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8DB1B768-F1B7-4A90-A915-6591C13304B6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8DB1B768-F1B7-4A90-A915-6591C13304B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DB1B768-F1B7-4A90-A915-6591C13304B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DB1B768-F1B7-4A90-A915-6591C13304B6}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8DB1B768-F1B7-4A90-A915-6591C13304B6}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8DB1B768-F1B7-4A90-A915-6591C13304B6}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

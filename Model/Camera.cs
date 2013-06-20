@@ -29,6 +29,7 @@ namespace EditorModel
             get { return rotation; }
             set
             {
+                
                 rotation = value;
                 Helper.QuaternionToEuler(rotation, out rotationX, out rotationY, out rotationZ);
                 LookAt();

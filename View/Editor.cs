@@ -129,6 +129,28 @@ namespace View
             return new Ray(nearPoint, direction);
         }
 
+        private void DrawGrid(BasicEffect basicEffect)
+        {
+            basicEffect.World = Matrix.Identity;
+            basicEffect.VertexColorEnabled = true;
+
+            List<VertexPositionColor> vertices = new List<VertexPositionColor>();
+            for (int i = 0; i < 10; i++)
+            {
+                vertices.Add(new VertexPositionColor(new Vector3((i - 2) * 2 - 5, -1, -10), Microsoft.Xna.Framework.Color.White));
+                vertices.Add(new VertexPositionColor(new Vector3((i - 2) * 2 - 5, -1, 10), Microsoft.Xna.Framework.Color.White));
+                vertices.Add(new VertexPositionColor(new Vector3(-10, -1, (i - 2) * 2 - 5), Microsoft.Xna.Framework.Color.White));
+                vertices.Add(new VertexPositionColor(new Vector3(10, -1, (i - 2) * 2 - 5), Microsoft.Xna.Framework.Color.White));
+            }
+
+            VertexPositionColor[] vs = vertices.ToArray();
+            foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                graphicsDeviceControl1.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vs, 0, vertices.Count / 2);
+            }
+        }
+
         private void Editor_Load(object sender, EventArgs e)
         {
             contentBuilder = new ContentBuilder();
@@ -136,8 +158,9 @@ namespace View
             basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
 
             camera = new Camera();
-            camera.Position = new Vector3(0, 0, -10);
+            camera.Position = new Vector3(-4, 8, -25);
             camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
+            camera.Rotate(20, 55, 0);
             camera.Attach(this);
 
             selected = null;
@@ -148,29 +171,21 @@ namespace View
             graphicsDeviceControl1.Invalidate();
         }
 
+        Terrain terrain = new Terrain();
+        
         private void graphicsDeviceControl1_Paint(object sender, PaintEventArgs e)
         {
-            graphicsDeviceControl1.GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.Blue);
+            graphicsDeviceControl1.GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.DarkGray);
 
             if (trueModel != null)
                 foreach (DrawingObject obj in trueModel.Objects)
                     obj.Draw(camera.World, camera.Projection);
-
+            
             basicEffect.View = camera.World;
             basicEffect.Projection = camera.Projection;
 
-            basicEffect.CurrentTechnique.Passes[0].Apply();
-            VertexPositionColor[] vertices;
-            for (int i = 0; i < 10; i++)
-            {
-                vertices = new[] { new VertexPositionColor(new Vector3(i * 2 - 5, -1, -10), Microsoft.Xna.Framework.Color.White), new VertexPositionColor(new Vector3(i * 2 - 5, -1, 10), Microsoft.Xna.Framework.Color.White) };
-                graphicsDeviceControl1.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertices, 0, 1);
-                vertices = new[] {
-                    new VertexPositionColor(new Vector3(-10, -1, (i - 1) * 2 - 5), Microsoft.Xna.Framework.Color.White),
-                    new VertexPositionColor(new Vector3(10, -1, (i - 1) * 2 - 5), Microsoft.Xna.Framework.Color.White)
-                };
-                graphicsDeviceControl1.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vertices, 0, 1);
-            }
+            //DrawGrid(basicEffect);
+            terrain.Draw(basicEffect, graphicsDeviceControl1.GraphicsDevice);
 
             if (selected != null)
                 selectedBoundingBox.Draw(basicEffect);

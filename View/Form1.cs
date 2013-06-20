@@ -19,6 +19,11 @@ namespace View
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            //Microsoft.Xna.Framework.
+            //Generator.Compiler c = new Generator.Compiler();
+            //MessageBox.Show(c.DotNetVersion);
+            //MessageBox.Show(c.XnaDir);
+            //MessageBox.Show(c.Compile());
         }
     }
 }

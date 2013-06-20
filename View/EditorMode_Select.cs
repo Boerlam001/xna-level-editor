@@ -40,8 +40,12 @@ namespace View
                     return;
                 Ray ray = editor.Pick(e.X, e.Y);
 
+                
+
                 if (editor.Selected != null)
                 {
+                    //BoundingBox axisXBoundingBox = new BoundingBox(editor.SelectedBoundingBox.AxisVertices
+
                     editor.Selected.Detach(editor.MainUserControl.ObjectProperties1);
                     editor.MainUserControl.ObjectProperties1.Model = null;
                     editor.Selected = null;

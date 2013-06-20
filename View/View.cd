@@ -1,20 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
   <Class Name="View.Editor" Collapsed="true">
-    <Position X="5.75" Y="0.5" Width="1.5" />
+    <Position X="4.5" Y="0.5" Width="1.5" />
+    <AssociationLine Name="editorMode" Type="View.EditorMode" FixedToPoint="true">
+      <Path>
+        <Point X="4.5" Y="1" />
+        <Point X="3.25" Y="1" />
+      </Path>
+    </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AgwCAQGAEzkAAAQAAFPIxV4SAJAQoAAEAAWISkAIAAg=</HashCode>
+      <HashCode>AgwCAQEAEjEAAAQAAEPIRV4CAJAQoACEAAWISkBIAAo=</HashCode>
       <FileName>Editor.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Field Name="editorMode" />
+      <Field Name="camera" />
     </ShowAsAssociation>
     <Lollipop Position="0.2" />
   </Class>
   <Class Name="View.ObjectProperties" Collapsed="true">
-    <Position X="3.75" Y="3.25" Width="1.5" />
+    <Position X="3" Y="2.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAQAAACQAIAAAAgCAAAgCQRAEAACAAAgAAQAIAIA=</HashCode>
+      <HashCode>AAAAAQAAACQAoAAAAgCAAAgCQRAEAACAAAgAAQAIAIA=</HashCode>
       <FileName>ObjectProperties.cs</FileName>
     </TypeIdentifier>
     <Lollipop Position="0.2" />
@@ -22,19 +29,48 @@
   <Class Name="View.EditorMode" Collapsed="true">
     <Position X="1.75" Y="0.5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAgAAQAAAABAAEAAQAgAAEAAAAAgEAAAAAAAAACAAAA=</HashCode>
+      <HashCode>QAgAAQQAAABEAEAAQAgAAEAAAAAgEAAAAAAAAECAAAA=</HashCode>
       <FileName>EditorMode.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
       <Field Name="editor" />
     </ShowAsAssociation>
   </Class>
-  <Class Name="View.EditorMode_Select">
+  <Class Name="View.EditorMode_Select" Collapsed="true">
     <Position X="1" Y="1.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAgAAQAAAAAAAEAAAAgAAAAAAAAgEAAAAAAAAACAAAA=</HashCode>
       <FileName>EditorMode_Select.cs</FileName>
     </TypeIdentifier>
+  </Class>
+  <Class Name="View.MainUserControl">
+    <Position X="7" Y="0.75" Width="1.5" />
+    <AssociationLine Name="objectProperties1" Type="View.ObjectProperties" FixedToPoint="true">
+      <Path>
+        <Point X="7" Y="3.062" />
+        <Point X="5.458" Y="3.062" Type="JumpStart" />
+        <Point X="5.292" Y="3.062" Type="JumpEnd" />
+        <Point X="4.5" Y="3.062" />
+      </Path>
+    </AssociationLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAABAACACAAAAAACAAAACAQACAAAAAAABAAAIIAA=</HashCode>
+      <FileName>MainUserControl.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="editor1" />
+      <Field Name="objectProperties1" />
+      <Field Name="objectProperties2" />
+      <Field Name="trueModel" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="EditorModel.TrueModel" Collapsed="true">
+    <Position X="9.5" Y="1.25" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="EditorModel.Camera" Collapsed="true">
+    <Position X="4.75" Y="3.75" Width="1.5" />
+    <TypeIdentifier />
   </Class>
   <Font Name="Segoe UI" Size="9" />
 </ClassDiagram>

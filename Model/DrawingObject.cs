@@ -100,7 +100,7 @@ namespace EditorModel
         {
             foreach (ModelMesh mesh in drawingModel.Meshes)
             {
-                BoundingSphere sphere = TransformBoundingSphere(mesh.BoundingSphere, boneTransforms[mesh.ParentBone.Index] * world);
+                BoundingSphere sphere = mesh.BoundingSphere.Transform(boneTransforms[mesh.ParentBone.Index] * world);//TransformBoundingSphere(mesh.BoundingSphere, boneTransforms[mesh.ParentBone.Index] * world);
                 if (sphere.Intersects(ray) != null)
                     return true;
             }

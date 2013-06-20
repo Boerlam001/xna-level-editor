@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AxisLine.cs" />
     <Compile Include="BaseObject.cs" />
     <Compile Include="BoundingBoxBuffer.cs" />
     <Compile Include="Camera.cs" />
@@ -56,6 +57,7 @@
     <Compile Include="IObserver.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Subject.cs" />
+    <Compile Include="Terrain.cs" />
     <Compile Include="TrueModel.cs" />
   </ItemGroup>
   <ItemGroup>
