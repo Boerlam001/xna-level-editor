@@ -22,7 +22,8 @@ namespace EditorModel
 
         public void Attach(IObserver o)
         {
-            observers.Add(o);
+            if (!observers.Contains(o))
+                observers.Add(o);
         }
 
         public void Detach(IObserver o)

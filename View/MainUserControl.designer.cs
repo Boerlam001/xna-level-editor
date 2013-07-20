@@ -28,32 +28,36 @@
         /// </summary>
         private void InitializeComponent()
         {
-            EditorModel.Camera camera1 = new EditorModel.Camera();
+            EditorModel.Camera camera2 = new EditorModel.Camera();
             this.editor1 = new View.Editor();
             this.objectProperties1 = new View.ObjectProperties();
             this.objectProperties2 = new View.ObjectProperties();
+            this.menuStrip = new System.Windows.Forms.MenuStrip();
+            this.toolsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.codeBrowserToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // editor1
             // 
             this.editor1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            camera1.AspectRatio = 1.864943F;
-            camera1.FarPlaneDistance = 100F;
-            camera1.FieldOfViewAngle = 0.7853982F;
-            camera1.Name = "camera";
-            camera1.NearPlaneDistance = 0.01F;
-            camera1.Position = new Microsoft.Xna.Framework.Vector3(0F, 0F, -10F);
-            camera1.Rotation = new Microsoft.Xna.Framework.Quaternion(0F, 0F, 0F, 1F);
-            camera1.RotationX = 0F;
-            camera1.RotationY = 0F;
-            camera1.RotationZ = 0F;
-            this.editor1.Camera = camera1;
-            this.editor1.Location = new System.Drawing.Point(4, 4);
+            camera2.AspectRatio = 2.066879F;
+            camera2.FarPlaneDistance = 100F;
+            camera2.FieldOfViewAngle = 0.7853982F;
+            camera2.Name = "camera";
+            camera2.NearPlaneDistance = 0.01F;
+            camera2.Position = new Microsoft.Xna.Framework.Vector3(-4F, 8F, -25F);
+            camera2.Rotation = new Microsoft.Xna.Framework.Quaternion(0.1540278F, 0.4547336F, -0.08018179F, 0.8735352F);
+            camera2.RotationX = 20F;
+            camera2.RotationY = 55F;
+            camera2.RotationZ = 0F;
+            this.editor1.Camera = camera2;
+            this.editor1.Location = new System.Drawing.Point(4, 27);
             this.editor1.MainUserControl = null;
             this.editor1.Name = "editor1";
             this.editor1.Selected = null;
-            this.editor1.Size = new System.Drawing.Size(658, 354);
+            this.editor1.Size = new System.Drawing.Size(658, 331);
             this.editor1.TabIndex = 0;
             this.editor1.TrueModel = null;
             // 
@@ -73,6 +77,31 @@
             this.objectProperties2.Size = new System.Drawing.Size(328, 148);
             this.objectProperties2.TabIndex = 2;
             // 
+            // menuStrip
+            // 
+            this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolsToolStripMenuItem});
+            this.menuStrip.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip.Name = "menuStrip";
+            this.menuStrip.Size = new System.Drawing.Size(674, 24);
+            this.menuStrip.TabIndex = 3;
+            this.menuStrip.Text = "menuStrip1";
+            // 
+            // toolsToolStripMenuItem
+            // 
+            this.toolsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.codeBrowserToolStripMenuItem});
+            this.toolsToolStripMenuItem.Name = "toolsToolStripMenuItem";
+            this.toolsToolStripMenuItem.Size = new System.Drawing.Size(48, 20);
+            this.toolsToolStripMenuItem.Text = "Tools";
+            // 
+            // codeBrowserToolStripMenuItem
+            // 
+            this.codeBrowserToolStripMenuItem.Name = "codeBrowserToolStripMenuItem";
+            this.codeBrowserToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.codeBrowserToolStripMenuItem.Text = "Code Browser";
+            this.codeBrowserToolStripMenuItem.Click += new System.EventHandler(this.codeBrowserToolStripMenuItem_Click);
+            // 
             // MainUserControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -80,10 +109,14 @@
             this.Controls.Add(this.objectProperties2);
             this.Controls.Add(this.objectProperties1);
             this.Controls.Add(this.editor1);
+            this.Controls.Add(this.menuStrip);
             this.Name = "MainUserControl";
             this.Size = new System.Drawing.Size(674, 526);
             this.Load += new System.EventHandler(this.MainUserControl_Load);
+            this.menuStrip.ResumeLayout(false);
+            this.menuStrip.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -92,5 +125,8 @@
         private Editor editor1;
         private ObjectProperties objectProperties1;
         private ObjectProperties objectProperties2;
+        private System.Windows.Forms.MenuStrip menuStrip;
+        private System.Windows.Forms.ToolStripMenuItem toolsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem codeBrowserToolStripMenuItem;
     }
 }

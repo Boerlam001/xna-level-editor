@@ -8,26 +8,20 @@ using Microsoft.Xna.Framework.Content;
 
 namespace EditorModel
 {
-    public class BoundingBoxBuffer : IObserver
+    public class BoundingBoxBuffer : BaseObject
     {
-        private DrawingObject model;
+        private ModelBoundingBox parent;
 
-        public DrawingObject Model
+        public ModelBoundingBox Parent
         {
-            get { return model; }
-            set
-            {
-                model = value;
-                axisLine.Model = model;
-            }
+            get { return parent; }
+            set { parent = value; }
         }
 
         private VertexBuffer vertexBuffer;
         private int vertexCount;
         private IndexBuffer indices;
         private int primitiveCount;
-
-        AxisLine axisLine;
 
         private GraphicsDevice graphicsDevice;
 
@@ -142,20 +136,19 @@ namespace EditorModel
             vertices.Add(new VertexPositionColor(position, Color.Green));
         }
 
-        public BoundingBoxBuffer(GraphicsDevice graphicsDevice)
+        public BoundingBoxBuffer(GraphicsDevice graphicsDevice) : base()
         {
             primitiveCount = 24;
             vertexCount = 48;
             this.graphicsDevice = graphicsDevice;
             vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), vertexCount, BufferUsage.WriteOnly);
-            axisLine = new AxisLine();
         }
 
         public void Draw(BasicEffect effect)
         {
             graphicsDevice.SetVertexBuffer(vertexBuffer);
             graphicsDevice.Indices = indices;
-            effect.World = model.World;
+            effect.World = world;
 
             effect.VertexColorEnabled = true;
 
@@ -171,12 +164,7 @@ namespace EditorModel
             effect.World = Matrix.Identity;
             graphicsDevice.SetVertexBuffer(null);
             graphicsDevice.Indices = null;
-            axisLine.Draw(effect, graphicsDevice);
-        }
-
-        public void Update()
-        {
-            BoundingBox = model.CreateBoundingBox();
+            effect.World = Matrix.Identity;
         }
     }
 }

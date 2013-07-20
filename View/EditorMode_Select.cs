@@ -12,12 +12,18 @@ namespace View
 {
     public class EditorMode_Select : EditorMode
     {
+        //flag for dragging object
+        int isDrag;
+        Vector3 dragSrc, dragDst;
+
         public EditorMode_Select(Editor editor) : base(editor)
         {
+            isDrag = -1;
         }
 
-        public EditorMode_Select()
+        public EditorMode_Select() : base()
         {
+            isDrag = -1;
         }
 
         public override void PreviewKeyDown(object sender, System.Windows.Forms.PreviewKeyDownEventArgs e)
@@ -38,20 +44,52 @@ namespace View
             {
                 if (editor.TrueModel.Objects.Count == 0)
                     return;
-                Ray ray = editor.Pick(e.X, e.Y);
-
-                
-
+                Ray ray = Helper.Pick(editor.GraphicsDevice, editor.Camera, e.X, e.Y);
+                float min = float.MaxValue;
                 if (editor.Selected != null)
                 {
-                    //BoundingBox axisXBoundingBox = new BoundingBox(editor.SelectedBoundingBox.AxisVertices
+                    isDrag = editor.SelectedBoundingBox.AxisLines.OnMouseDown(e.X, e.Y);
+                    //for (short i = 0; i < 3; i++)
+                    //{
+                    //    float? dist = ray.Intersects(editor.SelectedBoundingBox.AxisLines.AxisBoundingBoxes[i]);
+                    //    if (dist != null && dist < min)
+                    //    {
+                    //        min = (float)dist;
+                    //        isDrag = i;
+                    //    }
+                    //}
+                    //
+                    //GraphicsDevice graphicsDevice = editor.GraphicsDevice;
+                    //switch (isDrag)
+                    //{
+                    //    case 0:
+                    //        dragSrc = graphicsDevice.Viewport.Project(editor.SelectedBoundingBox.AxisLines.AxisVertices[0].Position, editor.Camera.Projection, editor.Camera.World, Matrix.Identity);
+                    //        dragDst = graphicsDevice.Viewport.Project(editor.SelectedBoundingBox.AxisLines.AxisVertices[1].Position, editor.Camera.Projection, editor.Camera.World, Matrix.Identity);
+                    //        break;
+                    //    case 1:
+                    //        dragSrc = graphicsDevice.Viewport.Project(editor.SelectedBoundingBox.AxisLines.AxisVertices[0].Position, editor.Camera.Projection, editor.Camera.World, Matrix.Identity);
+                    //        dragDst = graphicsDevice.Viewport.Project(editor.SelectedBoundingBox.AxisLines.AxisVertices[3].Position, editor.Camera.Projection, editor.Camera.World, Matrix.Identity);
+                    //        break;
+                    //    case 2:
+                    //        dragSrc = graphicsDevice.Viewport.Project(editor.SelectedBoundingBox.AxisLines.AxisVertices[0].Position, editor.Camera.Projection, editor.Camera.World, Matrix.Identity);
+                    //        dragDst = graphicsDevice.Viewport.Project(editor.SelectedBoundingBox.AxisLines.AxisVertices[5].Position, editor.Camera.Projection, editor.Camera.World, Matrix.Identity);
+                    //        break;
+                    //}
+                    //if (isDrag != -1)
+                    //{
+                    //    editor.SelectedBoundingBox.AxisLines.OnMouseDown(e.X, e.Y);
+                    //    return;
+                    //}
+
+                    if (isDrag != -1)
+                        return;
 
                     editor.Selected.Detach(editor.MainUserControl.ObjectProperties1);
                     editor.MainUserControl.ObjectProperties1.Model = null;
                     editor.Selected = null;
                 }
 
-                float min = float.MaxValue;
+                min = float.MaxValue;
                 foreach (DrawingObject obj in editor.TrueModel.Objects)
                 {
                     if (obj.RayIntersects(ray))
@@ -79,12 +117,64 @@ namespace View
 
         public override void MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            base.MouseMove(sender, e);
+            //base.MouseMove(sender, e);
+            diffX = (float)(e.X - mouseX);
+            diffY = (float)(e.Y - mouseY);
+
+            if (editor.Selected != null)
+            {
+                if (isDrag != -1)
+                {
+                    editor.SelectedBoundingBox.AxisLines.OnMouseMove(e.X, e.Y);
+                    //float m = -(dragSrc.X - dragDst.X) / (dragSrc.Y - dragDst.Y);
+                    //float test = m * e.X - e.Y - mouseX + mouseY;
+                    //if (m < 1)
+                    //{
+                    //    test *= -1;
+                    //}
+                    //float d = (Math.Abs(test) / (float)Math.Sqrt(m * m + 1)) / 1000;
+                    //Vector3 position = editor.Selected.Position;
+                    //if (m < 1)
+                    //{
+                    //    d *= -1;
+                    //}
+                    //
+                    //switch (isDrag)
+                    //{
+                    //    case 0:
+                    //        position.X += d;
+                    //        break;
+                    //    case 1:
+                    //        position.Y += d;
+                    //        break;
+                    //    case 2:
+                    //        position.Z += d;
+                    //        break;
+                    //}
+                    //editor.Selected.Position = position;
+
+                    editor.Selected.Notify();
+                    ((IObserver)editor).Update();
+                }
+            }
+            mouseX = e.X;
+            mouseY = e.Y;
+
+            if (isRotate)
+            {
+                editor.Camera.Rotate(diffY / 10, -diffX / 10, 0);
+                editor.Camera.Notify();
+            }
         }
 
         public override void MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             base.MouseUp(sender, e);
+            if (isDrag != -1)
+            {
+                editor.SelectedBoundingBox.AxisLines.OnMouseUp(e.X, e.Y);
+                isDrag = -1;
+            }
         }
 
         public override void DragEnter(object sender, System.Windows.Forms.DragEventArgs e)
@@ -103,10 +193,11 @@ namespace View
                 foreach (string file in files)
                 {
                     DrawingObject obj = new DrawingObject();
-                    obj.Position = editor.Put(mouseX, mouseY, 3);
+                    obj.Position = Helper.Put(editor.GraphicsDevice, editor.Camera, mouseX, mouseY, 3);
                     string name = file.Substring(file.LastIndexOf('\\') + 1);
                     obj.DrawingModel = editor.OpenModel(file, name);
                     obj.Name = name;
+                    obj.SourceFile = file;
                     obj.Attach(editor);
                     editor.TrueModel.Objects.Add(obj);
                     obj.Notify();

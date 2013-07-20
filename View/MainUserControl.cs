@@ -7,12 +7,30 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using EditorModel;
+using EnvDTE;
+using EnvDTE80;
 
 namespace View
 {
     public partial class MainUserControl : UserControl
     {
         TrueModel trueModel;
+
+        DTE2 applicationObject;
+
+        public DTE2 ApplicationObject
+        {
+            get { return applicationObject; }
+            set { applicationObject = value; }
+        }
+
+        public Editor Editor1
+        {
+            get
+            {
+                return editor1;
+            }
+        }
 
         public MainUserControl()
         {
@@ -52,6 +70,20 @@ namespace View
             get
             {
                 return objectProperties2;
+            }
+        }
+
+        private void codeBrowserToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (applicationObject != null)
+            {
+                Generator.ClassManager cm = new Generator.ClassManager(applicationObject);
+                cm.ContentBuilder = editor1.ContentBuilder;
+                cm.TrueModel = editor1.TrueModel;
+                CodeBrowser codeBrowser = new CodeBrowser();
+                codeBrowser.Show();
+                codeBrowser.Cm = cm;
+                
             }
         }
     }

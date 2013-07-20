@@ -28,7 +28,10 @@ namespace View
         public MainUserControl MainUserControl
         {
             get { return mainUserControl; }
-            set { mainUserControl = value; }
+            set
+            {
+                mainUserControl = value;
+            }
         }
 
         Camera camera;
@@ -40,7 +43,15 @@ namespace View
         }
 
         ContentManager contentManager;
+
         ContentBuilder contentBuilder;
+
+        public ContentBuilder ContentBuilder
+        {
+            get { return contentBuilder; }
+            set { contentBuilder = value; }
+        }
+
         BasicEffect basicEffect;
 
         private bool moveForward;
@@ -56,15 +67,38 @@ namespace View
             set { selected = value; }
         }
 
-        private BoundingBoxBuffer selectedBoundingBox;
+        private ModelBoundingBox selectedBoundingBox;
 
-        public BoundingBoxBuffer SelectedBoundingBox
+        public ModelBoundingBox SelectedBoundingBox
         {
             get { return selectedBoundingBox; }
             set { selectedBoundingBox = value; }
         }
 
         private EditorMode editorMode;
+
+        public GraphicsDevice GraphicsDevice
+        {
+            get
+            {
+                return graphicsDeviceControl1.GraphicsDevice;
+            }
+        }
+
+        private SpriteBatch spriteBatch;
+
+        public SpriteBatch SpriteBatch
+        {
+            get { return spriteBatch; }
+        }
+
+        private SpriteFont spriteFont;
+
+        public SpriteFont SpriteFont
+        {
+            get { return spriteFont; }
+            set { spriteFont = value; }
+        }
 
         public Editor()
         {
@@ -88,45 +122,36 @@ namespace View
         public Model OpenModel(string path, string name)
         {
             //contentManager.Unload();
-            contentBuilder.Clear();
-            contentBuilder.Add(path, name, null, "ModelProcessor");
-            string errorBuild = contentBuilder.Build();
-            if (string.IsNullOrEmpty(errorBuild))
+            //contentBuilder.Clear();
+            bool isAdded = false;
+            foreach (Microsoft.Build.Evaluation.ProjectItem item in contentBuilder.ProjectItems)
+            {
+                foreach (Microsoft.Build.Evaluation.ProjectMetadata metadata in item.Metadata)
+                {
+                    if (metadata.Name == "Link" && metadata.EvaluatedValue == System.IO.Path.GetFileName(path))
+                    {
+                        isAdded = true;
+                    }
+                }
+            }
+            if (!isAdded)
+            {
+                contentBuilder.Add(path, name, null, "ModelProcessor");
+                string errorBuild = contentBuilder.Build();
+                if (string.IsNullOrEmpty(errorBuild))
+                {
+                    Model model = contentManager.Load<Model>(name);
+                    graphicsDeviceControl1.Invalidate();
+                    return model;
+                }
+            }
+            else
             {
                 Model model = contentManager.Load<Model>(name);
                 graphicsDeviceControl1.Invalidate();
                 return model;
             }
             return null;
-        }
-
-        private void Pointing(float mouseX, float mouseY, out Vector3 nearPoint, out Vector3 direction)
-        {
-            Vector3 nearsource = new Vector3(mouseX, mouseY, 0);
-            Vector3 farsource = new Vector3(mouseX, mouseY, 1);
-
-            Matrix world = Matrix.CreateTranslation(0, 0, 0);
-
-            nearPoint = graphicsDeviceControl1.GraphicsDevice.Viewport.Unproject(nearsource, camera.Projection, camera.World, world);
-            Vector3 farPoint = graphicsDeviceControl1.GraphicsDevice.Viewport.Unproject(farsource, camera.Projection, camera.World, world);
-
-            direction = farPoint - nearPoint;
-
-            direction.Normalize();
-        }
-        
-        public Vector3 Put(float mouseX, float mouseY, float dist)
-        {
-            Vector3 nearPoint, direction;
-            Pointing(mouseX, mouseY, out nearPoint, out direction);
-            return nearPoint + dist * direction;
-        }
-
-        public Ray Pick(float mouseX, float mouseY)
-        {
-            Vector3 nearPoint, direction;
-            Pointing(mouseX, mouseY, out nearPoint, out direction);
-            return new Ray(nearPoint, direction);
         }
 
         private void DrawGrid(BasicEffect basicEffect)
@@ -153,9 +178,23 @@ namespace View
 
         private void Editor_Load(object sender, EventArgs e)
         {
+            basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
+
             contentBuilder = new ContentBuilder();
             contentManager = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
-            basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
+
+            //importer reference: http://msdn.microsoft.com/en-us/library/bb447762%28v=xnagamestudio.20%29.aspx
+            contentBuilder.Add("D:\\SegoeUI.spritefont", "SegoeUI.spritefont", null, "FontDescriptionProcessor");
+            string errorBuild = contentBuilder.Build();
+
+            spriteBatch = new SpriteBatch(graphicsDeviceControl1.GraphicsDevice);
+            try
+            {
+                spriteFont = contentManager.Load<SpriteFont>("SegoeUI.spritefont");
+            }
+            catch (Exception ex)
+            {
+            }
 
             camera = new Camera();
             camera.Position = new Vector3(-4, 8, -25);
@@ -164,7 +203,10 @@ namespace View
             camera.Attach(this);
 
             selected = null;
-            selectedBoundingBox = new BoundingBoxBuffer(graphicsDeviceControl1.GraphicsDevice);
+            selectedBoundingBox = new ModelBoundingBox(graphicsDeviceControl1.GraphicsDevice);
+            selectedBoundingBox.SpriteBatch = spriteBatch;
+            selectedBoundingBox.SpriteFont = spriteFont;
+            selectedBoundingBox.Camera = camera;
 
             editorMode = new EditorMode_Select(this);
 
@@ -172,6 +214,7 @@ namespace View
         }
 
         Terrain terrain = new Terrain();
+        private string text;
         
         private void graphicsDeviceControl1_Paint(object sender, PaintEventArgs e)
         {
@@ -189,6 +232,16 @@ namespace View
 
             if (selected != null)
                 selectedBoundingBox.Draw(basicEffect);
+
+            //try
+            //{
+            //    spriteBatch.Begin();
+            //    spriteBatch.DrawString(spriteFont, text, new Vector2(50, 10), Microsoft.Xna.Framework.Color.Black);
+            //    spriteBatch.End();
+            //}
+            //catch (Exception ex)
+            //{
+            //}
         }
 
         private void graphicsDeviceControl1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
@@ -226,6 +279,7 @@ namespace View
 
         private void graphicsDeviceControl1_MouseMove(object sender, MouseEventArgs e)
         {
+            text = e.X + " " + e.Y;
             editorMode.MouseMove(sender, e);
         }
 

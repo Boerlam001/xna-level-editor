@@ -52,6 +52,9 @@ namespace View
             set { EditorMode.mouseY = value; }
         }
 
+        protected static float diffX;
+        protected static float diffY;
+
         public EditorMode()
         {
             isMouseDown = isRotate = false;
@@ -90,8 +93,8 @@ namespace View
         
         public virtual void MouseMove(object sender, MouseEventArgs e)
         {
-            float diffX = (float)(e.X - mouseX);
-            float diffY = (float)(e.Y - mouseY);
+            diffX = (float)(e.X - mouseX);
+            diffY = (float)(e.Y - mouseY);
 
             mouseX = e.X;
             mouseY = e.Y;

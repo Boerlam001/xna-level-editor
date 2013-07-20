@@ -19,6 +19,14 @@ namespace EditorModel
             set { boneTransforms = value; }
         }
 
+        string sourceFile;
+
+        public string SourceFile
+        {
+            get { return sourceFile; }
+            set { sourceFile = value; }
+        }
+
         public Model DrawingModel
         {
             get { return drawingModel; }

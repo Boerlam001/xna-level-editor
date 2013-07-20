@@ -34,10 +34,12 @@ namespace EditorModel
 
 
         // What importers or processors should we load?
-        const string xnaVersion = ", Version=4.0.0.0, PublicKeyToken=842cf8be1de50553";
+        const string xnaVersion = ", Version=4.0.0.0, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86";
 
         static string[] pipelineAssemblies =
         {
+            "Microsoft.Xna.Framework.Content.Pipeline.AudioImporter" + xnaVersion,
+            "Microsoft.Xna.Framework.Content.Pipeline.VideoImporter" + xnaVersion,
             "Microsoft.Xna.Framework.Content.Pipeline.FBXImporter" + xnaVersion,
             "Microsoft.Xna.Framework.Content.Pipeline.XImporter" + xnaVersion,
             "Microsoft.Xna.Framework.Content.Pipeline.TextureImporter" + xnaVersion,
@@ -58,7 +60,15 @@ namespace EditorModel
         Project buildProject;
         ProjectRootElement projectRootElement;
         BuildParameters buildParameters;
+        
         List<ProjectItem> projectItems = new List<ProjectItem>();
+
+        public List<ProjectItem> ProjectItems
+        {
+            get { return projectItems; }
+            set { projectItems = value; }
+        }
+        
         ErrorLogger errorLogger;
 
 
@@ -163,7 +173,7 @@ namespace EditorModel
             // Include the standard targets file that defines how to build XNA Framework content.
             projectRootElement.AddImport("$(MSBuildExtensionsPath)\\Microsoft\\XNA Game Studio\\" +
                                          "v4.0\\Microsoft.Xna.GameStudio.ContentPipeline.targets");
-
+            
             buildProject = new Project(projectRootElement);
 
             buildProject.SetProperty("XnaPlatform", "Windows");
@@ -240,7 +250,7 @@ namespace EditorModel
 
             // Wait for the build to finish.
             submission.WaitHandle.WaitOne();
-
+            
             BuildManager.DefaultBuildManager.EndBuild();
 
             // If the build failed, return an error string.
