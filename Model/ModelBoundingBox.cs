@@ -32,7 +32,14 @@ namespace EditorModel
             get { return model; }
             set
             {
+                if (model != null)
+                {
+                    model.Detach(this);
+                    model.Detach(axisLines);
+                }
                 model = value;
+                model.Attach(this);
+                model.Attach(axisLines);
                 Update();
             }
         }
@@ -69,20 +76,20 @@ namespace EditorModel
             set { spriteFont = value; }
         }
 
-        public ModelBoundingBox(GraphicsDevice graphicsDevice)
+        public ModelBoundingBox(GraphicsDevice graphicsDevice, Camera camera)
         {
             this.graphicsDevice = graphicsDevice;
             boundingBoxBuffer = new BoundingBoxBuffer(graphicsDevice);
             boundingBoxBuffer.Parent = this;
             axisLines = new AxisLines();
             axisLines.Parent = this;
-            boundingBoxBuffer.Attach(axisLines);
+            this.camera = camera;
+            camera.Attach(axisLines);
         }
 
         public void Draw(BasicEffect basicEffect)
         {
             boundingBoxBuffer.Draw(basicEffect);
-            boundingBoxBuffer.Notify();
             axisLines.Draw(basicEffect, graphicsDevice);
         }
 
@@ -92,7 +99,33 @@ namespace EditorModel
             boundingBoxBuffer.Position = model.Position;
             boundingBoxBuffer.Rotation = model.Rotation;
             axisLines.Position = model.Position;
-            boundingBoxBuffer.Notify();
+        }
+
+        public void ChangeAxisLines(int mode)
+        {
+            switch (mode)
+            {
+                case 1:
+                    if (axisLines.GetType() != typeof(AxisLines))
+                    {
+                        camera.Detach(axisLines);
+                        axisLines = new AxisLines();
+                        axisLines.Parent = this;
+                        camera.Attach(axisLines);
+                        camera.Notify();
+                    }
+                    break;
+                case 2:
+                    if (axisLines.GetType() != typeof(RotationAxisLines))
+                    {
+                        camera.Detach(axisLines);
+                        axisLines = new RotationAxisLines();
+                        axisLines.Parent = this;
+                        camera.Attach(axisLines);
+                        camera.Notify();
+                    }
+                    break;
+            }
         }
     }
 }

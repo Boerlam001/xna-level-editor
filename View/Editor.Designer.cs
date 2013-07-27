@@ -40,6 +40,9 @@
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripButton4 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.translateModeToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.rotateModeToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.graphicsDeviceControl1.SuspendLayout();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -84,7 +87,10 @@
             this.toolStripButton3,
             this.toolStripSeparator1,
             this.toolStripButton4,
-            this.toolStripButton5});
+            this.toolStripButton5,
+            this.toolStripSeparator2,
+            this.translateModeToolStripButton,
+            this.rotateModeToolStripButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(24, 336);
@@ -141,6 +147,33 @@
             this.toolStripButton5.Size = new System.Drawing.Size(21, 20);
             this.toolStripButton5.Text = "toolStripButton5";
             // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(21, 6);
+            // 
+            // translateModeToolStripButton
+            // 
+            this.translateModeToolStripButton.Checked = true;
+            this.translateModeToolStripButton.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.translateModeToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.translateModeToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("translateModeToolStripButton.Image")));
+            this.translateModeToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.translateModeToolStripButton.Name = "translateModeToolStripButton";
+            this.translateModeToolStripButton.Size = new System.Drawing.Size(21, 20);
+            this.translateModeToolStripButton.Text = "translateModeToolStripButton";
+            this.translateModeToolStripButton.Click += new System.EventHandler(this.translateModeToolStripButton_Click);
+            // 
+            // rotateModeToolStripButton
+            // 
+            this.rotateModeToolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.rotateModeToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("rotateModeToolStripButton.Image")));
+            this.rotateModeToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.rotateModeToolStripButton.Name = "rotateModeToolStripButton";
+            this.rotateModeToolStripButton.Size = new System.Drawing.Size(21, 20);
+            this.rotateModeToolStripButton.Text = "rotateModeToolStripButton";
+            this.rotateModeToolStripButton.Click += new System.EventHandler(this.rotateModeToolStripButton_Click);
+            // 
             // Editor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -149,6 +182,7 @@
             this.Name = "Editor";
             this.Size = new System.Drawing.Size(382, 342);
             this.Load += new System.EventHandler(this.Editor_Load);
+            this.Resize += new System.EventHandler(this.Editor_Resize);
             this.graphicsDeviceControl1.ResumeLayout(false);
             this.graphicsDeviceControl1.PerformLayout();
             this.toolStrip1.ResumeLayout(false);
@@ -169,5 +203,8 @@
         private System.Windows.Forms.ToolStripButton toolStripButton5;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripButton translateModeToolStripButton;
+        private System.Windows.Forms.ToolStripButton rotateModeToolStripButton;
     }
 }

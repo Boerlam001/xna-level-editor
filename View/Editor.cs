@@ -121,8 +121,6 @@ namespace View
 
         public Model OpenModel(string path, string name)
         {
-            //contentManager.Unload();
-            //contentBuilder.Clear();
             bool isAdded = false;
             foreach (Microsoft.Build.Evaluation.ProjectItem item in contentBuilder.ProjectItems)
             {
@@ -178,39 +176,42 @@ namespace View
 
         private void Editor_Load(object sender, EventArgs e)
         {
-            basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
 
-            contentBuilder = new ContentBuilder();
-            contentManager = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
-
-            //importer reference: http://msdn.microsoft.com/en-us/library/bb447762%28v=xnagamestudio.20%29.aspx
-            contentBuilder.Add("D:\\SegoeUI.spritefont", "SegoeUI.spritefont", null, "FontDescriptionProcessor");
-            string errorBuild = contentBuilder.Build();
-
-            spriteBatch = new SpriteBatch(graphicsDeviceControl1.GraphicsDevice);
             try
             {
+                basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
+
+                contentBuilder = new ContentBuilder();
+                contentManager = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
+
+                //importer reference: http://msdn.microsoft.com/en-us/library/bb447762%28v=xnagamestudio.20%29.aspx
+                MessageBox.Show(AssemblyDirectory + "\\SegoeUI.spritefont");
+                contentBuilder.Add(AssemblyDirectory + "\\SegoeUI.spritefont", "SegoeUI.spritefont", null, "FontDescriptionProcessor");
+                string errorBuild = contentBuilder.Build();
+
+                spriteBatch = new SpriteBatch(graphicsDeviceControl1.GraphicsDevice);
                 spriteFont = contentManager.Load<SpriteFont>("SegoeUI.spritefont");
+
+                camera = new Camera();
+                camera.Position = new Vector3(-4, 8, -25);
+                camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
+                camera.Rotate(20, 55, 0);
+                camera.Attach(this);
+
+                selected = null;
+                selectedBoundingBox = new ModelBoundingBox(graphicsDeviceControl1.GraphicsDevice, camera);
+                selectedBoundingBox.SpriteBatch = spriteBatch;
+                selectedBoundingBox.SpriteFont = spriteFont;
+                CheckActiveTransformMode();
+
+                editorMode = new EditorMode_Select(this);
+
+                graphicsDeviceControl1.Invalidate();
             }
             catch (Exception ex)
             {
+                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
             }
-
-            camera = new Camera();
-            camera.Position = new Vector3(-4, 8, -25);
-            camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
-            camera.Rotate(20, 55, 0);
-            camera.Attach(this);
-
-            selected = null;
-            selectedBoundingBox = new ModelBoundingBox(graphicsDeviceControl1.GraphicsDevice);
-            selectedBoundingBox.SpriteBatch = spriteBatch;
-            selectedBoundingBox.SpriteFont = spriteFont;
-            selectedBoundingBox.Camera = camera;
-
-            editorMode = new EditorMode_Select(this);
-
-            graphicsDeviceControl1.Invalidate();
         }
 
         Terrain terrain = new Terrain();
@@ -227,21 +228,10 @@ namespace View
             basicEffect.View = camera.World;
             basicEffect.Projection = camera.Projection;
 
-            //DrawGrid(basicEffect);
             terrain.Draw(basicEffect, graphicsDeviceControl1.GraphicsDevice);
 
             if (selected != null)
                 selectedBoundingBox.Draw(basicEffect);
-
-            //try
-            //{
-            //    spriteBatch.Begin();
-            //    spriteBatch.DrawString(spriteFont, text, new Vector2(50, 10), Microsoft.Xna.Framework.Color.Black);
-            //    spriteBatch.End();
-            //}
-            //catch (Exception ex)
-            //{
-            //}
         }
 
         private void graphicsDeviceControl1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
@@ -279,7 +269,6 @@ namespace View
 
         private void graphicsDeviceControl1_MouseMove(object sender, MouseEventArgs e)
         {
-            text = e.X + " " + e.Y;
             editorMode.MouseMove(sender, e);
         }
 
@@ -319,6 +308,48 @@ namespace View
                 return;
             camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
             camera.Notify();
+        }
+
+        private void translateModeToolStripButton_Click(object sender, EventArgs e)
+        {
+            selectedBoundingBox.ChangeAxisLines(1);
+            CheckActiveTransformMode();
+        }
+
+        private void rotateModeToolStripButton_Click(object sender, EventArgs e)
+        {
+            selectedBoundingBox.ChangeAxisLines(2);
+            CheckActiveTransformMode();
+        }
+
+        private void CheckActiveTransformMode()
+        {
+            if (selectedBoundingBox.AxisLines.GetType() == typeof(RotationAxisLines))
+            {
+                translateModeToolStripButton.Checked = false;
+                translateModeToolStripButton.CheckState = CheckState.Unchecked;
+            }
+            else
+            {
+                translateModeToolStripButton.Checked = true;
+                translateModeToolStripButton.CheckState = CheckState.Checked;
+            }
+        }
+
+        public static string AssemblyDirectory
+        {
+            get
+            {
+                string codeBase = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
+                UriBuilder uri = new UriBuilder(codeBase);
+                string path = Uri.UnescapeDataString(uri.Path);
+                return System.IO.Path.GetDirectoryName(path);
+            }
+        }
+
+        private void Editor_Resize(object sender, EventArgs e)
+        {
+            graphicsDeviceControl1.Invalidate();
         }
     }
 }

@@ -5,11 +5,13 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
+
+// TODO: axis line masih berantakan (length-nya agak kacau). belum ada icon. mungkin pengecekan klik jangan pake ray, tapi pake 2D saja
 namespace EditorModel
 {
     public class AxisLines : IObserver
     {
-        ModelBoundingBox parent;
+        protected ModelBoundingBox parent;
 
         public ModelBoundingBox Parent
         {
@@ -17,7 +19,7 @@ namespace EditorModel
             set { parent = value; }
         }
 
-        VertexPositionColor[] axisVertices;
+        protected VertexPositionColor[] axisVertices;
 
         public VertexPositionColor[] AxisVertices
         {
@@ -25,9 +27,9 @@ namespace EditorModel
             set { axisVertices = value; }
         }
 
-        private int axisCount;
+        protected int axisCount;
 
-        BoundingBox[] axisBoundingBoxes;
+        protected BoundingBox[] axisBoundingBoxes;
 
         public BoundingBox[] AxisBoundingBoxes
         {
@@ -63,24 +65,30 @@ namespace EditorModel
             }
         }
 
+        protected Vector3 xOffset;
+        protected Vector3 yOffset;
+        protected Vector3 zOffset;
+        protected Vector3 xxOffset;
+        protected Vector3 yyOffset;
+        protected Vector3 zzOffset;
+
+        protected BoundingBoxBuffer[] axisBoundingBoxBuffers;
+
+        protected string text;
+        protected Vector3 posistionStart;
+        protected Vector2 point0Start;
+
 
         #region atribut yang terproyeksi di screen 2D
 
-        Vector2 point0, pointX, pointY, pointZ, dragStart;
-        private int min;
-        private float mouseX, mouseY, mouseX2, mouseY2;
-        private bool dragStarted;
+        protected Vector2 point0, pointX, pointY, pointZ, dragStart;
+        protected int min;
+        protected float mouseX, mouseY, mouseX2, mouseY2;
+        protected bool dragStarted;
 
         #endregion
 
-
-        private Vector3 xOffset;
-        private Vector3 yOffset;
-        private Vector3 zOffset;
-        private Vector3 xxOffset;
-        private Vector3 yyOffset;
-        private Vector3 zzOffset;
-
+        
         public AxisLines()
         {
             axisVertices = new VertexPositionColor[8];
@@ -142,19 +150,11 @@ namespace EditorModel
             //}
         }
 
-        BoundingBoxBuffer[] axisBoundingBoxBuffers;
-
-        private string text;
-        private Vector3 posistionStart;
-        private Vector2 point0Start;
-
         public void Update()
         {
             Position = position;
             try
             {
-                bool point0WasInsideScreen, pointXWasInsideScreen, pointYWasInsideScreen, pointZWasInsideScreen;
-
                 Vector3 x1 = parent.GraphicsDevice.Viewport.Project(axisVertices[0].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
                 Vector3 x2 = parent.GraphicsDevice.Viewport.Project(axisVertices[1].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity); //Helper.ProjectAndClipToViewport(axisVertices[1].Position, 0, 0, parent.GraphicsDevice.Viewport.Width, parent.GraphicsDevice.Viewport.Height, 0, 1, parent.Camera.World, out pointXWasInsideScreen);
                 Vector3 y2 = parent.GraphicsDevice.Viewport.Project(axisVertices[3].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
@@ -168,33 +168,6 @@ namespace EditorModel
                 pointY.Y = y2.Y;
                 pointZ.X = z2.X;
                 pointZ.Y = z2.Y;
-
-                //while (point0.X < 0) point0.X += parent.GraphicsDevice.Viewport.Width;
-                //while (point0.Y < 0) point0.Y += parent.GraphicsDevice.Viewport.Height;
-                //while (pointX.X < 0) pointX.X += parent.GraphicsDevice.Viewport.Width;
-                //while (pointX.Y < 0) pointX.Y += parent.GraphicsDevice.Viewport.Height;
-                //while (pointY.X < 0) pointY.X += parent.GraphicsDevice.Viewport.Width;
-                //while (pointY.Y < 0) pointY.Y += parent.GraphicsDevice.Viewport.Height;
-                //while (pointZ.X < 0) pointZ.X += parent.GraphicsDevice.Viewport.Width;
-                //while (pointZ.Y < 0) pointZ.Y += parent.GraphicsDevice.Viewport.Height;
-                //
-                //while (point0.X > parent.GraphicsDevice.Viewport.Width)  point0.X -= parent.GraphicsDevice.Viewport.Width;
-                //while (point0.Y > parent.GraphicsDevice.Viewport.Height) point0.Y -= parent.GraphicsDevice.Viewport.Height;
-                //while (pointX.X > parent.GraphicsDevice.Viewport.Width)  pointX.X -= parent.GraphicsDevice.Viewport.Width;
-                //while (pointX.Y > parent.GraphicsDevice.Viewport.Height) pointX.Y -= parent.GraphicsDevice.Viewport.Height;
-                //while (pointY.X > parent.GraphicsDevice.Viewport.Width)  pointY.X -= parent.GraphicsDevice.Viewport.Width;
-                //while (pointY.Y > parent.GraphicsDevice.Viewport.Height) pointY.Y -= parent.GraphicsDevice.Viewport.Height;
-                //while (pointZ.X > parent.GraphicsDevice.Viewport.Width)  pointZ.X -= parent.GraphicsDevice.Viewport.Width;
-                //while (pointZ.Y > parent.GraphicsDevice.Viewport.Height) pointZ.Y -= parent.GraphicsDevice.Viewport.Height;
-
-                //point0.X = (x1.X < 0) ? x1.X * -1 : x1.X;
-                //point0.Y = (x1.Y < 0) ? x1.Y * -1 : x1.Y;
-                //pointX.X = (x2.X < 0) ? x2.X * -1 : x2.X;
-                //pointX.Y = (x2.Y < 0) ? x2.Y * -1 : x2.Y;
-                //pointY.X = (y2.X < 0) ? y2.X * -1 : y2.X;
-                //pointY.Y = (y2.Y < 0) ? y2.Y * -1 : y2.Y;
-                //pointZ.X = (z2.X < 0) ? z2.X * -1 : z2.X;
-                //pointZ.Y = (z2.Y < 0) ? z2.Y * -1 : z2.Y;
 
                 axisBoundingBoxBuffers = new BoundingBoxBuffer[6];
                 for (int i = 0; i < 3; i++)
@@ -305,13 +278,9 @@ namespace EditorModel
             }
         }
 
-        public void OnMouseMove(float x, float y)
+        public virtual void OnMouseMove(float x, float y)
         {
-            if (!dragStarted)
-            {
-                //LookingForClosest(x, y);
-            }
-            else
+            if (dragStarted)
             {
                 mouseX2 = x;
                 mouseY2 = y;
@@ -357,7 +326,7 @@ namespace EditorModel
             }
         }
 
-        public int OnMouseDown(float x, float y)
+        public virtual int OnMouseDown(float x, float y)
         {
             this.min = -1;
             Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, x, y);

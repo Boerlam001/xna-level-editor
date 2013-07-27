@@ -20,6 +20,25 @@ namespace EditorModel
         protected Quaternion rotation;
         protected Vector3 scale;
 
+        protected Vector3 rotationVector;
+
+        public Vector3 RotationVector
+        {
+            get { return rotationVector; }
+            set
+            {
+                rotationX = value.X % 360;
+                rotationY = value.Y % 360;
+                rotationZ = value.Z % 360;
+                rotationVector = new Vector3(rotation.X, rotation.Y, rotation.Z);
+
+                world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
+                world.Decompose(out scale, out rotation, out position);
+
+                OnRotationChanged(this, null);
+            }
+        }
+
         protected float rotationX;
         protected float rotationY;
         protected float rotationZ;
@@ -48,7 +67,7 @@ namespace EditorModel
                 rotation = value;
                 world = Matrix.CreateScale(scale) * Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position);
                 Helper.QuaternionToEuler(rotation, out rotationX, out rotationY, out rotationZ);
-                
+                rotationVector = new Vector3(rotation.X, rotation.Y, rotation.Z);
                 OnRotationChanged(this, null);
             }
         }
@@ -59,6 +78,7 @@ namespace EditorModel
             set
             {
                 rotationX = value % 360;
+                rotationVector.X = rotationX;
                 world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
                 world.Decompose(out scale, out rotation, out position);
 
@@ -72,6 +92,7 @@ namespace EditorModel
             set
             {
                 rotationY = value % 360;
+                rotationVector.Y = rotationY;
                 world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
                 world.Decompose(out scale, out rotation, out position);
 
@@ -85,6 +106,7 @@ namespace EditorModel
             set
             {
                 rotationZ = value % 360;
+                rotationVector.Z = rotationZ;
                 world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
                 world.Decompose(out scale, out rotation, out position);
 
@@ -101,6 +123,7 @@ namespace EditorModel
         {
             position = new Vector3(0, 0, 0);
             rotationX = rotationY = rotationZ = 0;
+            rotationVector = new Vector3(rotation.X, rotation.Y, rotation.Z);
             scale = Vector3.One;
             world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             world.Decompose(out scale, out rotation, out position);
@@ -111,6 +134,7 @@ namespace EditorModel
             rotationY += y;
             rotationX += x;
             rotationZ += z;
+            rotationVector = new Vector3(rotation.X, rotation.Y, rotation.Z);
             world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             world.Decompose(out scale, out rotation, out position);
         }

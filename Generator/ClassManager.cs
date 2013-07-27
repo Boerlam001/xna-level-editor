@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
+using System.Windows.Forms;
 using EnvDTE;
 using EnvDTE80;
 using EditorModel;
@@ -36,6 +38,8 @@ namespace Generator
             set { trueModel = value; }
         }
 
+        List<CodeClass2> classModels;
+
         public ClassManager(DTE2 applicationObject)
         {
             this.applicationObject = applicationObject;
@@ -55,6 +59,7 @@ namespace Generator
                 {
                     output += "ProjectKind: " + project.Kind + "\r\n";
                     output += "Project: " + project.FullName + "\r\n";
+
                     if (project.FullName.Contains(".contentproj"))
                     {
                         //project.ProjectItems = contentBuilder.ProjectItems;
@@ -71,9 +76,36 @@ namespace Generator
                         //}
                         foreach (DrawingObject obj in trueModel.Objects)
                         {
-                            
-                            project.ProjectItems.AddFromFile(obj.SourceFile);
+                            try
+                            {
+                                string filename = Path.GetFileName(obj.SourceFile);
+                                File.Copy(obj.SourceFile, Path.GetDirectoryName(project.FullName) + "\\" + filename, true);
+                                project.ProjectItems.AddFromFile(Path.GetDirectoryName(project.FullName) + "\\" + filename);
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                                project.ProjectItems.AddFromFile(obj.SourceFile);
+                            }
                         }
+                    }
+                    else
+                    {
+                        String csItemTemplatePath;
+                        ProjectItem projectItem;
+                        csItemTemplatePath = ((Solution2)applicationObject.Solution).GetProjectItemTemplate("CodeFile", "CSharp");
+                        project.ProjectItems.AddFromTemplate(csItemTemplatePath, "MyCode.cs");
+                        projectItem = project.ProjectItems.Item("MyCode.cs");
+                        CodeNamespace windowsGame1 = ((FileCodeModel2)projectItem.FileCodeModel).AddNamespace("WindowsGame1", -1);
+                        CodeClass2 chess = (CodeClass2)windowsGame1.AddClass("Chess", -1, null, null, vsCMAccess.vsCMAccessDefault);
+                        CodeFunction2 cf = (CodeFunction2)chess.AddFunction("Move", vsCMFunction.vsCMFunctionFunction, "int", -1, vsCMAccess.vsCMAccessDefault, null);
+                        cf.AddParameter("isOk", "bool", -1);
+                        TextPoint tp = cf.GetStartPoint(vsCMPart.vsCMPartBody);
+                        EditPoint ep = tp.CreateEditPoint();
+                        ep.Indent();
+                        ep.Indent();
+                        ep.Indent();
+                        ep.Insert("string test = \"Hello World!\";");
                     }
                     
                     foreach (ProjectItem projectItem in project.ProjectItems)
@@ -109,6 +141,11 @@ namespace Generator
             {
                 ExamineCodeElement(elementChild);
             }
+        }
+
+        public void CreateClass()
+        {
+
         }
     }
 }
