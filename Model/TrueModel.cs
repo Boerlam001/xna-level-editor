@@ -7,17 +7,29 @@ namespace EditorModel
 {
     public class TrueModel : Subject
     {
-        List<DrawingObject> objects;
+        List<MapModel> mapModels;
 
-        public List<DrawingObject> Objects
+        public List<MapModel> MapModels
         {
-            get { return objects; }
-            set { objects = value; }
+            get { return mapModels; }
+            set { mapModels = value; }
         }
 
-        public TrueModel()
+        static TrueModel instance;
+
+        public static TrueModel Instance
         {
-            objects = new List<DrawingObject>();
+            get
+            {
+                if (instance == null)
+                    instance = new TrueModel();
+                return instance;
+            }
+        }
+
+        private TrueModel()
+        {
+            mapModels = new List<MapModel>();
         }
     }
 }

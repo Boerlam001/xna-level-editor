@@ -38,7 +38,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\x86\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DocumentationFile>XnaLevelEditor.xml</DocumentationFile>
     <PlatformTarget>x86</PlatformTarget>
@@ -147,6 +147,10 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Generator\Generator.csproj">
+      <Project>{8DB1B768-F1B7-4A90-A915-6591C13304B6}</Project>
+      <Name>Generator</Name>
+    </ProjectReference>
     <ProjectReference Include="..\View\View.csproj">
       <Project>{D1E45B3F-2420-4549-AEEB-4549143A40BC}</Project>
       <Name>View</Name>

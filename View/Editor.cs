@@ -15,12 +15,12 @@ namespace View
 {
     public partial class Editor : UserControl, IObserver
     {
-        TrueModel trueModel;
+        MapModel mapModel;
         
-        public TrueModel TrueModel
+        public MapModel MapModel
         {
-            get { return trueModel; }
-            set { trueModel = value; }
+            get { return mapModel; }
+            set { mapModel = value; }
         }
 
         MainUserControl mainUserControl;
@@ -100,83 +100,16 @@ namespace View
             set { spriteFont = value; }
         }
 
+        Terrain terrain = new Terrain();
+        private string text;
+
         public Editor()
         {
             InitializeComponent();
         }
 
-        void IObserver.Update()
-        {
-            graphicsDeviceControl1.Invalidate();
-        }
-
-        public Model LoadModel()
-        {
-            if (openFileDialog1.ShowDialog() != DialogResult.OK)
-            {
-                return null;
-            }
-            return OpenModel(openFileDialog1.FileName, openFileDialog1.SafeFileName);
-        }
-
-        public Model OpenModel(string path, string name)
-        {
-            bool isAdded = false;
-            foreach (Microsoft.Build.Evaluation.ProjectItem item in contentBuilder.ProjectItems)
-            {
-                foreach (Microsoft.Build.Evaluation.ProjectMetadata metadata in item.Metadata)
-                {
-                    if (metadata.Name == "Link" && metadata.EvaluatedValue == System.IO.Path.GetFileName(path))
-                    {
-                        isAdded = true;
-                    }
-                }
-            }
-            if (!isAdded)
-            {
-                contentBuilder.Add(path, name, null, "ModelProcessor");
-                string errorBuild = contentBuilder.Build();
-                if (string.IsNullOrEmpty(errorBuild))
-                {
-                    Model model = contentManager.Load<Model>(name);
-                    graphicsDeviceControl1.Invalidate();
-                    return model;
-                }
-            }
-            else
-            {
-                Model model = contentManager.Load<Model>(name);
-                graphicsDeviceControl1.Invalidate();
-                return model;
-            }
-            return null;
-        }
-
-        private void DrawGrid(BasicEffect basicEffect)
-        {
-            basicEffect.World = Matrix.Identity;
-            basicEffect.VertexColorEnabled = true;
-
-            List<VertexPositionColor> vertices = new List<VertexPositionColor>();
-            for (int i = 0; i < 10; i++)
-            {
-                vertices.Add(new VertexPositionColor(new Vector3((i - 2) * 2 - 5, -1, -10), Microsoft.Xna.Framework.Color.White));
-                vertices.Add(new VertexPositionColor(new Vector3((i - 2) * 2 - 5, -1, 10), Microsoft.Xna.Framework.Color.White));
-                vertices.Add(new VertexPositionColor(new Vector3(-10, -1, (i - 2) * 2 - 5), Microsoft.Xna.Framework.Color.White));
-                vertices.Add(new VertexPositionColor(new Vector3(10, -1, (i - 2) * 2 - 5), Microsoft.Xna.Framework.Color.White));
-            }
-
-            VertexPositionColor[] vs = vertices.ToArray();
-            foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                graphicsDeviceControl1.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vs, 0, vertices.Count / 2);
-            }
-        }
-
         private void Editor_Load(object sender, EventArgs e)
         {
-
             try
             {
                 basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
@@ -185,7 +118,6 @@ namespace View
                 contentManager = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
 
                 //importer reference: http://msdn.microsoft.com/en-us/library/bb447762%28v=xnagamestudio.20%29.aspx
-                MessageBox.Show(AssemblyDirectory + "\\SegoeUI.spritefont");
                 contentBuilder.Add(AssemblyDirectory + "\\SegoeUI.spritefont", "SegoeUI.spritefont", null, "FontDescriptionProcessor");
                 string errorBuild = contentBuilder.Build();
 
@@ -214,15 +146,87 @@ namespace View
             }
         }
 
-        Terrain terrain = new Terrain();
-        private string text;
+        void IObserver.Update()
+        {
+            graphicsDeviceControl1.Invalidate();
+        }
+
+        public void AddObject(string file, string name, Vector3 position)
+        {
+            DrawingObject obj = new DrawingObject();
+
+            string originalName = name;
+
+            for (int i = 1; ; ++i)
+            {
+                if (!mapModel.NameExists(name))
+                    break;
+                name = originalName + "_" + i;
+            }
+            
+            obj.DrawingModel = OpenModel(file);
+            obj.Name = name;
+            obj.Position = position;
+            obj.SourceFile = file;
+            obj.Attach(this);
+            mapModel.Objects.Add(obj);
+            Generator.CodeLines codeLines = new Generator.CodeLines();
+            codeLines.Model = obj;
+            mainUserControl._ClassManager.CodeLinesList.Add(codeLines);
+            obj.Notify();
+        }
+
+        public Model LoadModel()
+        {
+            if (openFileDialog1.ShowDialog() != DialogResult.OK)
+            {
+                return null;
+            }
+            return OpenModel(openFileDialog1.FileName);
+        }
+
+        public Model OpenModel(string path)
+        {
+            bool isAdded = false;
+            foreach (Microsoft.Build.Evaluation.ProjectItem item in contentBuilder.ProjectItems)
+            {
+                foreach (Microsoft.Build.Evaluation.ProjectMetadata metadata in item.Metadata)
+                {
+                    if (metadata.Name == "Link" && metadata.EvaluatedValue == System.IO.Path.GetFileName(path))
+                    {
+                        isAdded = true;
+                    }
+                }
+            }
+
+            string name = System.IO.Path.GetFileNameWithoutExtension(path);
+
+            if (!isAdded)
+            {
+                contentBuilder.Add(path, name, null, "ModelProcessor");
+                string errorBuild = contentBuilder.Build();
+                if (string.IsNullOrEmpty(errorBuild))
+                {
+                    Model model = contentManager.Load<Model>(name);
+                    graphicsDeviceControl1.Invalidate();
+                    return model;
+                }
+            }
+            else
+            {
+                Model model = contentManager.Load<Model>(name);
+                graphicsDeviceControl1.Invalidate();
+                return model;
+            }
+            return null;
+        }
         
         private void graphicsDeviceControl1_Paint(object sender, PaintEventArgs e)
         {
             graphicsDeviceControl1.GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.DarkGray);
 
-            if (trueModel != null)
-                foreach (DrawingObject obj in trueModel.Objects)
+            if (mapModel != null)
+                foreach (DrawingObject obj in mapModel.Objects)
                     obj.Draw(camera.World, camera.Projection);
             
             basicEffect.View = camera.World;
@@ -350,6 +354,28 @@ namespace View
         private void Editor_Resize(object sender, EventArgs e)
         {
             graphicsDeviceControl1.Invalidate();
+        }
+
+        private void DrawGrid(BasicEffect basicEffect)
+        {
+            basicEffect.World = Matrix.Identity;
+            basicEffect.VertexColorEnabled = true;
+
+            List<VertexPositionColor> vertices = new List<VertexPositionColor>();
+            for (int i = 0; i < 10; i++)
+            {
+                vertices.Add(new VertexPositionColor(new Vector3((i - 2) * 2 - 5, -1, -10), Microsoft.Xna.Framework.Color.White));
+                vertices.Add(new VertexPositionColor(new Vector3((i - 2) * 2 - 5, -1, 10), Microsoft.Xna.Framework.Color.White));
+                vertices.Add(new VertexPositionColor(new Vector3(-10, -1, (i - 2) * 2 - 5), Microsoft.Xna.Framework.Color.White));
+                vertices.Add(new VertexPositionColor(new Vector3(10, -1, (i - 2) * 2 - 5), Microsoft.Xna.Framework.Color.White));
+            }
+
+            VertexPositionColor[] vs = vertices.ToArray();
+            foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                graphicsDeviceControl1.GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, vs, 0, vertices.Count / 2);
+            }
         }
     }
 }

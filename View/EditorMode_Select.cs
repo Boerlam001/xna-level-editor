@@ -41,7 +41,7 @@ namespace View
 
             if (e.Button == System.Windows.Forms.MouseButtons.Left)
             {
-                if (editor.TrueModel.Objects.Count == 0)
+                if (editor.MapModel.Objects.Count == 0)
                     return;
                 Ray ray = Helper.Pick(editor.GraphicsDevice, editor.Camera, e.X, e.Y);
                 float min = float.MaxValue;
@@ -58,7 +58,7 @@ namespace View
                 }
 
                 min = float.MaxValue;
-                foreach (DrawingObject obj in editor.TrueModel.Objects)
+                foreach (DrawingObject obj in editor.MapModel.Objects)
                 {
                     if (obj.RayIntersects(ray))
                     {
@@ -132,15 +132,8 @@ namespace View
                 Array files = (Array)e.Data.GetData(DataFormats.FileDrop);
                 foreach (string file in files)
                 {
-                    DrawingObject obj = new DrawingObject();
                     string name = file.Substring(file.LastIndexOf('\\') + 1);
-                    obj.DrawingModel = editor.OpenModel(file, name);
-                    obj.Position = Helper.Put(editor.GraphicsDevice, editor.Camera, mouseX, mouseY, 3);
-                    obj.Name = name;
-                    obj.SourceFile = file;
-                    obj.Attach(editor);
-                    editor.TrueModel.Objects.Add(obj);
-                    obj.Notify();
+                    editor.AddObject(file, name, Helper.Put(editor.GraphicsDevice, editor.Camera, mouseX, mouseY, 3));
                 }
             }
         }

@@ -9,19 +9,34 @@ using System.Windows.Forms;
 using EditorModel;
 using EnvDTE;
 using EnvDTE80;
+using Generator;
 
 namespace View
 {
     public partial class MainUserControl : UserControl
     {
-        TrueModel trueModel;
+        MapModel mapModel;
 
         DTE2 applicationObject;
 
         public DTE2 ApplicationObject
         {
             get { return applicationObject; }
-            set { applicationObject = value; }
+            set
+            {
+                applicationObject = value;
+                if (applicationObject != null)
+                {
+                    ChooseClassForm form = new ChooseClassForm();
+                    while (form.ShowDialog() != DialogResult.OK) ;
+                    ClassManager.applicationObject = applicationObject;
+                    classManager = new Generator.ClassManager(mapModel, form.ProjectName, form.ClassName);
+                }
+                else
+                {
+                    classManager = new ClassManager(mapModel);
+                }
+            }
         }
 
         public Editor Editor1
@@ -32,6 +47,22 @@ namespace View
             }
         }
 
+        private ClassManager classManager;
+
+        public ClassManager _ClassManager
+        {
+            get { return classManager; }
+            set { classManager = value; }
+        }
+
+        ProjectItem projectItem;
+
+        public ProjectItem ProjectItem
+        {
+            get { return projectItem; }
+            set { projectItem = value; }
+        }
+
         public MainUserControl()
         {
             InitializeComponent();
@@ -39,22 +70,21 @@ namespace View
 
         private void MainUserControl_Load(object sender, EventArgs e)
         {
-            trueModel = new TrueModel();
-            //for (int i = 0; i < 1; i++)
-            //{
-            //    DrawingObject obj = new DrawingObject();
-            //    obj.Attach(editor1);
-            //    obj.Attach(objectProperties1);
-            //    objectProperties1.Model = obj;
-            //    trueModel.Objects.Add(obj);
-            //    obj.Notify();
-            //}
-            editor1.TrueModel = trueModel;
+            try
+            {
+                mapModel = new MapModel();
+                editor1.MapModel = mapModel;
+                TrueModel.Instance.MapModels.Add(mapModel);
 
-            editor1.MainUserControl = this;
-            editor1.Camera.Attach(objectProperties2);
-            objectProperties2.Model = editor1.Camera;
-            editor1.Camera.Notify();
+                editor1.MainUserControl = this;
+                editor1.Camera.Attach(objectProperties2);
+                objectProperties2.Model = editor1.Camera;
+                editor1.Camera.Notify();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+            }
         }
 
         public ObjectProperties ObjectProperties1
@@ -77,14 +107,16 @@ namespace View
         {
             if (applicationObject != null)
             {
-                Generator.ClassManager cm = new Generator.ClassManager(applicationObject);
-                cm.ContentBuilder = editor1.ContentBuilder;
-                cm.TrueModel = editor1.TrueModel;
+                classManager.ContentBuilder = editor1.ContentBuilder;
                 CodeBrowser codeBrowser = new CodeBrowser();
                 codeBrowser.Show();
-                codeBrowser.Cm = cm;
-                
+                codeBrowser.Cm = classManager;
             }
+        }
+
+        private void createFileStripMenuItem_Click(object sender, EventArgs e)
+        {
+            classManager.GenerateClass();
         }
     }
 }
