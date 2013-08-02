@@ -103,17 +103,6 @@ namespace View
             }
         }
 
-        private void codeBrowserToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (applicationObject != null)
-            {
-                classManager.ContentBuilder = editor1.ContentBuilder;
-                CodeBrowser codeBrowser = new CodeBrowser();
-                codeBrowser.Show();
-                codeBrowser.Cm = classManager;
-            }
-        }
-
         private void createFileStripMenuItem_Click(object sender, EventArgs e)
         {
             classManager.GenerateClass();

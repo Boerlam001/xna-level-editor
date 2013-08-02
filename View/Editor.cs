@@ -332,11 +332,15 @@ namespace View
             {
                 translateModeToolStripButton.Checked = false;
                 translateModeToolStripButton.CheckState = CheckState.Unchecked;
+                rotateModeToolStripButton.Checked = true;
+                rotateModeToolStripButton.CheckState = CheckState.Checked;
             }
             else
             {
                 translateModeToolStripButton.Checked = true;
                 translateModeToolStripButton.CheckState = CheckState.Checked;
+                rotateModeToolStripButton.Checked = false;
+                rotateModeToolStripButton.CheckState = CheckState.Unchecked;
             }
         }
 

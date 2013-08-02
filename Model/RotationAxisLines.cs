@@ -12,8 +12,35 @@ namespace EditorModel
 
         public override int OnMouseDown(float x, float y)
         {
-            base.OnMouseDown(x, y);
-            rotationStart = parent.Model.RotationVector;
+            this.min = -1;
+            Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, x, y);
+            float min = float.MaxValue;
+            Vector2 axisEnd = Vector2.Zero;
+            for (short i = 0; i < 3; i++)
+            {
+                float? dist = ray.Intersects(axisBoundingBoxes[i]);
+                if (dist != null && dist < min)
+                {
+                    min = (float)dist;
+                    this.min = i + 1;
+                    axisEnd = (this.min == 1) ? pointX : ((this.min == 2) ? pointY : pointZ);
+                }
+            }
+
+            if (this.min != -1)
+            {
+                point0Start = point0;
+                Vector2 axis = axisEnd - point0;
+                Vector2 mouseVector = new Vector2(x, y);
+                Vector2 mouseVector0 = mouseVector - point0;
+                dragStart = point0 + (Vector2.Dot(axis, mouseVector0) / axis.LengthSquared()) * axis;
+
+                dragStarted = true;
+                mouseX2 = x;
+                mouseY2 = y;
+
+                rotationStart = parent.Model.EulerRotation;
+            }
             return this.min;
         }
 
@@ -53,7 +80,7 @@ namespace EditorModel
                         break;
                 }
 
-                parent.Model.RotationVector = rotatationTemp;
+                parent.Model.EulerRotation = rotatationTemp;
                 parent.Model.Notify();
             }
         }

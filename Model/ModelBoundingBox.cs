@@ -111,6 +111,7 @@ namespace EditorModel
                         camera.Detach(axisLines);
                         axisLines = new AxisLines();
                         axisLines.Parent = this;
+                        model.Notify();
                         camera.Attach(axisLines);
                         camera.Notify();
                     }
@@ -121,6 +122,7 @@ namespace EditorModel
                         camera.Detach(axisLines);
                         axisLines = new RotationAxisLines();
                         axisLines.Parent = this;
+                        model.Notify();
                         camera.Attach(axisLines);
                         camera.Notify();
                     }

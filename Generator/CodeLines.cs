@@ -48,11 +48,18 @@ namespace Generator
         public void Update()
         {
             StringBuilder sb = new StringBuilder();
-            code[CodePosition.Variable] = sb.Append("Model ").Append(name).Append(";").ToString();
+            code[CodePosition.Variable] = sb.Append("DrawingObject ").Append(name).Append(";").ToString();
             sb.Clear();
-            code[CodePosition.LoadContent] = sb.Append(name).Append(" = Content.Load<Model>(\"").Append(System.IO.Path.GetFileNameWithoutExtension(model.SourceFile)).Append("\");").ToString();
+            float x = model.Position.X, y = model.Position.Y, z = model.Position.Z,
+                  rotX = model.RotationX, rotY = model.RotationY, rotZ = model.RotationZ;
+            code[CodePosition.LoadContent] =
+                sb.
+                Append(name).Append(" = new DrawingObject();\r\n").
+                Append(name).Append(".DrawingModel = Content.Load<Model>(\"").Append(System.IO.Path.GetFileNameWithoutExtension(model.SourceFile)).Append("\");\r\n").
+                Append(name).Append(".Position = new Vector3(").Append(x).Append("f, ").Append(y).Append("f, ").Append(z).Append("f);\r\n").
+                Append(name).Append(".EulerRotation = new Vector3(").Append(rotX).Append("f, ").Append(rotY).Append("f, ").Append(rotZ).Append("f);").ToString();
             sb.Clear();
-            code[CodePosition.Draw] = "";
+            code[CodePosition.Draw] = sb.Append(name).Append(".Draw(camera.World, camera.Projection);").ToString();
         }
     }
 }

@@ -51,6 +51,10 @@ namespace Generator
         private CodeClass2 codeClass;
         private CodeFunction2 loadContentFunction;
         private CodeFunction2 drawFunction;
+        private Project currentProject, contentProject, xleModelProject;
+        private const string xleModelProjectName = "XleModel";
+
+        private bool xleModelImportStmtExist;
 
         public ClassManager(MapModel mapModel)
         {
@@ -62,12 +66,14 @@ namespace Generator
         {
             this.mapModel = mapModel;
             codeLinesList = new List<CodeLines>();
-            classFile = AddClass(projectName, className);
+            TraverseProjects(projectName);
+            classFile = AddClass(className);
             TraverseCodeElements();
             if (codeNamespace != null)
                 codeNamespace.Name = projectName;
             if (codeClass != null)
                 codeClass.Name = className;
+            classFile.Save();
         }
 
         public static ProjectItem SelectClass(string projectName, string className)
@@ -93,7 +99,7 @@ namespace Generator
             }
         }
 
-        private ProjectItem AddClass(string projectName, string className)
+        private ProjectItem AddClass(string className)
         {
             if (applicationObject == null)
             {
@@ -101,33 +107,68 @@ namespace Generator
             }
             else
             {
-                Solution2 solution = (Solution2)applicationObject.Solution;
-                Project projectModel = null;
-                foreach (Project project in solution.Projects)
-                {
-                    if (project.Name == projectName)
-                        projectModel = project;
-                }
-                if (projectModel == null)
+                if (currentProject == null)
                     return null;
 
-                if (File.Exists(Path.GetDirectoryName(projectModel.FullName) + "\\" + className + ".cs"))
+                if (File.Exists(Path.GetDirectoryName(currentProject.FullName) + "\\" + className + ".cs"))
                 {
-                    File.Delete(Path.GetDirectoryName(projectModel.FullName) + "\\" + className + ".cs");
+                    File.Delete(Path.GetDirectoryName(currentProject.FullName) + "\\" + className + ".cs");
                 }
 
-                projectModel.ProjectItems.AddFromTemplate(AssemblyDirectory + "\\templates\\Game1.cs", className + ".cs");
-                ProjectItem projectItem = projectModel.ProjectItems.Item(className + ".cs");
+                currentProject.ProjectItems.AddFromTemplate(AssemblyDirectory + "\\templates\\Game1.cs", className + ".cs");
+                ProjectItem projectItem = currentProject.ProjectItems.Item(className + ".cs");
 
                 return projectItem;
             }
         }
 
+        private void TraverseProjects(string projectName)
+        {
+            Solution2 solution = (Solution2)applicationObject.Solution;
+            foreach (Project project in solution.Projects)
+            {
+                if (project.Name == projectName)
+                    currentProject = project;
+                if (project.Name == xleModelProjectName)
+                    xleModelProject = project;
+                if (project.FullName.Contains(".contentproj"))
+                    contentProject = project;
+            }
+
+            if (xleModelProject == null)
+            {
+                AddXleModelProject();
+            }
+        }
+
+        private void AddXleModelProject()
+        {
+            if (currentProject == null)
+            {
+                return;
+            }
+
+            Solution2 solution = (Solution2)applicationObject.Solution;
+
+            string dirPath = Path.GetDirectoryName(solution.FullName) + "\\XleModel";
+            FileHelper.DirectoryCopy(AssemblyDirectory + "\\templates\\XleModel", dirPath, true);
+            xleModelProject = solution.AddFromFile(dirPath + "\\XleModel.csproj");
+
+            VSLangProj.VSProject project = (VSLangProj.VSProject)currentProject.Object;
+            project.References.AddProject(xleModelProject);
+        }
+
         private void TraverseCodeElements()
         {
+            xleModelImportStmtExist = false;
             foreach (CodeElement codeElement in classFile.FileCodeModel.CodeElements)
             {
                 ExpandSubCodeElement(codeElement);
+            }
+            if (!xleModelImportStmtExist)
+            {
+                EditPoint editPoint = lastImportStatement.EndPoint.CreateEditPoint();
+                editPoint.Insert("\r\nusing XleModel;");
             }
         }
 
@@ -154,6 +195,12 @@ namespace Generator
                         break;
                 }
             }
+            if (codeElement.Kind == vsCMElement.vsCMElementImportStmt)
+            {
+                lastImportStatement = (CodeImport)codeElement;
+                if (((CodeImport)codeElement).Namespace == "XleModel")
+                    xleModelImportStmtExist = true;
+            }
             foreach (CodeElement child in codeElement.Children)
             {
                 ExpandSubCodeElement(child);
@@ -162,7 +209,19 @@ namespace Generator
 
         public void GenerateClass()
         {
-            string variable = "", loadContent = "", draw = "";
+            ImportModelSourceToContentProject();
+
+            StringBuilder sb = new StringBuilder();
+            string variable = sb.
+                       Append("Camera camera;\r\n").ToString();
+            sb.Clear();
+            string loadContent = sb.
+                       Append("camera = new Camera();\r\n").
+                       Append("camera.Position = new Vector3(-4, 8, -25);\r\n").
+                       Append("camera.AspectRatio = GraphicsDevice.Viewport.AspectRatio;\r\n").
+                       Append("camera.Rotate(20, 55, 0);\r\n").ToString();
+            sb.Clear();
+            string draw = "";
             foreach (CodeLines codeLines in codeLinesList)
             {
                 variable += codeLines.Code[CodeLines.CodePosition.Variable] + "\r\n";
@@ -206,127 +265,66 @@ namespace Generator
             }
         }
 
-        public bool LoadClasses()
+        public void ImportModelSourceToContentProject()
         {
-            
-            if (applicationObject.Solution == null)
+            foreach (DrawingObject obj in mapModel.Objects)
             {
-                return false;
-            }
-            else
-            {
-                Solution2 solution = (Solution2) applicationObject.Solution;
-                
-                output = "Solution: " + solution.FullName + "\r\n";
-                foreach (Project project in solution.Projects)
+                string filename = Path.GetFileName(obj.SourceFile);
+                string target = Path.GetDirectoryName(contentProject.FullName) + "\\" + filename;
+                if (!File.Exists(target))
                 {
-                    output += "ProjectKind: " + project.Kind + "\r\n";
-                    output += "Project: " + project.FullName + "\r\n";
-                    
-                    foreach (ProjectItem projectItem in project.ProjectItems)
-                    {
-                        output += projectItem.Name + "\r\n";
-                        if (projectItem.FileCodeModel == null)
-                        {
-                            continue;
-                        }
-                        foreach (CodeElement codeElement in projectItem.FileCodeModel.CodeElements)
-                        {
-                            ExamineCodeElement(codeElement);
-                        }
-                    }
+                    File.Copy(obj.SourceFile, target);
                 }
-            }
-            return true;
-        }
-
-        public void ExamineCodeElement(CodeElement element)
-        {
-            string fullname = "";
-            try
-            {
-                fullname = element.FullName;
-            }
-            catch (Exception e)
-            {
-                output += e.Message;
-            }
-            output += element.Kind.ToString() + " " + fullname + "\r\n";
-
-            if (element.Kind == vsCMElement.vsCMElementFunction)
-            {
-                CodeFunction2 codeFunction = (CodeFunction2)element;
-                TextPoint startPoint = codeFunction.GetStartPoint(vsCMPart.vsCMPartBody);
-                TextPoint endPoint = codeFunction.GetEndPoint(vsCMPart.vsCMPartBody);
-                EditPoint editPoint = startPoint.CreateEditPoint();
                 try
                 {
-                    output += editPoint.GetText(endPoint) + "\r\n";
+                    ProjectItem item = currentProject.ProjectItems.Item(filename);
+                    if (item == null)
+                    {
+                        contentProject.ProjectItems.AddFromFile(target);
+                    }
                 }
                 catch
                 {
+                    contentProject.ProjectItems.AddFromFile(target);
                 }
             }
-
-            foreach (CodeElement elementChild in element.Children)
-            {
-                ExamineCodeElement(elementChild);
-            }
         }
+
+        private static string assemblyDirectory = null;
+        private CodeImport lastImportStatement;
 
         public static string AssemblyDirectory
         {
             get
             {
-                string codeBase = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-                UriBuilder uri = new UriBuilder(codeBase);
-                string path = Uri.UnescapeDataString(uri.Path);
-                return System.IO.Path.GetDirectoryName(path);
+                if (assemblyDirectory == null)
+                {
+                    string codeBase = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
+                    UriBuilder uri = new UriBuilder(codeBase);
+                    string path = Uri.UnescapeDataString(uri.Path);
+                    assemblyDirectory = System.IO.Path.GetDirectoryName(path);
+                }
+                return assemblyDirectory;
             }
         }
 
         /*
-         * CodeClass2 codeClass = null;
-         *foreach (CodeElement codeElement in projectItem.FileCodeModel.CodeElements)
-         *{
-         *    if (codeElement.Kind == vsCMElement.vsCMElementClass && codeElement.Name == className)
-         *        codeClass = (CodeClass2)codeElement;
-         *}
-         *
-         *return codeClass;
+         * 
+         *  foreach (DrawingObject obj in trueModel.Objects)
+            {
+                try
+                {
+                    string filename = Path.GetFileName(obj.SourceFile);
+                    File.Copy(obj.SourceFile, Path.GetDirectoryName(project.FullName) + "\\" + filename, true);
+                    project.ProjectItems.AddFromFile(Path.GetDirectoryName(project.FullName) + "\\" + filename);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                    project.ProjectItems.AddFromFile(obj.SourceFile);
+                }
+            }
          */
 
-        /*
-         * if (project.FullName.Contains(".contentproj"))
-                    {
-                        foreach (DrawingObject obj in trueModel.Objects)
-                        {
-                            try
-                            {
-                                string filename = Path.GetFileName(obj.SourceFile);
-                                File.Copy(obj.SourceFile, Path.GetDirectoryName(project.FullName) + "\\" + filename, true);
-                                project.ProjectItems.AddFromFile(Path.GetDirectoryName(project.FullName) + "\\" + filename);
-                            }
-                            catch (Exception ex)
-                            {
-                                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-                                project.ProjectItems.AddFromFile(obj.SourceFile);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //String csItemTemplatePath = ((Solution2)applicationObject.Solution).GetProjectItemTemplate("CodeFile", "CSharp");
-                        project.ProjectItems.AddFromTemplate(AssemblyDirectory + "\\templates\\Game1.cs", "MyCode.cs");
-                        ProjectItem projectItem = project.ProjectItems.Item("MyCode.cs");
-                        CodeNamespace windowsGame1 = ((FileCodeModel2)projectItem.FileCodeModel).AddNamespace("WindowsGame1", -1);
-                        CodeClass2 chess = (CodeClass2)windowsGame1.AddClass("Chess", -1, null, null, vsCMAccess.vsCMAccessDefault);
-                        CodeFunction2 cf = (CodeFunction2)chess.AddFunction("Move", vsCMFunction.vsCMFunctionFunction, "int", -1, vsCMAccess.vsCMAccessDefault, null);
-                        cf.AddParameter("isOk", "bool", -1);
-                        TextPoint tp = cf.GetStartPoint(vsCMPart.vsCMPartBody);
-                        EditPoint ep = tp.CreateEditPoint();
-                        ep.Insert("string test = \"Hello World!\";");
-                    }
-         */
     }
 }

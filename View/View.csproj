@@ -79,12 +79,6 @@
     <Compile Include="ChooseClassForm.Designer.cs">
       <DependentUpon>ChooseClassForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="CodeBrowser.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="CodeBrowser.Designer.cs">
-      <DependentUpon>CodeBrowser.cs</DependentUpon>
-    </Compile>
     <Compile Include="Editor.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -120,9 +114,6 @@
     <Compile Include="ServiceContainer.cs" />
     <EmbeddedResource Include="ChooseClassForm.resx">
       <DependentUpon>ChooseClassForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CodeBrowser.resx">
-      <DependentUpon>CodeBrowser.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Editor.resx">
       <DependentUpon>Editor.cs</DependentUpon>
