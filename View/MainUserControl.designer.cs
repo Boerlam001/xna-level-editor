@@ -36,6 +36,7 @@
             this.objectProperties2 = new View.ObjectProperties();
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             this.createFileStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -44,13 +45,13 @@
             this.editor1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             camera2.AspectRatio = 2.066879F;
+            camera2.EulerRotation = new Microsoft.Xna.Framework.Vector3(0.003046063F, 0.008376842F, -2.551715E-05F);
             camera2.FarPlaneDistance = 100F;
             camera2.FieldOfViewAngle = 0.7853982F;
             camera2.Name = "camera";
             camera2.NearPlaneDistance = 0.01F;
             camera2.Position = new Microsoft.Xna.Framework.Vector3(-4F, 8F, -25F);
             camera2.Rotation = new Microsoft.Xna.Framework.Quaternion(0.1540278F, 0.4547336F, -0.0801818F, 0.8735352F);
-            camera2.EulerRotation = new Microsoft.Xna.Framework.Vector3(0.003046063F, 0.008376842F, -2.551715E-05F);
             camera2.RotationX = 20F;
             camera2.RotationY = 55F;
             camera2.RotationZ = 0F;
@@ -85,7 +86,8 @@
             // menuStrip
             // 
             this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.createFileStripMenuItem});
+            this.createFileStripMenuItem,
+            this.openFileToolStripMenuItem});
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.Name = "menuStrip";
             this.menuStrip.Size = new System.Drawing.Size(674, 24);
@@ -98,6 +100,13 @@
             this.createFileStripMenuItem.Size = new System.Drawing.Size(74, 20);
             this.createFileStripMenuItem.Text = "Create File";
             this.createFileStripMenuItem.Click += new System.EventHandler(this.createFileStripMenuItem_Click);
+            // 
+            // openFileToolStripMenuItem
+            // 
+            this.openFileToolStripMenuItem.Name = "openFileToolStripMenuItem";
+            this.openFileToolStripMenuItem.Size = new System.Drawing.Size(69, 20);
+            this.openFileToolStripMenuItem.Text = "Open File";
+            this.openFileToolStripMenuItem.Click += new System.EventHandler(this.openFileToolStripMenuItem_Click);
             // 
             // MainUserControl
             // 
@@ -124,5 +133,6 @@
         private ObjectProperties objectProperties2;
         private System.Windows.Forms.MenuStrip menuStrip;
         private System.Windows.Forms.ToolStripMenuItem createFileStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openFileToolStripMenuItem;
     }
 }

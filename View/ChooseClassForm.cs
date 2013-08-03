@@ -27,6 +27,14 @@ namespace View
             }
         }
 
+        public bool IsOpen
+        {
+            get
+            {
+                return checkBox1.Checked;
+            }
+        }
+
         public ChooseClassForm()
         {
             InitializeComponent();

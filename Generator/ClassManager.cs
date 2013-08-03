@@ -4,14 +4,25 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Windows.Forms;
+using System.Globalization;
 using EnvDTE;
 using EnvDTE80;
 using EditorModel;
+using System.Text.RegularExpressions;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System.Web.UI;
 
 namespace Generator
 {
+    struct Foo
+    {
+        public object obj;
+    }
+
     public class ClassManager
     {
+        
         public static DTE2 applicationObject;
 
         ContentBuilder contentBuilder;
@@ -76,40 +87,59 @@ namespace Generator
             classFile.Save();
         }
 
-        public static ProjectItem SelectClass(string projectName, string className)
+        public ClassManager(MapModel mapModel, string projectName, string className, bool open)
         {
-            if (applicationObject.Solution == null)
+            this.mapModel = mapModel;
+            codeLinesList = new List<CodeLines>();
+            TraverseProjects(projectName);
+            if (!open)
+            {
+                classFile = AddClass(className);
+                classFile.Save();
+                TraverseCodeElements();
+                if (codeNamespace != null)
+                    codeNamespace.Name = projectName;
+                if (codeClass != null)
+                    codeClass.Name = className;
+            }
+            else
+            {
+                classFile = SelectClass(className);
+                TraverseCodeElements();
+                if (codeNamespace != null)
+                    codeNamespace.Name = projectName;
+                if (codeClass != null)
+                    codeClass.Name = className;
+            }
+        }
+
+        public ProjectItem SelectClass(string className)
+        {
+            if (applicationObject == null || currentProject == null)
             {
                 return null;
             }
             else
             {
-                Solution2 solution = (Solution2)applicationObject.Solution;
-                Project projectModel = null;
-                foreach (Project project in solution.Projects)
+                try
                 {
-                    if (project.Name == projectName)
-                        projectModel = project;
+                    return currentProject.ProjectItems.Item(className + ".cs");
                 }
-                if (projectModel == null)
+                catch
+                {
                     return null;
-                ProjectItem projectItem = projectModel.ProjectItems.Item(className + ".cs");
-
-                return projectItem;
+                }
             }
         }
 
         private ProjectItem AddClass(string className)
         {
-            if (applicationObject == null)
+            if (applicationObject == null || currentProject == null)
             {
                 return null;
             }
             else
             {
-                if (currentProject == null)
-                    return null;
-
                 if (File.Exists(Path.GetDirectoryName(currentProject.FullName) + "\\" + className + ".cs"))
                 {
                     File.Delete(Path.GetDirectoryName(currentProject.FullName) + "\\" + className + ".cs");
@@ -263,6 +293,156 @@ namespace Generator
                 editPoint.ReplaceText(movePoint, "\r\n" + draw, (int)vsEPReplaceTextOptions.vsEPReplaceTextAutoformat);
                 movePoint.SmartFormat(movePoint);
             }
+        }
+
+        public Dictionary<string, DrawingObject> ReadCodeLines()
+        {
+            EditPoint editPoint = null;
+            EditPoint movePoint = null;
+            string startPattern = "#region XnaLevelEditor";
+            string endPattern = "#endregion";
+
+            #region var declaration regex
+            /* reference http://stackoverflow.com/questions/585853/regex-for-variable-declaration-and-initialization-in-c-sharp
+             * 
+             * (a line can start with some spaces) followed by,
+               (Type) followed by
+               (at least one space)
+               (variable_1)
+               (optionally
+                  (comma // next var
+                   |
+                   '='number // initialization
+                   ) ...`
+             * 
+             * ^      \s*    \w+           \s+        \w+         ?          (','    |  '=' \d+   ) ...
+               line  some    type          at least  var          optionally   more  or init some
+               start spaces  (some chars)  one space (some chars)              vars     val  digits
+             * 
+             * 
+             * variable <variable>
+             * [a-zA-Z_][a-zA-Z0-9_]*
+             * simple declaration of DrawingObject
+             * \s*DrawingObject\s+<variable>\s*
+             * instantiation DrawingObject
+             * \s*<variable>\s*=\s*new\s+DrawingObject\(\)\s*
+             * declaration (and instantiationon) of DrawingObject
+             * \s*DrawingObject\s+<variable>(\s*=\s*new\s+DrawingObject\(\))?(,\s*<variable>\s*(=\s*new\s+DrawingObject\(\))))*
+             * integer or float <integerFloat>
+             * \-\d+(\.\d+f?)?
+             * variable, integer, or float <variableIntegerFloat>
+             * (<integerFloat>|<variable>)
+             * Content load
+             * ^\s*<variable>\s*\.\s*DrawingModel\s*=\s*Content\s*.\s*Load\s*<\s*Model\s*>\s*\(\s*\"\w+\"\s*\)\s*$
+             * instantiation Vector3 <instantiationVector3>
+             * \s*new\s+Vector3\s*\((\s*(<variableIntegerFloat>)\s*,\s*(<variableIntegerFloat>)\s*,\s*(<variableIntegerFloat>)\s*)?\)\s*
+             * set a DrawingObject's Position value
+             * \s*<variable>\s*\.\s*Position\s*=<instantiationVector3>
+             * set a DrawingObject's Rotation value
+             * \s*<variable>\s*\.\s*Rotation\s*=<instantiationVector3>
+             * 
+             */
+            #endregion
+            const string variableRegex = "[a-zA-Z_][a-zA-Z0-9_]*";
+            const string integerOrFloatRegex = "\\-?\\d+(.\\d+f?)?";
+            const string variableIntegerFloatRegex = integerOrFloatRegex + "|" + variableRegex;
+            const string declarationRegex = "^\\s*DrawingObject\\s+" + variableRegex + "\\s*$";
+          //const string instantiationRegex = "^\\s*" + variableRegex + "\\s*=\\s*new\\s+DrawingObject\\(\\)\\s*$";
+            const string loadContentRegex = "^\\s*" + variableRegex + "\\s*.\\s*DrawingModel\\s*=\\s*Content\\s*.\\s*Load\\s*<\\s*Model\\s*>\\s*\\(\\s*\\\"\\w+\\\"\\s*\\)\\s*$";
+            const string loadContentRegexStart = "^\\s*" + variableRegex + "\\s*.\\s*DrawingModel\\s*=\\s*Content\\s*.\\s*Load\\s*<\\s*Model\\s*>\\s*\\(\\s*\\\"";
+            const string loadContentRegexEnd = "\\\"\\s*\\)\\s*$";
+            const string instantiationVector3 = "\\s*new\\s+Vector3\\s*\\((\\s*(" + variableIntegerFloatRegex + ")\\s*,\\s*(" + variableIntegerFloatRegex + ")\\s*,\\s*(" + variableIntegerFloatRegex + ")\\s*)?\\)\\s*";
+            const string setPositionRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*Position\\s*=" + instantiationVector3 + "$";
+          //const string setPositionRegexStart = "^\\s*" + variableRegex + "\\s*.\\s*Position\\s*=\\s*new\\s+Vector3\\s*";
+            const string setRotationRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*EulerRotation\\s*=" + instantiationVector3 + "$";
+          //const string setRotationRegexStart = "^\\s*" + variableRegex + "\\s*.\\s*EulerRotation\\s*=\\s*new\\s+Vector3\\s*";
+            Dictionary<string, DrawingObject> objects = new Dictionary<string,DrawingObject>();
+
+            if (codeClass != null)
+            {
+                editPoint = codeClass.GetStartPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
+                editPoint.FindPattern(startPattern, (int)vsFindOptions.vsFindOptionsNone, ref editPoint);
+                movePoint = editPoint.CreateEditPoint();
+                movePoint.FindPattern(endPattern, (int)vsFindOptions.vsFindOptionsNone);
+                string lines = editPoint.GetText(movePoint);
+                foreach (string line in lines.Split(';'))
+                {
+                    if (Regex.IsMatch(line, declarationRegex))
+                    {
+                        string key = line.Replace("DrawingObject", "").Trim();
+                        objects.Add(key, new DrawingObject());
+                    }
+                }
+            }
+
+            if (loadContentFunction != null)
+            {
+                editPoint = loadContentFunction.GetStartPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
+                editPoint.FindPattern(startPattern, (int)vsFindOptions.vsFindOptionsNone, ref editPoint);
+                movePoint = editPoint.CreateEditPoint();
+                movePoint.FindPattern(endPattern, (int)vsFindOptions.vsFindOptionsNone);
+                string lines = editPoint.GetText(movePoint);
+                foreach (string line in lines.Split(';'))
+                {
+                    if (Regex.IsMatch(line, loadContentRegex))
+                    {
+                        string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+                        if (objects.Keys.Contains(varName))
+                        {
+                            string contentName = Regex.Replace(line, loadContentRegexStart + "|" + loadContentRegexEnd, "");
+                            try
+                            {
+                                ProjectItem item = contentProject.ProjectItems.Item(contentName + ".fbx");
+                                objects[varName].SourceFile = Path.GetDirectoryName(contentProject.FullName) + "\\" + contentName + ".fbx";
+                            }
+                            catch
+                            {
+                                objects.Remove(varName);
+                            }
+                        }
+                    }
+                    if (Regex.IsMatch(line, setPositionRegex))
+                    {
+                        string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+                        if (objects.Keys.Contains(varName))
+                        {
+                            string values = Regex.Replace(Regex.Match(line, "\\s*\\(.*\\)\\s*$").Value, "[\\(\\)\\sf]", "");
+
+                            if (values != "")
+                            {
+                                string[] valuesArray = values.Split(',');
+                                objects[varName].Position = new Vector3(float.Parse(valuesArray[0], CultureInfo.InvariantCulture), float.Parse(valuesArray[1], CultureInfo.InvariantCulture), float.Parse(valuesArray[2], CultureInfo.InvariantCulture));
+                            }
+                            else
+                            {
+                                objects[varName].Position = Vector3.Zero;
+                            }
+                            //Foo foo = new Foo() { obj = objects[varName] };
+                            //string expression = line.Split('=')[1];
+                            //objects[varName].Position = (Vector3) DataBinder.GetIndexedPropertyValue(foo, expression);
+                        }
+                    }
+                    if (Regex.IsMatch(line, setRotationRegex))
+                    {
+                        string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+                        if (objects.Keys.Contains(varName))
+                        {
+                            string values = Regex.Replace(Regex.Match(line, "\\s*\\(.*\\)\\s*$").Value, "[\\(\\)\\sf]", "");
+
+                            if (values != "")
+                            {
+                                string[] valuesArray = values.Split(',');
+                                objects[varName].EulerRotation = new Vector3(float.Parse(valuesArray[0], CultureInfo.InvariantCulture), float.Parse(valuesArray[1], CultureInfo.InvariantCulture), float.Parse(valuesArray[2], CultureInfo.InvariantCulture));
+                            }
+                            else
+                            {
+                                objects[varName].EulerRotation = Vector3.Zero;
+                            }
+                        }
+                    }
+                }
+            }
+            return objects;
         }
 
         public void ImportModelSourceToContentProject()

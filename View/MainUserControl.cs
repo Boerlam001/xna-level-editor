@@ -30,7 +30,17 @@ namespace View
                     ChooseClassForm form = new ChooseClassForm();
                     while (form.ShowDialog() != DialogResult.OK) ;
                     ClassManager.applicationObject = applicationObject;
-                    classManager = new Generator.ClassManager(mapModel, form.ProjectName, form.ClassName);
+                    classManager = new Generator.ClassManager(mapModel, form.ProjectName, form.ClassName, form.IsOpen);
+                    if (form.IsOpen)
+                    {
+                        Dictionary<string, DrawingObject> objects = classManager.ReadCodeLines();
+                        foreach (string key in objects.Keys)
+                        {
+                            string file = objects[key].SourceFile;
+                            string name = System.IO.Path.GetFileNameWithoutExtension(file);
+                            editor1.AddObject(file, name, objects[key].Position, objects[key].EulerRotation);
+                        }
+                    }
                 }
                 else
                 {
@@ -106,6 +116,10 @@ namespace View
         private void createFileStripMenuItem_Click(object sender, EventArgs e)
         {
             classManager.GenerateClass();
+        }
+
+        private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
         }
     }
 }

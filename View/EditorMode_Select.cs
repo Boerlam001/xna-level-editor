@@ -133,7 +133,7 @@ namespace View
                 foreach (string file in files)
                 {
                     string name = file.Substring(file.LastIndexOf('\\') + 1);
-                    editor.AddObject(file, name, Helper.Put(editor.GraphicsDevice, editor.Camera, mouseX, mouseY, 3));
+                    editor.AddObject(file, name, Helper.Put(editor.GraphicsDevice, editor.Camera, mouseX, mouseY, 3), Vector3.Zero);
                 }
             }
         }

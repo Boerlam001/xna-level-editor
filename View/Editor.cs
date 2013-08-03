@@ -151,7 +151,7 @@ namespace View
             graphicsDeviceControl1.Invalidate();
         }
 
-        public void AddObject(string file, string name, Vector3 position)
+        public void AddObject(string file, string name, Vector3 position, Vector3 eulerRotation)
         {
             DrawingObject obj = new DrawingObject();
 
@@ -167,6 +167,7 @@ namespace View
             obj.DrawingModel = OpenModel(file);
             obj.Name = name;
             obj.Position = position;
+            obj.EulerRotation = eulerRotation;
             obj.SourceFile = file;
             obj.Attach(this);
             mapModel.Objects.Add(obj);
