@@ -35,8 +35,6 @@
             this.graphicsDeviceControl1 = new View.GraphicsDeviceControl();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripButton1 = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
-            this.toolStripButton3 = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripButton4 = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton5 = new System.Windows.Forms.ToolStripButton();
@@ -83,17 +81,15 @@
             this.toolStrip1.Dock = System.Windows.Forms.DockStyle.Left;
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripButton1,
-            this.toolStripButton2,
-            this.toolStripButton3,
+            this.translateModeToolStripButton,
+            this.rotateModeToolStripButton,
             this.toolStripSeparator1,
             this.toolStripButton4,
             this.toolStripButton5,
-            this.toolStripSeparator2,
-            this.translateModeToolStripButton,
-            this.rotateModeToolStripButton});
+            this.toolStripSeparator2});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(24, 336);
+            this.toolStrip1.Size = new System.Drawing.Size(32, 336);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -103,31 +99,13 @@
             this.toolStripButton1.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton1.Image")));
             this.toolStripButton1.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton1.Name = "toolStripButton1";
-            this.toolStripButton1.Size = new System.Drawing.Size(21, 20);
+            this.toolStripButton1.Size = new System.Drawing.Size(29, 20);
             this.toolStripButton1.Text = "toolStripButton1";
-            // 
-            // toolStripButton2
-            // 
-            this.toolStripButton2.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton2.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton2.Image")));
-            this.toolStripButton2.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton2.Name = "toolStripButton2";
-            this.toolStripButton2.Size = new System.Drawing.Size(21, 20);
-            this.toolStripButton2.Text = "toolStripButton2";
-            // 
-            // toolStripButton3
-            // 
-            this.toolStripButton3.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.toolStripButton3.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton3.Image")));
-            this.toolStripButton3.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.toolStripButton3.Name = "toolStripButton3";
-            this.toolStripButton3.Size = new System.Drawing.Size(21, 20);
-            this.toolStripButton3.Text = "toolStripButton3";
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(21, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(29, 6);
             // 
             // toolStripButton4
             // 
@@ -135,7 +113,7 @@
             this.toolStripButton4.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton4.Image")));
             this.toolStripButton4.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton4.Name = "toolStripButton4";
-            this.toolStripButton4.Size = new System.Drawing.Size(21, 20);
+            this.toolStripButton4.Size = new System.Drawing.Size(29, 20);
             this.toolStripButton4.Text = "toolStripButton4";
             // 
             // toolStripButton5
@@ -144,13 +122,13 @@
             this.toolStripButton5.Image = ((System.Drawing.Image)(resources.GetObject("toolStripButton5.Image")));
             this.toolStripButton5.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.toolStripButton5.Name = "toolStripButton5";
-            this.toolStripButton5.Size = new System.Drawing.Size(21, 20);
+            this.toolStripButton5.Size = new System.Drawing.Size(29, 20);
             this.toolStripButton5.Text = "toolStripButton5";
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(21, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(29, 6);
             // 
             // translateModeToolStripButton
             // 
@@ -160,7 +138,7 @@
             this.translateModeToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("translateModeToolStripButton.Image")));
             this.translateModeToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.translateModeToolStripButton.Name = "translateModeToolStripButton";
-            this.translateModeToolStripButton.Size = new System.Drawing.Size(21, 20);
+            this.translateModeToolStripButton.Size = new System.Drawing.Size(29, 20);
             this.translateModeToolStripButton.Text = "translateModeToolStripButton";
             this.translateModeToolStripButton.Click += new System.EventHandler(this.translateModeToolStripButton_Click);
             // 
@@ -170,7 +148,7 @@
             this.rotateModeToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("rotateModeToolStripButton.Image")));
             this.rotateModeToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.rotateModeToolStripButton.Name = "rotateModeToolStripButton";
-            this.rotateModeToolStripButton.Size = new System.Drawing.Size(21, 20);
+            this.rotateModeToolStripButton.Size = new System.Drawing.Size(29, 20);
             this.rotateModeToolStripButton.Text = "rotateModeToolStripButton";
             this.rotateModeToolStripButton.Click += new System.EventHandler(this.rotateModeToolStripButton_Click);
             // 
@@ -196,8 +174,6 @@
         private GraphicsDeviceControl graphicsDeviceControl1;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton toolStripButton1;
-        private System.Windows.Forms.ToolStripButton toolStripButton2;
-        private System.Windows.Forms.ToolStripButton toolStripButton3;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton toolStripButton4;
         private System.Windows.Forms.ToolStripButton toolStripButton5;

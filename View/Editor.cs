@@ -15,7 +15,7 @@ namespace View
 {
     public partial class Editor : UserControl, IObserver
     {
-        MapModel mapModel;
+        private MapModel mapModel;
         
         public MapModel MapModel
         {
@@ -23,7 +23,7 @@ namespace View
             set { mapModel = value; }
         }
 
-        MainUserControl mainUserControl;
+        private MainUserControl mainUserControl;
 
         public MainUserControl MainUserControl
         {
@@ -34,30 +34,19 @@ namespace View
             }
         }
 
-        Camera camera;
+        private Camera camera;
 
         public Camera Camera
         {
             get { return camera; }
-            set { camera = value; }
         }
 
-        ContentManager contentManager;
-
-        ContentBuilder contentBuilder;
+        private ContentBuilder contentBuilder;
 
         public ContentBuilder ContentBuilder
         {
             get { return contentBuilder; }
-            set { contentBuilder = value; }
         }
-
-        BasicEffect basicEffect;
-
-        private bool moveForward;
-        private bool moveBackward;
-        private bool moveLeft;
-        private bool moveRight;
 
         private DrawingObject selected;
 
@@ -72,7 +61,6 @@ namespace View
         public ModelBoundingBox SelectedBoundingBox
         {
             get { return selectedBoundingBox; }
-            set { selectedBoundingBox = value; }
         }
 
         private EditorMode editorMode;
@@ -97,11 +85,23 @@ namespace View
         public SpriteFont SpriteFont
         {
             get { return spriteFont; }
-            set { spriteFont = value; }
         }
 
-        Terrain terrain = new Terrain();
-        private string text;
+        private Terrain terrain;
+
+        public Terrain Terrain
+        {
+            get { return terrain; }
+        }
+
+        private BasicEffect basicEffect;
+        private Effect terrainEffect;
+        private bool moveForward;
+        private bool moveBackward;
+        private bool moveLeft;
+        private bool moveRight;
+        private ContentManager contentManager;
+        private Texture2D heightMap;
 
         public Editor()
         {
@@ -109,41 +109,46 @@ namespace View
         }
 
         private void Editor_Load(object sender, EventArgs e)
-        {
+        {            
+            basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
+            contentBuilder = ContentBuilder.Instance;
+            contentManager = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
+            spriteBatch = new SpriteBatch(graphicsDeviceControl1.GraphicsDevice);
+            
+            string errorBuild = "";
             try
             {
-                basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
-
-                contentBuilder = new ContentBuilder();
-                contentManager = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
-
                 //importer reference: http://msdn.microsoft.com/en-us/library/bb447762%28v=xnagamestudio.20%29.aspx
                 contentBuilder.Add(AssemblyDirectory + "\\SegoeUI.spritefont", "SegoeUI.spritefont", null, "FontDescriptionProcessor");
-                string errorBuild = contentBuilder.Build();
-
-                spriteBatch = new SpriteBatch(graphicsDeviceControl1.GraphicsDevice);
+                contentBuilder.Add(AssemblyDirectory + "\\effects.fx", "effects", null, "EffectProcessor");
+                contentBuilder.Add(AssemblyDirectory + "\\heightmap.bmp", "heightmap", null, "TextureProcessor");
+                errorBuild = contentBuilder.Build();
                 spriteFont = contentManager.Load<SpriteFont>("SegoeUI.spritefont");
-
-                camera = new Camera();
-                camera.Position = new Vector3(-4, 8, -25);
-                camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
-                camera.Rotate(20, 55, 0);
-                camera.Attach(this);
-
-                selected = null;
-                selectedBoundingBox = new ModelBoundingBox(graphicsDeviceControl1.GraphicsDevice, camera);
-                selectedBoundingBox.SpriteBatch = spriteBatch;
-                selectedBoundingBox.SpriteFont = spriteFont;
-                CheckActiveTransformMode();
-
-                editorMode = new EditorMode_Select(this);
-
-                graphicsDeviceControl1.Invalidate();
+                terrainEffect = contentManager.Load<Effect>("effects");
+                heightMap = contentManager.Load<Texture2D>("heightmap");
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace + "\r\n" + errorBuild);
             }
+
+            terrain = new Terrain(heightMap);
+
+            camera = new Camera();
+            camera.Position = new Vector3(0, terrain.HeightData[0, 0] + 1, 0);
+            camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
+            camera.Rotate(0, 135, 0);
+            camera.Attach(this);
+
+            selected = null;
+            selectedBoundingBox = new ModelBoundingBox(graphicsDeviceControl1.GraphicsDevice, camera);
+            selectedBoundingBox.SpriteBatch = spriteBatch;
+            selectedBoundingBox.SpriteFont = spriteFont;
+            CheckActiveTransformMode();
+
+            editorMode = new EditorMode_Select(this);
+
+            graphicsDeviceControl1.Invalidate();
         }
 
         void IObserver.Update()
@@ -224,7 +229,7 @@ namespace View
         
         private void graphicsDeviceControl1_Paint(object sender, PaintEventArgs e)
         {
-            graphicsDeviceControl1.GraphicsDevice.Clear(Microsoft.Xna.Framework.Color.DarkGray);
+            graphicsDeviceControl1.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Microsoft.Xna.Framework.Color.Black, 1.0f, 0);
 
             if (mapModel != null)
                 foreach (DrawingObject obj in mapModel.Objects)
@@ -233,10 +238,17 @@ namespace View
             basicEffect.View = camera.World;
             basicEffect.Projection = camera.Projection;
 
-            terrain.Draw(basicEffect, graphicsDeviceControl1.GraphicsDevice);
+            try
+            {
+                terrain.Draw(basicEffect, terrainEffect, graphicsDeviceControl1.GraphicsDevice, camera);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+            }
 
             if (selected != null)
-                selectedBoundingBox.Draw(basicEffect);
+                selectedBoundingBox.Draw(ref basicEffect);
         }
 
         private void graphicsDeviceControl1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)

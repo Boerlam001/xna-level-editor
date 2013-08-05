@@ -87,10 +87,10 @@ namespace EditorModel
             camera.Attach(axisLines);
         }
 
-        public void Draw(BasicEffect basicEffect)
+        public void Draw(ref BasicEffect basicEffect)
         {
             boundingBoxBuffer.Draw(basicEffect);
-            axisLines.Draw(basicEffect, graphicsDevice);
+            axisLines.Draw(ref basicEffect, graphicsDevice);
         }
 
         public void Update()
@@ -111,7 +111,8 @@ namespace EditorModel
                         camera.Detach(axisLines);
                         axisLines = new AxisLines();
                         axisLines.Parent = this;
-                        model.Notify();
+                        if (model != null)
+                            model.Notify();
                         camera.Attach(axisLines);
                         camera.Notify();
                     }
@@ -122,7 +123,8 @@ namespace EditorModel
                         camera.Detach(axisLines);
                         axisLines = new RotationAxisLines();
                         axisLines.Parent = this;
-                        model.Notify();
+                        if (model != null)
+                            model.Notify();
                         camera.Attach(axisLines);
                         camera.Notify();
                     }

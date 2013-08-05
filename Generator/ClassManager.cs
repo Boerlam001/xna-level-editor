@@ -11,18 +11,11 @@ using EditorModel;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Web.UI;
 
 namespace Generator
 {
-    struct Foo
-    {
-        public object obj;
-    }
-
     public class ClassManager
     {
-        
         public static DTE2 applicationObject;
 
         ContentBuilder contentBuilder;
@@ -239,6 +232,11 @@ namespace Generator
 
         public void GenerateClass()
         {
+            if (classFile == null)
+            {
+                return;
+            }
+
             ImportModelSourceToContentProject();
 
             StringBuilder sb = new StringBuilder();
@@ -293,6 +291,8 @@ namespace Generator
                 editPoint.ReplaceText(movePoint, "\r\n" + draw, (int)vsEPReplaceTextOptions.vsEPReplaceTextAutoformat);
                 movePoint.SmartFormat(movePoint);
             }
+
+            classFile.Save();
         }
 
         public Dictionary<string, DrawingObject> ReadCodeLines()
@@ -347,15 +347,10 @@ namespace Generator
             const string integerOrFloatRegex = "\\-?\\d+(.\\d+f?)?";
             const string variableIntegerFloatRegex = integerOrFloatRegex + "|" + variableRegex;
             const string declarationRegex = "^\\s*DrawingObject\\s+" + variableRegex + "\\s*$";
-          //const string instantiationRegex = "^\\s*" + variableRegex + "\\s*=\\s*new\\s+DrawingObject\\(\\)\\s*$";
             const string loadContentRegex = "^\\s*" + variableRegex + "\\s*.\\s*DrawingModel\\s*=\\s*Content\\s*.\\s*Load\\s*<\\s*Model\\s*>\\s*\\(\\s*\\\"\\w+\\\"\\s*\\)\\s*$";
-            const string loadContentRegexStart = "^\\s*" + variableRegex + "\\s*.\\s*DrawingModel\\s*=\\s*Content\\s*.\\s*Load\\s*<\\s*Model\\s*>\\s*\\(\\s*\\\"";
-            const string loadContentRegexEnd = "\\\"\\s*\\)\\s*$";
             const string instantiationVector3 = "\\s*new\\s+Vector3\\s*\\((\\s*(" + variableIntegerFloatRegex + ")\\s*,\\s*(" + variableIntegerFloatRegex + ")\\s*,\\s*(" + variableIntegerFloatRegex + ")\\s*)?\\)\\s*";
             const string setPositionRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*Position\\s*=" + instantiationVector3 + "$";
-          //const string setPositionRegexStart = "^\\s*" + variableRegex + "\\s*.\\s*Position\\s*=\\s*new\\s+Vector3\\s*";
             const string setRotationRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*EulerRotation\\s*=" + instantiationVector3 + "$";
-          //const string setRotationRegexStart = "^\\s*" + variableRegex + "\\s*.\\s*EulerRotation\\s*=\\s*new\\s+Vector3\\s*";
             Dictionary<string, DrawingObject> objects = new Dictionary<string,DrawingObject>();
 
             if (codeClass != null)
@@ -389,7 +384,7 @@ namespace Generator
                         string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
                         if (objects.Keys.Contains(varName))
                         {
-                            string contentName = Regex.Replace(line, loadContentRegexStart + "|" + loadContentRegexEnd, "");
+                            string contentName = Regex.Replace(Regex.Match(line, "\\s*\\(.*\\)\\s*$").Value.Trim(), "(^\\(\\s*\\\")|(\\\"\\s*\\)$)", "");
                             try
                             {
                                 ProjectItem item = contentProject.ProjectItems.Item(contentName + ".fbx");
@@ -417,9 +412,6 @@ namespace Generator
                             {
                                 objects[varName].Position = Vector3.Zero;
                             }
-                            //Foo foo = new Foo() { obj = objects[varName] };
-                            //string expression = line.Split('=')[1];
-                            //objects[varName].Position = (Vector3) DataBinder.GetIndexedPropertyValue(foo, expression);
                         }
                     }
                     if (Regex.IsMatch(line, setRotationRegex))
@@ -487,24 +479,5 @@ namespace Generator
                 return assemblyDirectory;
             }
         }
-
-        /*
-         * 
-         *  foreach (DrawingObject obj in trueModel.Objects)
-            {
-                try
-                {
-                    string filename = Path.GetFileName(obj.SourceFile);
-                    File.Copy(obj.SourceFile, Path.GetDirectoryName(project.FullName) + "\\" + filename, true);
-                    project.ProjectItems.AddFromFile(Path.GetDirectoryName(project.FullName) + "\\" + filename);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-                    project.ProjectItems.AddFromFile(obj.SourceFile);
-                }
-            }
-         */
-
     }
 }

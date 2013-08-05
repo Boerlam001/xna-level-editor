@@ -128,9 +128,9 @@ namespace EditorModel
         public Camera()
         {
             name = "camera";
-            fieldOfViewAngle = MathHelper.ToRadians(45);
-            nearPlaneDistance = 0.01f;
-            farPlaneDistance = 100f;
+            fieldOfViewAngle = MathHelper.PiOver4;// MathHelper.ToRadians(45);
+            nearPlaneDistance = 0.1f;
+            farPlaneDistance = 300f;
             aspectRatio = 16 / 9;
             projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
         }

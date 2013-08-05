@@ -98,6 +98,23 @@ namespace EditorModel
             return new Ray(nearPoint, direction);
         }
 
+        public static Vector2 ScreenCoords(Vector3 v, Camera camera)
+        {
+            Matrix viewProj = camera.World * camera.Projection;
+            
+            Vector4 position = new Vector4(v, 1);
+            Vector4.Transform(ref position, ref viewProj, out position);
+            position /= position.W;
+
+            return new Vector2(position.X, position.Y);
+
+            //float
+            //    w = viewProj.M14 * v.X + viewProj.M24 * v.Y + viewProj.M34 * v.Z + viewProj.M44;
+            //return new Vector2(
+            //    (viewProj.M11 * v.X + viewProj.M21 * v.Y + viewProj.M31 * v.Z + viewProj.M41) / w,
+            //    (viewProj.M12 * v.X + viewProj.M22 * v.Y + viewProj.M32 * v.Z + viewProj.M42) / w);
+        }
+
         //reference: http://graphicdna.blogspot.com/2013/01/projecting-3d-vector-into-2d-screen.html
         public static Vector2 ProjectAndClipToViewport(Vector3 pVector, float pX, float pY,
                                 float pWidth, float pHeight, float pMinZ, float pMaxZ,
@@ -191,6 +208,31 @@ namespace EditorModel
 
             // Return pixel coordinates as 2D (change this to 3D if you need Z)
             return new Vector2(vProjected.X, vProjected.Y);
+        }
+
+        // reference http://ghoshehsoft.wordpress.com/2010/12/09/xna-picking-tutorial-part-ii/
+        public static BoundingFrustum UnprojectRectangle(Rectangle source, Viewport viewport, Matrix projection, Matrix view)
+        {
+            //http://forums.create.msdn.com/forums/p/6690/35401.aspx , by "The Friggm"
+            // Many many thanks to him...
+
+            // Point in screen space of the center of the region selected
+            Vector2 regionCenterScreen = new Vector2(source.Center.X, source.Center.Y);
+
+            // Generate the projection matrix for the screen region
+            Matrix regionProjMatrix = projection;
+
+            // Calculate the region dimensions in the projection matrix. M11 is inverse of width, M22 is inverse of height.
+            regionProjMatrix.M11 /= ((float)source.Width / (float)viewport.Width);
+            regionProjMatrix.M22 /= ((float)source.Height / (float)viewport.Height);
+
+            // Calculate the region center in the projection matrix. M31 is horizonatal center.
+            regionProjMatrix.M31 = (regionCenterScreen.X - (viewport.Width / 2f)) / ((float)source.Width / 2f);
+
+            // M32 is vertical center. Notice that the screen has low Y on top, projection has low Y on bottom.
+            regionProjMatrix.M32 = -(regionCenterScreen.Y - (viewport.Height / 2f)) / ((float)source.Height / 2f);
+
+            return new BoundingFrustum(view * regionProjMatrix);
         }
     }
 }

@@ -49,6 +49,14 @@ namespace View
             }
         }
 
+        private Window window;
+
+        public Window Window
+        {
+            get { return window; }
+            set { window = value; }
+        }
+
         public Editor Editor1
         {
             get

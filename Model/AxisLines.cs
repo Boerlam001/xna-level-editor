@@ -48,20 +48,11 @@ namespace EditorModel
 
                 axisVertices[0].Position = axisVertices[2].Position = axisVertices[4].Position = Vector3.Zero + position;
 
-                xOffset = new Vector3(10, 0, 0);
-                yOffset = new Vector3(0, 10, 0);
-                zOffset = new Vector3(0, 0, 10);
-
                 axisVertices[1].Position = xOffset + position;
                 axisVertices[3].Position = yOffset + position;
                 axisVertices[5].Position = zOffset + position;
 
-                axisBoundingBoxes = new BoundingBox[3]
-                {
-                    new BoundingBox(Vector3.Zero - xxOffset + position, xOffset + xxOffset + position),
-                    new BoundingBox(Vector3.Zero - yyOffset + position, yOffset + yyOffset + position),
-                    new BoundingBox(Vector3.Zero - zzOffset + position, zOffset + zzOffset + position)
-                };
+                CreateAxisBoundingBox();
             }
         }
 
@@ -99,9 +90,15 @@ namespace EditorModel
             axisVertices[4].Color = axisVertices[5].Color = Color.Blue;
             axisVertices[6].Color = axisVertices[7].Color = Color.Yellow;
 
-            xxOffset = new Vector3(0f, 0.05f, 0.05f);
-            yyOffset = new Vector3(0.05f, 0f, 0.05f);
-            zzOffset = new Vector3(0.05f, 0.05f, 0f);
+            axisBoundingBoxBuffers = new BoundingBoxBuffer[3];
+
+            xOffset = new Vector3(0.5f, 0, 0);
+            yOffset = new Vector3(0, 0.5f, 0);
+            zOffset = new Vector3(0, 0, 0.5f);
+
+            xxOffset = new Vector3(0f, 0.02f, 0.02f);
+            yyOffset = new Vector3(0.02f, 0f, 0.02f);
+            zzOffset = new Vector3(0.02f, 0.02f, 0f);
 
             //2d
             point0 = new Vector2();
@@ -115,9 +112,8 @@ namespace EditorModel
             text = "";
         }
 
-        public void Draw(BasicEffect effect, GraphicsDevice graphicsDevice)
+        public void Draw(ref BasicEffect effect, GraphicsDevice graphicsDevice)
         {
-            //Position = model.Position;
             effect.VertexColorEnabled = true;
             
             DepthStencilState d = new DepthStencilState();
@@ -135,13 +131,13 @@ namespace EditorModel
             graphicsDevice.SetVertexBuffer(null);
             graphicsDevice.Indices = null;
 
-            //for (int i = 0; i < 6; i++)
+            //for (int i = 0; i < 3; i++)
             //    axisBoundingBoxBuffers[i].Draw(effect);
 
             //try
             //{
             //    parent.SpriteBatch.Begin();
-            //    parent.SpriteBatch.DrawString(parent.SpriteFont, text, new Vector2(50, 50), Color.Black);
+            //    parent.SpriteBatch.DrawString(parent.SpriteFont, text, new Vector2(50, 50), Color.White);
             //    parent.SpriteBatch.End();
             //}
             //catch (Exception ex)
@@ -150,15 +146,51 @@ namespace EditorModel
             //}
         }
 
+        private bool OutOfBounds(Vector3 pos)
+        {
+            return !(pos.X >= 0 && pos.X <= parent.GraphicsDevice.Viewport.Bounds.Width && pos.Y >= 0 && pos.Y <= parent.GraphicsDevice.Viewport.Bounds.Height);
+        }
+
+        private void CreateAxisBoundingBox()
+        {
+            axisBoundingBoxes = new BoundingBox[3]
+            {
+                new BoundingBox(axisVertices[0].Position - xxOffset,  axisVertices[0].Position + xOffset + xxOffset),
+                new BoundingBox(axisVertices[0].Position - yyOffset,  axisVertices[0].Position + yOffset + yyOffset),
+                new BoundingBox(axisVertices[0].Position - zzOffset,  axisVertices[0].Position + zOffset + zzOffset)
+            };
+
+            for (int i = 0; i < 3; i++)
+            {
+                axisBoundingBoxBuffers[i] = new BoundingBoxBuffer(parent.GraphicsDevice);
+                axisBoundingBoxBuffers[i].BoundingBox = axisBoundingBoxes[i];
+            }
+        }
+
         public void Update()
         {
-            Position = position;
             try
             {
+                Position = position;
                 Vector3 x1 = parent.GraphicsDevice.Viewport.Project(axisVertices[0].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
                 Vector3 x2 = parent.GraphicsDevice.Viewport.Project(axisVertices[1].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity); //Helper.ProjectAndClipToViewport(axisVertices[1].Position, 0, 0, parent.GraphicsDevice.Viewport.Width, parent.GraphicsDevice.Viewport.Height, 0, 1, parent.Camera.World, out pointXWasInsideScreen);
                 Vector3 y2 = parent.GraphicsDevice.Viewport.Project(axisVertices[3].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
                 Vector3 z2 = parent.GraphicsDevice.Viewport.Project(axisVertices[5].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
+
+                Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, x1.X, x1.Y);
+                Vector3 screenToAxis = ray.Direction * 2;
+                if (screenToAxis.Length() < (axisVertices[0].Position - ray.Position).Length())
+                {
+                    Vector3 temp = axisVertices[0].Position;
+                    axisVertices[0].Position = ray.Position + screenToAxis;
+                    temp = axisVertices[0].Position - temp;
+                    for (int i = 1; i < 6; i++)
+                    {
+                        axisVertices[i].Position += temp;
+                    }
+
+                    CreateAxisBoundingBox();
+                }
 
                 point0.X = x1.X;
                 point0.Y = x1.Y;
@@ -168,73 +200,6 @@ namespace EditorModel
                 pointY.Y = y2.Y;
                 pointZ.X = z2.X;
                 pointZ.Y = z2.Y;
-
-                axisBoundingBoxBuffers = new BoundingBoxBuffer[6];
-                for (int i = 0; i < 3; i++)
-                {
-                    axisBoundingBoxBuffers[i] = new BoundingBoxBuffer(parent.GraphicsDevice);
-                    axisBoundingBoxBuffers[i].BoundingBox = axisBoundingBoxes[i];
-                }
-
-                axisCount = 3;
-
-                Vector2 direction = pointX - point0;
-                float dist = direction.Length(), length = 100;
-                if (dist > length)
-                {
-                    direction.Normalize();
-                    pointX = point0 + direction * length;
-                    Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, pointX.X, pointX.Y);
-                    float? intersectsAt = ray.Intersects(axisBoundingBoxes[0]);
-                    if (intersectsAt != null)
-                    {
-                        xOffset.X = (ray.Position + ray.Direction * (float)intersectsAt - position).X;
-                    }
-                    axisVertices[1].Position = position + xOffset;
-                }
-
-                direction = pointY - point0;
-                dist = direction.Length();
-                if (dist > length)
-                {
-                    direction.Normalize();
-                    pointY = point0 + direction * length;
-                    Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, pointY.X, pointY.Y);
-                    float? intersectsAt = ray.Intersects(axisBoundingBoxes[1]);
-                    if (intersectsAt != null)
-                    {
-                        yOffset.Y = (ray.Position + ray.Direction * (float)intersectsAt - position).Y;
-                    }
-                    axisVertices[3].Position = position + yOffset;
-                }
-
-                direction = pointZ - point0;
-                dist = direction.Length();
-                if (dist > length)
-                {
-                    direction.Normalize();
-                    pointZ = point0 + direction * length;
-                    Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, pointZ.X, pointZ.Y);
-                    float? intersectsAt = ray.Intersects(axisBoundingBoxes[2]);
-                    if (intersectsAt != null)
-                    {
-                        zOffset.Z = (ray.Position + ray.Direction * (float)intersectsAt - position).Z;
-                    }
-                    axisVertices[5].Position = position + zOffset;
-                }
-
-                axisBoundingBoxes = new BoundingBox[3]
-                {
-                    new BoundingBox(Vector3.Zero - xxOffset + position, xOffset + xxOffset + position),
-                    new BoundingBox(Vector3.Zero - yyOffset + position, yOffset + yyOffset + position),
-                    new BoundingBox(Vector3.Zero - zzOffset + position, zOffset + zzOffset + position)
-                };
-
-                for (int i = 3; i < 6; i++)
-                {
-                    axisBoundingBoxBuffers[i] = new BoundingBoxBuffer(parent.GraphicsDevice);
-                    axisBoundingBoxBuffers[i].BoundingBox = axisBoundingBoxes[i - 3];
-                }
             }
             catch (Exception ex)
             {
@@ -366,5 +331,141 @@ namespace EditorModel
             dragStarted = false;
             this.min = -1;
         }
+
+
+
+        /*
+                //if ((axisVertices[0].Position - parent.Camera.Position).Z > 0)
+                //{
+                    //float lengthX = (axisVertices[1].Position - axisVertices[0].Position).Length(), subtractor = 1;
+                    //while (OutOfBounds(x2) && lengthX > 0)
+                    //{
+                    //    lengthX -= subtractor;
+                    //    if (lengthX == 0)
+                    //    {
+                    //        lengthX += subtractor;
+                    //        subtractor /= 10;
+                    //        lengthX -= subtractor;
+                    //    }
+                    //    x2 = parent.GraphicsDevice.Viewport.Project(axisVertices[0].Position + new Vector3(lengthX, 0, 0), parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
+                    //}
+                    //
+                    //float lengthY = (axisVertices[3].Position - axisVertices[0].Position).Length(); subtractor = 1;
+                    //while (OutOfBounds(y2) && lengthY > 0)
+                    //{
+                    //    lengthY -= subtractor;
+                    //    if (lengthY == 0)
+                    //    {
+                    //        lengthY += subtractor;
+                    //        subtractor /= 10;
+                    //        lengthY -= subtractor;
+                    //    }
+                    //    y2 = parent.GraphicsDevice.Viewport.Project(axisVertices[0].Position + new Vector3(0, lengthY, 0), parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
+                    //}
+                    //
+                    //float lengthZ = (axisVertices[5].Position - axisVertices[0].Position).Length(); subtractor = 1;
+                    //while (OutOfBounds(z2) && lengthZ > 0)
+                    //{
+                    //    lengthZ -= subtractor;
+                    //    if (lengthX == 0)
+                    //    {
+                    //        lengthZ += subtractor;
+                    //        subtractor /= 10;
+                    //        lengthZ -= subtractor;
+                    //    }
+                    //    z2 = parent.GraphicsDevice.Viewport.Project(axisVertices[0].Position + new Vector3(0, 0, lengthZ), parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
+                    //}
+                    //
+                    //text =
+                    //x1.ToString() + "\r\n" +
+                    //x2.ToString() + " " + lengthX + "\r\n" +
+                    //y2.ToString() + " " + lengthY + "\r\n" +
+                    //z2.ToString() + " " + lengthZ;
+                //}
+                //else
+                //{
+                //    text =
+                //    x1.ToString() + "\r\n" +
+                //    x2.ToString() + " " + (axisVertices[0].Position - parent.Camera.Position).Z + "\r\n" +
+                //    y2.ToString() + "\r\n" +
+                //    z2.ToString();
+                //}
+
+                //point0.X = x1.X;
+                //point0.Y = x1.Y;
+                //pointX.X = x2.X;
+                //pointX.Y = x2.Y;
+                //pointY.X = y2.X;
+                //pointY.Y = y2.Y;
+                //pointZ.X = z2.X;
+                //pointZ.Y = z2.Y;
+                //
+                //axisBoundingBoxBuffers = new BoundingBoxBuffer[6];
+                //for (int i = 0; i < 3; i++)
+                //{
+                //    axisBoundingBoxBuffers[i] = new BoundingBoxBuffer(parent.GraphicsDevice);
+                //    axisBoundingBoxBuffers[i].BoundingBox = axisBoundingBoxes[i];
+                //}
+                //
+                //axisCount = 3;
+                //
+                //Vector2 direction = pointX - point0;
+                //float dist = direction.Length(), length = 100;
+                //if (dist > length)
+                //{
+                //    direction.Normalize();
+                //    pointX = point0 + direction * length;
+                //    Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, pointX.X, pointX.Y);
+                //    float? intersectsAt = ray.Intersects(axisBoundingBoxes[0]);
+                //    if (intersectsAt != null)
+                //    {
+                //        xOffset.X = (ray.Position + ray.Direction * (float)intersectsAt - position).X;
+                //    }
+                //    axisVertices[1].Position = position + xOffset;
+                //}
+                //
+                //direction = pointY - point0;
+                //dist = direction.Length();
+                //if (dist > length)
+                //{
+                //    direction.Normalize();
+                //    pointY = point0 + direction * length;
+                //    Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, pointY.X, pointY.Y);
+                //    float? intersectsAt = ray.Intersects(axisBoundingBoxes[1]);
+                //    if (intersectsAt != null)
+                //    {
+                //        yOffset.Y = (ray.Position + ray.Direction * (float)intersectsAt - position).Y;
+                //    }
+                //    axisVertices[3].Position = position + yOffset;
+                //}
+                //
+                //direction = pointZ - point0;
+                //dist = direction.Length();
+                //if (dist > length)
+                //{
+                //    direction.Normalize();
+                //    pointZ = point0 + direction * length;
+                //    Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, pointZ.X, pointZ.Y);
+                //    float? intersectsAt = ray.Intersects(axisBoundingBoxes[2]);
+                //    if (intersectsAt != null)
+                //    {
+                //        zOffset.Z = (ray.Position + ray.Direction * (float)intersectsAt - position).Z;
+                //    }
+                //    axisVertices[5].Position = position + zOffset;
+                //}
+                //
+                //axisBoundingBoxes = new BoundingBox[3]
+                //{
+                //    new BoundingBox(Vector3.Zero - xxOffset + position, xOffset + xxOffset + position),
+                //    new BoundingBox(Vector3.Zero - yyOffset + position, yOffset + yyOffset + position),
+                //    new BoundingBox(Vector3.Zero - zzOffset + position, zOffset + zzOffset + position)
+                //};
+                //
+                //for (int i = 3; i < 6; i++)
+                //{
+                //    axisBoundingBoxBuffers[i] = new BoundingBoxBuffer(parent.GraphicsDevice);
+                //    axisBoundingBoxBuffers[i].BoundingBox = axisBoundingBoxes[i - 3];
+                //}
+                 */
     }
 }

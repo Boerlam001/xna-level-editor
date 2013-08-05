@@ -104,11 +104,22 @@ namespace EditorModel
 
         #region Initialization
 
+        private static ContentBuilder instance;
+
+        public static ContentBuilder Instance
+        {
+            get
+            {
+                if (instance == null)
+                    instance = new ContentBuilder();
+                return ContentBuilder.instance;
+            }
+        }
 
         /// <summary>
-        /// Creates a new content builder.
+        /// Creates a new content builder. Private modifier to make it singleton
         /// </summary>
-        public ContentBuilder()
+        private ContentBuilder()
         {
             CreateTempDirectory();
             CreateBuildProject();
