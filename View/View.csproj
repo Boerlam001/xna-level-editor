@@ -86,13 +86,26 @@
       <DependentUpon>Editor.cs</DependentUpon>
     </Compile>
     <Compile Include="EditorMode.cs" />
-    <Compile Include="EditorMode_IncreaseHeight.cs" />
+    <Compile Include="EditorMode_Terrain.cs" />
     <Compile Include="EditorMode_Select.cs" />
+    <Compile Include="EditorMode_Terrain_IncreaseHeight.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form2.Designer.cs">
+      <DependentUpon>Form2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Form3.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form3.Designer.cs">
+      <DependentUpon>Form3.cs</DependentUpon>
     </Compile>
     <Compile Include="GraphicsDeviceControl.cs">
       <SubType>Component</SubType>
@@ -121,6 +134,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form2.resx">
+      <DependentUpon>Form2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form3.resx">
+      <DependentUpon>Form3.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainUserControl.resx">
       <DependentUpon>MainUserControl.cs</DependentUpon>
@@ -158,9 +177,9 @@
     <None Include="View.cd" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Generator\Generator.csproj">
+    <ProjectReference Include="..\Generator\XleGenerator.csproj">
       <Project>{8DB1B768-F1B7-4A90-A915-6591C13304B6}</Project>
-      <Name>Generator</Name>
+      <Name>XleGenerator</Name>
     </ProjectReference>
     <ProjectReference Include="..\Model\EditorModel.csproj">
       <Project>{2B7EF3A1-D1AA-424E-AF58-9A1BBD5F23B5}</Project>
@@ -174,6 +193,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="heightmap.bmp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="brush.bmp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

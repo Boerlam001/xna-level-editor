@@ -40,7 +40,7 @@ namespace EditorModel
                 model = value;
                 model.Attach(this);
                 model.Attach(axisLines);
-                Update();
+                UpdateObserver();
             }
         }
 
@@ -93,7 +93,7 @@ namespace EditorModel
             axisLines.Draw(ref basicEffect, graphicsDevice);
         }
 
-        public void Update()
+        public void UpdateObserver()
         {
             boundingBoxBuffer.BoundingBox = model.CreateBoundingBox();
             boundingBoxBuffer.Position = model.Position;

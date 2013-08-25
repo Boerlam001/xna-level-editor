@@ -8,7 +8,19 @@ namespace EditorModel
 {
     public class BaseObject : Subject
     {
+        protected float rotationX;
+        protected float rotationY;
+        protected float rotationZ;
+        protected Matrix world;
         protected string name;
+        
+        protected bool isMoving;
+
+        public bool IsMoving
+        {
+            get { return isMoving; }
+            set { isMoving = value; }
+        }
 
         public string Name
         {
@@ -18,7 +30,18 @@ namespace EditorModel
 
         protected Vector3 position;
         protected Quaternion rotation;
+        
         protected Vector3 scale;
+
+        public Vector3 Scale
+        {
+            get { return scale; }
+            set
+            {
+                scale = value;
+                world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
+            }
+        }
 
         protected Vector3 eulerRotation;
 
@@ -38,11 +61,6 @@ namespace EditorModel
                 OnRotationChanged(this, null);
             }
         }
-
-        protected float rotationX;
-        protected float rotationY;
-        protected float rotationZ;
-        protected Matrix world;
 
         public delegate void RotationChangedEventHandler(object sender, EventArgs e);
         public RotationChangedEventHandler RotationChanged;

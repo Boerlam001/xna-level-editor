@@ -52,6 +52,14 @@ namespace View
             set { EditorMode.mouseY = value; }
         }
 
+        protected string text;
+
+        public string Text
+        {
+            get { return text; }
+            set { text = value; }
+        }
+
         protected static float diffX;
         protected static float diffY;
 
@@ -59,6 +67,7 @@ namespace View
         {
             isMouseDown = isRotate = false;
             mouseX = mouseY = 0;
+            text = "";
         }
 
         public EditorMode(Editor editor)
@@ -66,6 +75,7 @@ namespace View
             isMouseDown = isRotate = false;
             mouseX = mouseY = 0;
             this.editor = editor;
+            text = "";
         }
 
         public abstract void PreviewKeyDown(object sender, PreviewKeyDownEventArgs e);
@@ -112,6 +122,8 @@ namespace View
             if (e.Button == System.Windows.Forms.MouseButtons.Right)
             {
                 isRotate = false;
+                editor.Camera.IsMoving = false;
+                editor.Camera.Notify();
             }
         }
                

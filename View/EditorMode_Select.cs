@@ -78,12 +78,13 @@ namespace View
                     editor.MainUserControl.ObjectProperties1.Model = editor.Selected;
                     editor.Selected.Notify();
                 }
-                ((IObserver) editor).Update();
+                ((IObserver) editor).UpdateObserver();
             }
         }
 
         public override void MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            //editor.Text1 += e.X + " " + e.Y + "\r\n";
             //base.MouseMove(sender, e);
             diffX = (float)(e.X - mouseX);
             diffY = (float)(e.Y - mouseY);
@@ -94,7 +95,7 @@ namespace View
                 {
                     editor.SelectedBoundingBox.AxisLines.OnMouseMove(e.X, e.Y);
                     editor.Selected.Notify();
-                    ((IObserver)editor).Update();
+                    ((IObserver)editor).UpdateObserver();
                 }
             }
             mouseX = e.X;

@@ -20,6 +20,7 @@ namespace EditorModel
             set
             {
                 position = value;
+                isMoving = true;
                 LookAt();
             }
         }
@@ -28,9 +29,9 @@ namespace EditorModel
         {
             get { return rotation; }
             set
-            {
-                
+            {                
                 rotation = value;
+                isMoving = true;
                 Helper.QuaternionToEuler(rotation, out rotationX, out rotationY, out rotationZ);
                 LookAt();
                 OnRotationChanged(this, null);
@@ -43,6 +44,7 @@ namespace EditorModel
             set
             {
                 rotationX = value % 360;
+                isMoving = true;
                 if (rotationX < 0)
                     rotationX = 360 + rotationX;
                 //if (rotationX > 90 && rotationX < 180)
@@ -60,6 +62,7 @@ namespace EditorModel
             set
             {
                 rotationY = value % 360;
+                isMoving = true;
                 if (rotationY < 0)
                     rotationY = 360 + rotationY;
                 LookAt();
@@ -73,6 +76,7 @@ namespace EditorModel
             set
             {
                 rotationZ = value % 360;
+                isMoving = true;
                 if (rotationZ < 0)
                     rotationZ = 360 + rotationZ;
                 LookAt();
@@ -129,10 +133,11 @@ namespace EditorModel
         {
             name = "camera";
             fieldOfViewAngle = MathHelper.PiOver4;// MathHelper.ToRadians(45);
-            nearPlaneDistance = 0.1f;
-            farPlaneDistance = 300f;
+            nearPlaneDistance = 1f;
+            farPlaneDistance = 2000f;
             aspectRatio = 16 / 9;
             projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
+            isMoving = false;
         }
 
         public override void Rotate(float x, float y, float z)
@@ -140,6 +145,7 @@ namespace EditorModel
             rotationY += y;
             rotationX += x;
             rotationZ += z;
+            isMoving = true;
             LookAt();
         }
 
@@ -148,7 +154,7 @@ namespace EditorModel
             Matrix rotationMatrix = Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ));
             Vector3 transformedReference = Vector3.Transform(rotationReference, rotationMatrix);
             Vector3 lookAtVector = position + transformedReference;
-            world = Matrix.CreateLookAt(position, lookAtVector, Vector3.Up);
+            world = Matrix.CreateScale(scale) * Matrix.CreateLookAt(position, lookAtVector, Vector3.Up);
             Vector3 s, t;
             rotationMatrix.Decompose(out s, out rotation, out t);
         }

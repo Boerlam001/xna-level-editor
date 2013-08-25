@@ -56,16 +56,20 @@ namespace EditorModel
             }
         }
 
+        protected string text;
+
+        public string Text
+        {
+            get { return text; }
+        }
+
         protected Vector3 xOffset;
         protected Vector3 yOffset;
         protected Vector3 zOffset;
         protected Vector3 xxOffset;
         protected Vector3 yyOffset;
         protected Vector3 zzOffset;
-
         protected BoundingBoxBuffer[] axisBoundingBoxBuffers;
-
-        protected string text;
         protected Vector3 posistionStart;
         protected Vector2 point0Start;
 
@@ -118,32 +122,21 @@ namespace EditorModel
             
             DepthStencilState d = new DepthStencilState();
             d.DepthBufferEnable = false;
+            graphicsDevice.DepthStencilState = d;
 
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
 
-                graphicsDevice.DepthStencilState = d;
                 graphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, axisVertices, 0, axisCount);
-                graphicsDevice.DepthStencilState = DepthStencilState.Default;
             }
-            
+
+            graphicsDevice.DepthStencilState = DepthStencilState.Default;
             graphicsDevice.SetVertexBuffer(null);
             graphicsDevice.Indices = null;
 
             //for (int i = 0; i < 3; i++)
             //    axisBoundingBoxBuffers[i].Draw(effect);
-
-            //try
-            //{
-            //    parent.SpriteBatch.Begin();
-            //    parent.SpriteBatch.DrawString(parent.SpriteFont, text, new Vector2(50, 50), Color.White);
-            //    parent.SpriteBatch.End();
-            //}
-            //catch (Exception ex)
-            //{
-            //    parent.SpriteBatch.End();
-            //}
         }
 
         private bool OutOfBounds(Vector3 pos)
@@ -167,7 +160,7 @@ namespace EditorModel
             }
         }
 
-        public void Update()
+        public void UpdateObserver()
         {
             try
             {
@@ -200,6 +193,9 @@ namespace EditorModel
                 pointY.Y = y2.Y;
                 pointZ.X = z2.X;
                 pointZ.Y = z2.Y;
+
+                text =
+                    x1.X + ", " + x1.Y + "\r\n";
             }
             catch (Exception ex)
             {

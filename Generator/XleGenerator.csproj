@@ -8,7 +8,7 @@
     <ProjectGuid>{8DB1B768-F1B7-4A90-A915-6591C13304B6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Generator</RootNamespace>
+    <RootNamespace>XleGenerator</RootNamespace>
     <AssemblyName>Generator</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -99,6 +99,7 @@
     <Compile Include="Compiler.cs" />
     <Compile Include="FileHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SolutionManager.cs" />
     <None Include="templates\XleModel\BaseObject.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

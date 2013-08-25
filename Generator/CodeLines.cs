@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using EditorModel;
 
-namespace Generator
+namespace XleGenerator
 {
     public class CodeLines : IObserver
     {
@@ -45,7 +45,7 @@ namespace Generator
             code = new Dictionary<CodePosition, string>();
         }
 
-        public void Update()
+        public void UpdateObserver()
         {
             StringBuilder sb = new StringBuilder();
             code[CodePosition.Variable] = sb.Append("DrawingObject ").Append(name).Append(";").ToString();

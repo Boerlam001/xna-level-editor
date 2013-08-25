@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="AxisLines.cs" />
     <Compile Include="BaseObject.cs" />
+    <Compile Include="BaseTerrain.cs" />
     <Compile Include="BoundingBoxBuffer.cs" />
     <Compile Include="Camera.cs" />
     <Compile Include="ContentBuilder.cs" />
@@ -94,6 +95,9 @@
     <Compile Include="RotationAxisLines.cs" />
     <Compile Include="Subject.cs" />
     <Compile Include="Terrain.cs" />
+    <Compile Include="TerrainBrush.cs" />
+    <Compile Include="TerrainIndexer.cs" />
+    <Compile Include="TerrainPointer.cs" />
     <Compile Include="TrueModel.cs" />
   </ItemGroup>
   <ItemGroup>

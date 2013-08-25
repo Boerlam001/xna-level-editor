@@ -162,8 +162,6 @@ namespace EditorModel
             }
 
             effect.World = Matrix.Identity;
-            graphicsDevice.SetVertexBuffer(null);
-            graphicsDevice.Indices = null;
             effect.World = Matrix.Identity;
         }
     }

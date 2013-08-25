@@ -29,5 +29,14 @@ namespace View
         {
             
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Form3 form = new Form3();
+
+            form.terrain = mainUserControl1.Editor1.Terrain;
+            form.terrain.TerrainIndexer.Attach(form);
+            form.Show();
+        }
     }
 }

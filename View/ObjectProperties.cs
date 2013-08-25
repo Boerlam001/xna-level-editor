@@ -23,27 +23,41 @@ namespace View
             set { model = value; }
         }
 
+        private delegate void SetTextDelegate(TextBox textBox, string value);
+
         public ObjectProperties()
         {
             InitializeComponent();
         }
 
-        void IObserver.Update()
+        public void UpdateObserver()
         {
-            txt_name.Text = model.Name;
+            SetText(txt_name, model.Name);
 
-            txt_posX.Text = model.Position.X.ToString();
-            txt_posY.Text = model.Position.Y.ToString();
-            txt_posZ.Text = model.Position.Z.ToString();
+            SetText(txt_posX, model.Position.X.ToString());
+            SetText(txt_posY, model.Position.Y.ToString());
+            SetText(txt_posZ, model.Position.Z.ToString());
 
-            txt_rotX.Text = model.RotationX.ToString();
-            txt_rotY.Text = model.RotationY.ToString();
-            txt_rotZ.Text = model.RotationZ.ToString();
+            SetText(txt_rotX, model.RotationX.ToString());
+            SetText(txt_rotY, model.RotationY.ToString());
+            SetText(txt_rotZ, model.RotationZ.ToString());
 
-            txt_qW.Text = model.Rotation.W.ToString();
-            txt_qX.Text = model.Rotation.X.ToString();
-            txt_qY.Text = model.Rotation.Y.ToString();
-            txt_qZ.Text = model.Rotation.Z.ToString();
+            SetText(txt_qW, model.Rotation.W.ToString());
+            SetText(txt_qX, model.Rotation.X.ToString());
+            SetText(txt_qY, model.Rotation.Y.ToString());
+            SetText(txt_qZ, model.Rotation.Z.ToString());
+        }
+
+        void SetText(TextBox textBox, string value)
+        {
+            if (!txt_name.InvokeRequired)
+            {
+                textBox.Text = value;
+            }
+            else
+            {
+                textBox.Invoke(new SetTextDelegate(SetText), new object[2] { textBox, value });
+            }
         }
 
         private void txt_rot_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)

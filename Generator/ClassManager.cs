@@ -12,10 +12,18 @@ using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Generator
+namespace XleGenerator
 {
     public class ClassManager
     {
+        private string name;
+
+        public string Name
+        {
+            get { return name; }
+            set { name = value; }
+        }
+
         public static DTE2 applicationObject;
 
         ContentBuilder contentBuilder;
@@ -34,7 +42,22 @@ namespace Generator
             set { output = value; }
         }
 
-        MapModel mapModel;
+        List<CodeLines> codeLinesList;
+
+        public List<CodeLines> CodeLinesList
+        {
+            get { return codeLinesList; }
+        }
+
+        private ProjectItem classFile;
+
+        public ProjectItem ClassFile
+        {
+            get { return classFile; }
+            set { classFile = value; }
+        }
+
+        private MapModel mapModel;
 
         public MapModel MapModel
         {
@@ -42,15 +65,6 @@ namespace Generator
             set { mapModel = value; }
         }
 
-        List<CodeLines> codeLinesList;
-
-        public List<CodeLines> CodeLinesList
-        {
-            get { return codeLinesList; }
-            set { codeLinesList = value; }
-        }
-
-        private ProjectItem classFile;
         private CodeNamespace codeNamespace;
         private CodeClass2 codeClass;
         private CodeFunction2 loadContentFunction;
@@ -60,29 +74,27 @@ namespace Generator
 
         private bool xleModelImportStmtExist;
 
-        public ClassManager(MapModel mapModel)
+        public ClassManager()
         {
-            this.mapModel = mapModel;
             codeLinesList = new List<CodeLines>();
         }
 
-        public ClassManager(MapModel mapModel, string projectName, string className)
+        public ClassManager(string projectName, string className)
         {
-            this.mapModel = mapModel;
             codeLinesList = new List<CodeLines>();
             TraverseProjects(projectName);
             classFile = AddClass(className);
+            classFile.Save();
             TraverseCodeElements();
             if (codeNamespace != null)
                 codeNamespace.Name = projectName;
             if (codeClass != null)
                 codeClass.Name = className;
-            classFile.Save();
+            this.name = className + ".cs";
         }
 
-        public ClassManager(MapModel mapModel, string projectName, string className, bool open)
+        public ClassManager(string projectName, string className, bool open)
         {
-            this.mapModel = mapModel;
             codeLinesList = new List<CodeLines>();
             TraverseProjects(projectName);
             if (!open)
@@ -104,6 +116,7 @@ namespace Generator
                 if (codeClass != null)
                     codeClass.Name = className;
             }
+            this.name = className + ".cs";
         }
 
         public ProjectItem SelectClass(string className)
@@ -291,8 +304,6 @@ namespace Generator
                 editPoint.ReplaceText(movePoint, "\r\n" + draw, (int)vsEPReplaceTextOptions.vsEPReplaceTextAutoformat);
                 movePoint.SmartFormat(movePoint);
             }
-
-            classFile.Save();
         }
 
         public Dictionary<string, DrawingObject> ReadCodeLines()
@@ -329,7 +340,7 @@ namespace Generator
              * declaration (and instantiationon) of DrawingObject
              * \s*DrawingObject\s+<variable>(\s*=\s*new\s+DrawingObject\(\))?(,\s*<variable>\s*(=\s*new\s+DrawingObject\(\))))*
              * integer or float <integerFloat>
-             * \-\d+(\.\d+f?)?
+             * \-\d+(\.\d+)?f?
              * variable, integer, or float <variableIntegerFloat>
              * (<integerFloat>|<variable>)
              * Content load
@@ -344,7 +355,7 @@ namespace Generator
              */
             #endregion
             const string variableRegex = "[a-zA-Z_][a-zA-Z0-9_]*";
-            const string integerOrFloatRegex = "\\-?\\d+(.\\d+f?)?";
+            const string integerOrFloatRegex = "\\-?\\d+(.\\d+)?f?";
             const string variableIntegerFloatRegex = integerOrFloatRegex + "|" + variableRegex;
             const string declarationRegex = "^\\s*DrawingObject\\s+" + variableRegex + "\\s*$";
             const string loadContentRegex = "^\\s*" + variableRegex + "\\s*.\\s*DrawingModel\\s*=\\s*Content\\s*.\\s*Load\\s*<\\s*Model\\s*>\\s*\\(\\s*\\\"\\w+\\\"\\s*\\)\\s*$";

@@ -9,7 +9,7 @@ using System.Windows.Forms;
 using EditorModel;
 using EnvDTE;
 using EnvDTE80;
-using Generator;
+using XleGenerator;
 
 namespace View
 {
@@ -25,27 +25,6 @@ namespace View
             set
             {
                 applicationObject = value;
-                if (applicationObject != null)
-                {
-                    ChooseClassForm form = new ChooseClassForm();
-                    while (form.ShowDialog() != DialogResult.OK) ;
-                    ClassManager.applicationObject = applicationObject;
-                    classManager = new Generator.ClassManager(mapModel, form.ProjectName, form.ClassName, form.IsOpen);
-                    if (form.IsOpen)
-                    {
-                        Dictionary<string, DrawingObject> objects = classManager.ReadCodeLines();
-                        foreach (string key in objects.Keys)
-                        {
-                            string file = objects[key].SourceFile;
-                            string name = System.IO.Path.GetFileNameWithoutExtension(file);
-                            editor1.AddObject(file, name, objects[key].Position, objects[key].EulerRotation);
-                        }
-                    }
-                }
-                else
-                {
-                    classManager = new ClassManager(mapModel);
-                }
             }
         }
 
@@ -54,7 +33,26 @@ namespace View
         public Window Window
         {
             get { return window; }
-            set { window = value; }
+            set
+            {
+                window = value;
+            }
+        }
+
+        public ObjectProperties ObjectProperties1
+        {
+            get
+            {
+                return objectProperties1;
+            }
+        }
+
+        public ObjectProperties ObjectProperties2
+        {
+            get
+            {
+                return objectProperties2;
+            }
         }
 
         public Editor Editor1
@@ -70,7 +68,37 @@ namespace View
         public ClassManager _ClassManager
         {
             get { return classManager; }
-            set { classManager = value; }
+            set
+            {
+                classManager = value;
+                classManager.MapModel = mapModel;
+                if (applicationObject != null && window != null)
+                {
+                    //ChooseClassForm form = new ChooseClassForm();
+                    //while (form.ShowDialog() != DialogResult.OK) ;
+                    //ClassManager.applicationObject = applicationObject;
+                    //classManager = new Generator.ClassManager(form.ProjectName, form.ClassName, form.IsOpen);
+                    if (isOpen)
+                    {
+                        Dictionary<string, DrawingObject> objects = classManager.ReadCodeLines();
+                        foreach (string key in objects.Keys)
+                        {
+                            string file = objects[key].SourceFile;
+                            string name = System.IO.Path.GetFileNameWithoutExtension(file);
+                            editor1.AddObject(file, name, objects[key].Position, objects[key].EulerRotation);
+                        }
+                    }
+                    window.Caption = classManager.Name;
+                }
+            }
+        }
+
+        private bool isOpen;
+
+        public bool IsOpen
+        {
+            get { return isOpen; }
+            set { isOpen = value; }
         }
 
         ProjectItem projectItem;
@@ -98,6 +126,8 @@ namespace View
                 editor1.Camera.Attach(objectProperties2);
                 objectProperties2.Model = editor1.Camera;
                 editor1.Camera.Notify();
+                
+                classManager = new ClassManager();
             }
             catch (Exception ex)
             {
@@ -105,19 +135,15 @@ namespace View
             }
         }
 
-        public ObjectProperties ObjectProperties1
+        private void CheckFileStatus()
         {
-            get
+            if (!classManager.ClassFile.Saved)
             {
-                return objectProperties1;
+                window.Caption = classManager.Name + "*";
             }
-        }
-
-        public ObjectProperties ObjectProperties2
-        {
-            get
+            else
             {
-                return objectProperties2;
+                window.Caption = classManager.Name;
             }
         }
 

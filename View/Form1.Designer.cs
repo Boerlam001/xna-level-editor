@@ -28,22 +28,44 @@
         /// </summary>
         private void InitializeComponent()
         {
+            XleGenerator.ClassManager classManager1 = new XleGenerator.ClassManager();
             this.mainUserControl1 = new View.MainUserControl();
+            this.button1 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // mainUserControl1
             // 
+            classManager1.ClassFile = null;
+            classManager1.ContentBuilder = null;
+            classManager1.MapModel = null;
+            classManager1.Name = null;
+            classManager1.Output = null;
+            this.mainUserControl1._ClassManager = classManager1;
             this.mainUserControl1.ApplicationObject = null;
+            this.mainUserControl1.IsOpen = false;
             this.mainUserControl1.Location = new System.Drawing.Point(12, 12);
             this.mainUserControl1.Name = "mainUserControl1";
+            this.mainUserControl1.ProjectItem = null;
             this.mainUserControl1.Size = new System.Drawing.Size(662, 526);
             this.mainUserControl1.TabIndex = 0;
+            this.mainUserControl1.Window = null;
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(12, 544);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 1;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(692, 563);
+            this.ClientSize = new System.Drawing.Size(698, 582);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.mainUserControl1);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -55,6 +77,7 @@
         #endregion
 
         private MainUserControl mainUserControl1;
+        private System.Windows.Forms.Button button1;
 
 
 
