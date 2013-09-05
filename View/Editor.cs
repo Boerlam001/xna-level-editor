@@ -128,6 +128,10 @@ namespace View
         private ContentManager contentManager;
         private Texture2D heightMap;
         private Texture2D brushHeightMap;
+        private bool mouseMoving;
+        private MouseEventArgs mouseEventArgs;
+        private int tempMouseX;
+        private int tempMouseY;
 
         public Editor()
         {
@@ -136,6 +140,9 @@ namespace View
 
         private void Editor_Load(object sender, EventArgs e)
         {
+            mouseMoving = false;
+            mouseEventArgs = null;
+            tempMouseX = tempMouseY = -1;
             text = "";
             basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
             contentBuilder = ContentBuilder.Instance;
@@ -163,7 +170,7 @@ namespace View
 
             try
             {
-                //heightMap = null;
+                heightMap = null;
                 if (heightMap != null)
                     terrain = new Terrain(GraphicsDevice, heightMap);
                 else
@@ -301,11 +308,11 @@ namespace View
             }
             catch (Exception ex)
             {
-                //MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
                 terrain.Draw(basicEffect);
             }
 
-            if (editorMode.GetType() == typeof(EditorMode_Terrain))
+            if (editorMode is EditorMode_Terrain)
             {
                 //terrainPointer.Draw(basicEffect, GraphicsDevice);
                 //text += terrainPointer.Text;
@@ -322,7 +329,7 @@ namespace View
             if (spriteFont != null)
             {
                 spriteBatch.Begin();
-                spriteBatch.DrawString(spriteFont, text, new Vector2(50, 50), Microsoft.Xna.Framework.Color.White, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0.0f);
+                //spriteBatch.DrawString(spriteFont, text, new Vector2(50, 50), Microsoft.Xna.Framework.Color.White, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0.0f);
                 spriteBatch.End();
             }
 
@@ -370,8 +377,19 @@ namespace View
         {
             try
             {
-                Thread thread = new Thread(() => editorMode.MouseMove(sender, e));
-                thread.Start();
+                if (!mouseMoving)
+                    mouseMoving = true;
+
+                if (!timer1.Enabled)
+                    timer1.Enabled = true;
+
+                if (mouseEventArgs != null)
+                {
+                    tempMouseX = mouseEventArgs.X;
+                    tempMouseY = mouseEventArgs.Y;
+                }
+
+                mouseEventArgs = e;
             }
             catch (Exception ex)
             {
@@ -405,6 +423,22 @@ namespace View
                 camera.MoveForward(speed);
             if (moveBackward)
                 camera.MoveForward(-speed);
+            if (mouseMoving)
+            {
+                if (mouseEventArgs != null && mouseEventArgs.X == tempMouseX && mouseEventArgs.Y == tempMouseY)
+                {
+                    mouseMoving = false;
+                    mouseEventArgs = null;
+                    tempMouseX = tempMouseY = -1;
+                    timer1.Enabled = false;
+                }
+                else
+                {
+                    editorMode.MouseMove(sender, mouseEventArgs);
+                    //Thread thread = new Thread(() => editorMode.MouseMove(sender, mouseEventArgs));
+                    //thread.Start();
+                }
+            }
             if (moveRight || moveLeft || moveForward || moveBackward)
                 camera.Notify();
         }
@@ -467,7 +501,20 @@ namespace View
         {
             try
             {
-                editorMode = new EditorMode_Terrain(this);
+                editorMode = new EditorMode_Terrain_IncreaseHeight(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+            }
+            CheckEditorMode();
+        }
+
+        private void terrainDecreaseToolStripButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                editorMode = new EditorMode_Terrain_DecreaseHeight(this);
             }
             catch (Exception ex)
             {
@@ -493,7 +540,7 @@ namespace View
                 terrainDecreaseToolStripButton.Checked = false;
                 terrainDecreaseToolStripButton.CheckState = CheckState.Unchecked;
             }
-            if (editorMode.GetType() == typeof(EditorMode_Terrain))
+            if (editorMode.GetType() == typeof(EditorMode_Terrain_IncreaseHeight))
             {
                 selectModeToolStripButton.Checked = false;
                 selectModeToolStripButton.CheckState = CheckState.Unchecked;
@@ -501,6 +548,15 @@ namespace View
                 terrainIncreaseToolStripButton.CheckState = CheckState.Checked;
                 terrainDecreaseToolStripButton.Checked = false;
                 terrainDecreaseToolStripButton.CheckState = CheckState.Unchecked;
+            }
+            if (editorMode.GetType() == typeof(EditorMode_Terrain_DecreaseHeight))
+            {
+                selectModeToolStripButton.Checked = false;
+                selectModeToolStripButton.CheckState = CheckState.Unchecked;
+                terrainIncreaseToolStripButton.Checked = false;
+                terrainIncreaseToolStripButton.CheckState = CheckState.Unchecked;
+                terrainDecreaseToolStripButton.Checked = true;
+                terrainDecreaseToolStripButton.CheckState = CheckState.Checked;
             }
             camera.Notify();
         }

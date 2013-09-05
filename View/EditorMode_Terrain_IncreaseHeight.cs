@@ -7,12 +7,20 @@ namespace View
 {
     public class EditorMode_Terrain_IncreaseHeight : EditorMode_Terrain
     {
+        public EditorMode_Terrain_IncreaseHeight(Editor editor)
+            : base(editor)
+        {
+        }
+
         public override void MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             base.MouseDown(sender, e);
-            editor.TerrainBrush.Increase();
-            MouseMove(sender, e);
-            editor.Camera.Notify();
+            if (e.Button == System.Windows.Forms.MouseButtons.Left)
+            {
+                editor.TerrainBrush.Increase();
+                MouseMove(sender, e);
+                editor.Camera.Notify();
+            }
         }
     }
 }

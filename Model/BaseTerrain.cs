@@ -91,9 +91,16 @@ namespace EditorModel
             set { indices = value; }
         }
 
+        private VertexBuffer vertexBuffer;
+
+        public VertexBuffer VertexBuffer
+        {
+            get { return vertexBuffer; }
+            set { vertexBuffer = value; }
+        }
+
         protected GraphicsDevice graphicsDevice;
         protected float[,] heightFactor;
-        protected VertexBuffer vertexBuffer;
         private IndexBuffer indexBuffer;
 
         public BaseTerrain(GraphicsDevice graphicsDevice)
@@ -140,7 +147,7 @@ namespace EditorModel
             CopyToBuffers();
         }
 
-        protected void LoadHeightData()
+        protected virtual void LoadHeightData()
         {
             heightData = new float[width, height];
             heightFactor = new float[width, height];
@@ -151,7 +158,7 @@ namespace EditorModel
                 }
         }
 
-        protected void LoadHeightData(Texture2D heightMap)
+        protected virtual void LoadHeightData(Texture2D heightMap)
         {
             width = heightMap.Width;
             height = heightMap.Height;
@@ -206,7 +213,7 @@ namespace EditorModel
             }
         }
 
-        protected void InitializeIndices()
+        protected virtual void InitializeIndices()
         {
             indices = new short[(width - 1) * (height - 1) * 6];
             int counter = 0;
@@ -230,7 +237,7 @@ namespace EditorModel
             }
         }
 
-        protected void CalculateNormals()
+        public virtual void CalculateNormals()
         {
             for (int i = 0; i < vertices.Length; i++)
                 vertices[i].Normal = new Vector3(0, 0, 0);
@@ -269,7 +276,7 @@ namespace EditorModel
             {
                 RasterizerState rs = new RasterizerState();
                 rs.CullMode = CullMode.None;
-                rs.FillMode = FillMode.WireFrame;
+                //rs.FillMode = FillMode.WireFrame;
                 graphicsDevice.RasterizerState = rs;
                 graphicsDevice.SetVertexBuffer(vertexBuffer);
                 graphicsDevice.Indices = indexBuffer;
@@ -305,7 +312,7 @@ namespace EditorModel
                 RasterizerState rs = new RasterizerState();
                 rs.CullMode = CullMode.None;
                 graphicsDevice.RasterizerState = rs;
-                basicEffect.World = world;
+                basicEffect.World = Matrix.Identity;
                 basicEffect.VertexColorEnabled = true;
 
                 graphicsDevice.SetVertexBuffer(vertexBuffer);

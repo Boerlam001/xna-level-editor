@@ -88,6 +88,7 @@
     <Compile Include="EditorMode.cs" />
     <Compile Include="EditorMode_Terrain.cs" />
     <Compile Include="EditorMode_Select.cs" />
+    <Compile Include="EditorMode_Terrain_DecreaseHeight.cs" />
     <Compile Include="EditorMode_Terrain_IncreaseHeight.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>

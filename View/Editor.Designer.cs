@@ -87,7 +87,7 @@
             this.toolStripSeparator2});
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
             this.toolStrip.Name = "toolStrip";
-            this.toolStrip.Size = new System.Drawing.Size(24, 342);
+            this.toolStrip.Size = new System.Drawing.Size(32, 342);
             this.toolStrip.TabIndex = 1;
             this.toolStrip.Text = "toolStrip1";
             // 
@@ -97,7 +97,7 @@
             this.selectModeToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("selectModeToolStripButton.Image")));
             this.selectModeToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.selectModeToolStripButton.Name = "selectModeToolStripButton";
-            this.selectModeToolStripButton.Size = new System.Drawing.Size(21, 20);
+            this.selectModeToolStripButton.Size = new System.Drawing.Size(29, 20);
             this.selectModeToolStripButton.Text = "toolStripButton1";
             this.selectModeToolStripButton.Click += new System.EventHandler(this.selectModeStripButton_Click);
             // 
@@ -109,7 +109,7 @@
             this.translateModeToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("translateModeToolStripButton.Image")));
             this.translateModeToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.translateModeToolStripButton.Name = "translateModeToolStripButton";
-            this.translateModeToolStripButton.Size = new System.Drawing.Size(21, 20);
+            this.translateModeToolStripButton.Size = new System.Drawing.Size(29, 20);
             this.translateModeToolStripButton.Text = "translateModeToolStripButton";
             this.translateModeToolStripButton.Click += new System.EventHandler(this.translateModeToolStripButton_Click);
             // 
@@ -119,14 +119,14 @@
             this.rotateModeToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("rotateModeToolStripButton.Image")));
             this.rotateModeToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.rotateModeToolStripButton.Name = "rotateModeToolStripButton";
-            this.rotateModeToolStripButton.Size = new System.Drawing.Size(21, 20);
+            this.rotateModeToolStripButton.Size = new System.Drawing.Size(29, 20);
             this.rotateModeToolStripButton.Text = "rotateModeToolStripButton";
             this.rotateModeToolStripButton.Click += new System.EventHandler(this.rotateModeToolStripButton_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(21, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(29, 6);
             // 
             // terrainIncreaseToolStripButton
             // 
@@ -134,7 +134,7 @@
             this.terrainIncreaseToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("terrainIncreaseToolStripButton.Image")));
             this.terrainIncreaseToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.terrainIncreaseToolStripButton.Name = "terrainIncreaseToolStripButton";
-            this.terrainIncreaseToolStripButton.Size = new System.Drawing.Size(21, 20);
+            this.terrainIncreaseToolStripButton.Size = new System.Drawing.Size(29, 20);
             this.terrainIncreaseToolStripButton.Text = "toolStripButton4";
             this.terrainIncreaseToolStripButton.Click += new System.EventHandler(this.terrainIncreaseToolStripButton_Click);
             // 
@@ -144,13 +144,14 @@
             this.terrainDecreaseToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("terrainDecreaseToolStripButton.Image")));
             this.terrainDecreaseToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.terrainDecreaseToolStripButton.Name = "terrainDecreaseToolStripButton";
-            this.terrainDecreaseToolStripButton.Size = new System.Drawing.Size(21, 20);
+            this.terrainDecreaseToolStripButton.Size = new System.Drawing.Size(29, 20);
             this.terrainDecreaseToolStripButton.Text = "toolStripButton5";
+            this.terrainDecreaseToolStripButton.Click += new System.EventHandler(this.terrainDecreaseToolStripButton_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(21, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(29, 6);
             // 
             // Editor
             // 
