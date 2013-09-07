@@ -89,7 +89,7 @@ namespace EditorModel
 
         private bool OutOfBounds(Vector3 pos)
         {
-            return !(pos.X >= 0 && pos.X <= graphicsDevice.Viewport.Bounds.Width && pos.Y >= 0 && pos.Y <= graphicsDevice.Viewport.Bounds.Height);
+            return !(pos.X >= 0 && pos.X <= graphicsDevice.Viewport.Width && pos.Y >= 0 && pos.Y <= graphicsDevice.Viewport.Height);
         }
 
         public void UpdateObserver()
@@ -153,7 +153,8 @@ namespace EditorModel
                     }
 
                     Vector3 ac = c - a, ab = b - a, bc = b - c;
-                    for (int j = 1; j <= ac.Y; j++)
+                    int j = 0;
+                    do
                     {
                         float y = j + a.Y;
                         int screenX1 = (int)Math.Round(((ac.X * j) / ac.Y) + a.X);
@@ -167,7 +168,8 @@ namespace EditorModel
                             screenX2 = temp;
                         }
 
-                        for (int screenX = screenX1; screenX <= screenX2; screenX++)
+                        int screenX = screenX1;
+                        do
                         {
                             if (indices[screenX, screenY] == -1)
                                 indices[screenX, screenY] = closestVertex;
@@ -179,40 +181,13 @@ namespace EditorModel
                                     indices[screenX, screenY] = closestVertex;
                                 }
                             }
-                        }
-                    }
+                            screenX++;
+                        } while (screenX <= screenX2);
+
+                        j++;
+                    } while (j <= ac.Y);
                 }
                 text = i.ToString();
-
-                //closestVertices[0] = new Vector3(-1, -1, float.MaxValue);
-                //closestVertices[1] = new Vector3(-1, -1, float.MaxValue);
-                //bool checkMin1 = true;
-                //for (int i = 0; i < terrain.Vertices.Length; i++)
-                //{
-                //    Vector3 screenLocation = graphicsDevice.Viewport.Project(terrain.Vertices[i].Position, camera.Projection, camera.World, Matrix.Identity);
-                //    if (!OutOfBounds(screenLocation))
-                //    {
-                //        int x = (int)Math.Round(screenLocation.X), y = (int)Math.Round(screenLocation.Y);
-                //        float dist = (terrain.Vertices[i].Position - camera.Position).Length();
-                //        if (indices[x, y] == -1 || (indices[x, y] != -1 && dist < (terrain.Vertices[indices[x, y]].Position - camera.Position).Length()))
-                //            indices[x, y] = i;
-                //
-                //        
-                //        if (dist < closestVertices[0].Z && dist < closestVertices[1].Z)
-                //        {
-                //            if (checkMin1)
-                //            {
-                //                closestVertices[0] = new Vector3(x, y, dist);
-                //                checkMin1 = false;
-                //            }
-                //            else
-                //            {
-                //                closestVertices[1] = new Vector3(x, y, dist);
-                //                checkMin1 = true;
-                //            }
-                //        }
-                //    }
-                //}
 
                 ready = true;
 

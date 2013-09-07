@@ -5,7 +5,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EditorModel
+namespace XleModel
 {
     public struct VertexPositionColorNormal : IVertexType
     {
@@ -99,26 +99,9 @@ namespace EditorModel
             set { vertexBuffer = value; }
         }
 
-        protected Color[] heightMapColors;
-
-        public Color[] HeightMapColors
-        {
-            get { return heightMapColors; }
-            set { heightMapColors = value; }
-        }
-
-        protected Texture2D heightMap;
-
-        public Texture2D HeightMap
-        {
-            get { return heightMap; }
-            set { heightMap = value; }
-        }
-
         protected GraphicsDevice graphicsDevice;
+        protected float[,] heightFactor;
         private IndexBuffer indexBuffer;
-        protected float minHeight;
-        protected float maxHeight;
 
         public BaseTerrain(GraphicsDevice graphicsDevice)
         {
@@ -133,7 +116,6 @@ namespace EditorModel
         public BaseTerrain(GraphicsDevice graphicsDevice, Texture2D heightMap, bool initialize = true)
         {
             this.graphicsDevice = graphicsDevice;
-            this.heightMap = heightMap;
             if (initialize)
                 InitializeAll(heightMap);
         }
@@ -167,19 +149,13 @@ namespace EditorModel
 
         protected virtual void LoadHeightData()
         {
-            heightMapColors = new Color[width * height];
             heightData = new float[width, height];
+            heightFactor = new float[width, height];
             for (int x = 0; x < width; x++)
-            {
                 for (int y = 0; y < height; y++)
                 {
-                    heightMapColors[x + y * width].R = 0;
-                    heightMapColors[x + y * width].G = 0;
-                    heightMapColors[x + y * width].B = 0;
-                    heightMapColors[x + y * width].A = 255;
-                    heightData[x, y] = 0;
+                    heightData[x, y] = heightFactor[x, y] = 0;
                 }
-            }
         }
 
         protected virtual void LoadHeightData(Texture2D heightMap)
@@ -187,11 +163,11 @@ namespace EditorModel
             width = heightMap.Width;
             height = heightMap.Height;
 
-            heightMapColors = new Color[width * height];
+            Color[] heightMapColors = new Color[width * height];
             heightMap.GetData(heightMapColors);
 
-            minHeight = float.MaxValue;
-            maxHeight = float.MinValue;
+            float minHeight = float.MaxValue;
+            float maxHeight = float.MinValue;
 
             heightData = new float[width, height];
             for (int x = 0; x < width; x++)
@@ -203,6 +179,15 @@ namespace EditorModel
                         minHeight = heightData[x, y];
                     if (heightData[x, y] > maxHeight)
                         maxHeight = heightData[x, y];
+                }
+            }
+
+            heightFactor = new float[width, height];
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    heightFactor[x, y] = heightData[x, y] / maxHeight;
                 }
             }
         }

@@ -24,6 +24,7 @@ namespace EditorModel
         private int endY;
         private int halfWidth;
         private int halfHeight;
+        protected float[,] heightFactor;
 
         //public TerrainBrush(GraphicsDevice graphicsDevice, Terrain terrain)
         //    : base(graphicsDevice, 8, 8, false)
@@ -43,6 +44,20 @@ namespace EditorModel
             }
             //vertices = terrain.Vertices;
             InitializeAll(heightMap);
+        }
+
+        protected override void LoadHeightData(Texture2D heightMap)
+        {
+            base.LoadHeightData(heightMap);
+            
+            heightFactor = new float[width, height];
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    heightFactor[x, y] = heightData[x, y] / maxHeight;
+                }
+            }
         }
 
         protected override void InitializeVertices()
@@ -208,8 +223,16 @@ namespace EditorModel
                     int i = x + y * terrain.Width;
                     if (x >= startX && x < endX && y >= startY && y < endY)
                     {
-                        terrain.Vertices[i].Position.Y += k * heightFactor[x - startX, y - startY];
-                        vertices[i].Position.Y += k * heightFactor[x - startX, y - startY];
+                        float newHeight = terrain.Vertices[i].Position.Y + k * heightFactor[x - startX, y - startY];
+                        if (newHeight * 5 >= 0 && newHeight * 5 <= 255)
+                        {
+                            terrain.Vertices[i].Position.Y += k * heightFactor[x - startX, y - startY];
+                            terrain.HeightMapColors[i].R = (byte)(terrain.Vertices[i].Position.Y / 0.2f);
+                            terrain.HeightMapColors[i].G = (byte)(terrain.Vertices[i].Position.Y / 0.2f);
+                            terrain.HeightMapColors[i].B = (byte)(terrain.Vertices[i].Position.Y / 0.2f);
+                            terrain.HeightMapColors[i].A = 255;
+                            vertices[i].Position.Y += k * heightFactor[x - startX, y - startY];
+                        }
                     }
                 }
             }

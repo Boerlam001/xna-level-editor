@@ -5,9 +5,9 @@ using System.Text;
 
 namespace View
 {
-    public class EditorMode_Terrain_IncreaseHeight : EditorMode_Terrain
+    public class EditorMode_Terrain_DecreaseHeight : EditorMode_Terrain
     {
-        public EditorMode_Terrain_IncreaseHeight(Editor editor)
+        public EditorMode_Terrain_DecreaseHeight(Editor editor)
             : base(editor)
         {
         }
@@ -17,7 +17,7 @@ namespace View
             base.MouseDown(sender, e);
             if (e.Button == System.Windows.Forms.MouseButtons.Left)
             {
-                //editor.TerrainBrush.Increase();
+                //editor.TerrainBrush.Decrease();
                 MouseMove(sender, e);
                 //editor.Camera.Notify();
             }
@@ -28,7 +28,7 @@ namespace View
             base.MouseMove(sender, e);
             if (isMouseDown && !isRotate) //left click
             {
-                editor.TerrainBrush.Increase();
+                editor.TerrainBrush.Decrease();
                 editor.Camera.Notify();
             }
         }

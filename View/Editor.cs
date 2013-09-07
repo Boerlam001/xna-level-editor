@@ -150,12 +150,13 @@ namespace View
             spriteBatch = new SpriteBatch(graphicsDeviceControl1.GraphicsDevice);
             
             string errorBuild = "";
+            string effectFile = AssemblyDirectory + "\\effects.fx";
             try
             {
                 //importer reference: http://msdn.microsoft.com/en-us/library/bb447762%28v=xnagamestudio.20%29.aspx
                 contentBuilder.Add(AssemblyDirectory + "\\SegoeUI.spritefont", "SegoeUI.spritefont", null, "FontDescriptionProcessor");
-                contentBuilder.Add(AssemblyDirectory + "\\effects.fx", "effects", null, "EffectProcessor");
-                contentBuilder.Add(AssemblyDirectory + "\\heightmap.bmp", "heightmap", null, "TextureProcessor");
+                contentBuilder.Add(effectFile, "effects", null, "EffectProcessor");
+                contentBuilder.Add(AssemblyDirectory + "\\heightmap.png", "heightmap", null, "TextureProcessor");
                 contentBuilder.Add(AssemblyDirectory + "\\brush.bmp", "brush", null, "TextureProcessor");
                 errorBuild = contentBuilder.Build();
                 spriteFont = contentManager.Load<SpriteFont>("SegoeUI.spritefont");
@@ -170,11 +171,16 @@ namespace View
 
             try
             {
-                heightMap = null;
+                //heightMap = null;
                 if (heightMap != null)
                     terrain = new Terrain(GraphicsDevice, heightMap);
                 else
                     terrain = new Terrain(GraphicsDevice);
+                terrain.EffectFile = effectFile;
+                if (mainUserControl != null)
+                    terrain.HeightMapFile = AssemblyDirectory + "\\" + mainUserControl._ClassManager.Name + ".png";
+                else
+                    terrain.HeightMapFile = AssemblyDirectory + "\\test_HeightMap.png";
             
                 camera = new Camera();
                 //camera.Position = new Vector3(0, terrain.HeightData[0, 0] + 1, 0);
@@ -323,13 +329,18 @@ namespace View
             if (selected != null)
             {
                 selectedBoundingBox.Draw(ref basicEffect);
-                text += selectedBoundingBox.AxisLines.Text;
+                text += selectedBoundingBox.AxisLines.Text + "\r\n";
             }
 
             if (spriteFont != null)
             {
                 spriteBatch.Begin();
-                //spriteBatch.DrawString(spriteFont, text, new Vector2(50, 50), Microsoft.Xna.Framework.Color.White, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0.0f);
+                text += mouseMoving + "\r\n";
+                if (mouseEventArgs != null)
+                {
+                    text += mouseEventArgs.X + "," + mouseEventArgs.Y + "\r\n";
+                }
+                spriteBatch.DrawString(spriteFont, text, new Vector2(50, 50), Microsoft.Xna.Framework.Color.White, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0.0f);
                 spriteBatch.End();
             }
 
@@ -383,12 +394,6 @@ namespace View
                 if (!timer1.Enabled)
                     timer1.Enabled = true;
 
-                if (mouseEventArgs != null)
-                {
-                    tempMouseX = mouseEventArgs.X;
-                    tempMouseY = mouseEventArgs.Y;
-                }
-
                 mouseEventArgs = e;
             }
             catch (Exception ex)
@@ -431,10 +436,18 @@ namespace View
                     mouseEventArgs = null;
                     tempMouseX = tempMouseY = -1;
                     timer1.Enabled = false;
+                    camera.Notify();
                 }
                 else
                 {
                     editorMode.MouseMove(sender, mouseEventArgs);
+
+                    if (mouseEventArgs != null)
+                    {
+                        tempMouseX = mouseEventArgs.X;
+                        tempMouseY = mouseEventArgs.Y;
+                    }
+
                     //Thread thread = new Thread(() => editorMode.MouseMove(sender, mouseEventArgs));
                     //thread.Start();
                 }

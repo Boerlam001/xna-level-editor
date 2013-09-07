@@ -193,12 +193,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="heightmap.bmp">
+    <None Include="brush.bmp">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="brush.bmp">
+    <None Include="heightmap.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

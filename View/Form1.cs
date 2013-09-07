@@ -38,5 +38,10 @@ namespace View
             form.terrain.TerrainIndexer.Attach(form);
             form.Show();
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            mainUserControl1.Editor1.Terrain.SaveHeightMap();
+        }
     }
 }

@@ -77,6 +77,7 @@ namespace XleGenerator
         public ClassManager()
         {
             codeLinesList = new List<CodeLines>();
+            name = "asd";
         }
 
         public ClassManager(string projectName, string className)
@@ -84,13 +85,15 @@ namespace XleGenerator
             codeLinesList = new List<CodeLines>();
             TraverseProjects(projectName);
             classFile = AddClass(className);
+            if (!classFile.IsOpen)
+                classFile.Open();
             classFile.Save();
             TraverseCodeElements();
             if (codeNamespace != null)
                 codeNamespace.Name = projectName;
             if (codeClass != null)
                 codeClass.Name = className;
-            this.name = className + ".cs";
+            this.name = className;
         }
 
         public ClassManager(string projectName, string className, bool open)
@@ -100,6 +103,8 @@ namespace XleGenerator
             if (!open)
             {
                 classFile = AddClass(className);
+                if (!classFile.IsOpen)
+                    classFile.Open();
                 classFile.Save();
                 TraverseCodeElements();
                 if (codeNamespace != null)
@@ -116,7 +121,7 @@ namespace XleGenerator
                 if (codeClass != null)
                     codeClass.Name = className;
             }
-            this.name = className + ".cs";
+            this.name = className;
         }
 
         public ProjectItem SelectClass(string className)
@@ -254,15 +259,24 @@ namespace XleGenerator
 
             StringBuilder sb = new StringBuilder();
             string variable = sb.
-                       Append("Camera camera;\r\n").ToString();
+                       Append("Camera camera;\r\n").
+                       //Append("Terrain terrain;\r\n").
+                       //Append("Effect terrainEffect;\r\n").
+                       ToString();
             sb.Clear();
             string loadContent = sb.
                        Append("camera = new Camera();\r\n").
-                       Append("camera.Position = new Vector3(-4, 8, -25);\r\n").
+                       Append("camera.Position = new Vector3(0, 50, 0);\r\n").
                        Append("camera.AspectRatio = GraphicsDevice.Viewport.AspectRatio;\r\n").
-                       Append("camera.Rotate(20, 55, 0);\r\n").ToString();
+                       Append("camera.Rotate(0, 135, 0);\r\n\r\n").
+                       //Append("terrain = new Terrain(GraphicsDevice);\r\n").
+                       //Append("terrainEffect = contentManager.Load<Effect>(\"effects\");\r\n").
+                       ToString();
             sb.Clear();
-            string draw = "";
+            string draw = sb.
+                       //Append("terrain.Draw(terrainEffect, camera);\r\n").
+                       ToString();
+            sb.Clear();
             foreach (CodeLines codeLines in codeLinesList)
             {
                 variable += codeLines.Code[CodeLines.CodePosition.Variable] + "\r\n";
