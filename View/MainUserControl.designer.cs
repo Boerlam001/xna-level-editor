@@ -33,6 +33,7 @@
             this.objectProperties2 = new View.ObjectProperties();
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             this.createFileStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveHeightmapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -47,6 +48,8 @@
             this.editor1.Selected = null;
             this.editor1.Size = new System.Drawing.Size(658, 331);
             this.editor1.TabIndex = 0;
+            this.editor1.TerrainBrush = null;
+            this.editor1.Text1 = "";
             // 
             // objectProperties1
             // 
@@ -67,7 +70,8 @@
             // menuStrip
             // 
             this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.createFileStripMenuItem});
+            this.createFileStripMenuItem,
+            this.saveHeightmapToolStripMenuItem});
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.Name = "menuStrip";
             this.menuStrip.Size = new System.Drawing.Size(674, 24);
@@ -80,6 +84,13 @@
             this.createFileStripMenuItem.Size = new System.Drawing.Size(74, 20);
             this.createFileStripMenuItem.Text = "Create File";
             this.createFileStripMenuItem.Click += new System.EventHandler(this.createFileStripMenuItem_Click);
+            // 
+            // saveHeightmapToolStripMenuItem
+            // 
+            this.saveHeightmapToolStripMenuItem.Name = "saveHeightmapToolStripMenuItem";
+            this.saveHeightmapToolStripMenuItem.Size = new System.Drawing.Size(106, 20);
+            this.saveHeightmapToolStripMenuItem.Text = "Save Heightmap";
+            this.saveHeightmapToolStripMenuItem.Click += new System.EventHandler(this.saveHeightmapToolStripMenuItem_Click);
             // 
             // MainUserControl
             // 
@@ -106,5 +117,6 @@
         private ObjectProperties objectProperties2;
         private System.Windows.Forms.MenuStrip menuStrip;
         private System.Windows.Forms.ToolStripMenuItem createFileStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveHeightmapToolStripMenuItem;
     }
 }

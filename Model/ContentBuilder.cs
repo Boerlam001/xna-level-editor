@@ -215,6 +215,26 @@ namespace EditorModel
         /// </summary>
         public void Add(string filename, string name, string importer, string processor)
         {
+            int i = 0;
+            bool itemExists = false;
+            for (; i < projectItems.Count; i++)
+            {
+                foreach (ProjectMetadata metadata in projectItems[i].Metadata)
+                {
+                    if (metadata.Name == "Name" && metadata.UnevaluatedValue == name)
+                    {
+                        itemExists = true;
+                        break;
+                    }
+                }
+                if (itemExists)
+                    break;
+            }
+            if (itemExists)
+            {
+                buildProject.RemoveItem(projectItems[i]);
+                projectItems.RemoveAt(i);
+            }
             ProjectItem item = buildProject.AddItem("Compile", filename)[0];
 
             item.SetMetadataValue("Link", Path.GetFileName(filename));

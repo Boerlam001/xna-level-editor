@@ -74,6 +74,41 @@ namespace View
 
         #endregion
 
+        protected override void OnResize(EventArgs eventargs)
+        {
+            if (GraphicsDevice != null)
+            {
+                try
+                {
+                    string deviceResetError = HandleDeviceReset();
+
+                    if (!string.IsNullOrEmpty(deviceResetError))
+                    {
+                        MessageBox.Show(deviceResetError);
+                    }
+
+                    Viewport viewport = new Viewport();
+
+                    viewport.X = 0;
+                    viewport.Y = 0;
+
+                    viewport.Width = ClientSize.Width;
+                    viewport.Height = ClientSize.Height;
+
+                    viewport.MinDepth = 0;
+                    viewport.MaxDepth = 1;
+
+                    GraphicsDevice.Viewport = viewport;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message + "\r\n\r\n" + ex.StackTrace);
+                }
+            }
+
+            base.OnResize(eventargs);
+        }
+
         #region Fields
 
 
@@ -200,7 +235,7 @@ namespace View
 
             // Make sure the graphics device is big enough, and is not lost.
             string deviceResetError = HandleDeviceReset();
-
+            
             if (!string.IsNullOrEmpty(deviceResetError))
             {
                 return deviceResetError;
@@ -211,18 +246,18 @@ namespace View
             // largest of these controls. But what if we are currently drawing
             // a smaller control? To avoid unwanted stretching, we set the
             // viewport to only use the top left portion of the full backbuffer.
-            Viewport viewport = new Viewport();
-
-            viewport.X = 0;
-            viewport.Y = 0;
-
-            viewport.Width = ClientSize.Width;
-            viewport.Height = ClientSize.Height;
-
-            viewport.MinDepth = 0;
-            viewport.MaxDepth = 1;
-
-            GraphicsDevice.Viewport = viewport;
+            //Viewport viewport = new Viewport();
+            //
+            //viewport.X = 0;
+            //viewport.Y = 0;
+            //
+            //viewport.Width = ClientSize.Width;
+            //viewport.Height = ClientSize.Height;
+            //
+            //viewport.MinDepth = 0;
+            //viewport.MaxDepth = 1;
+            //
+            //GraphicsDevice.Viewport = viewport;
 
             return null;
         }

@@ -162,7 +162,6 @@
             this.Name = "Editor";
             this.Size = new System.Drawing.Size(382, 342);
             this.Load += new System.EventHandler(this.Editor_Load);
-            this.Resize += new System.EventHandler(this.Editor_Resize);
             this.toolStrip.ResumeLayout(false);
             this.toolStrip.PerformLayout();
             this.ResumeLayout(false);
@@ -178,7 +177,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton terrainIncreaseToolStripButton;
         private System.Windows.Forms.ToolStripButton terrainDecreaseToolStripButton;
-        private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        public System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton translateModeToolStripButton;

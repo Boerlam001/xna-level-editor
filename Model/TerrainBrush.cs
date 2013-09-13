@@ -34,7 +34,7 @@ namespace EditorModel
         //}
 
         public TerrainBrush(GraphicsDevice graphicsDevice, Terrain terrain, Texture2D heightMap)
-            : base(graphicsDevice, heightMap, false)
+            : base(graphicsDevice, null, heightMap, false)
         {
             this.terrain = terrain;
             vertices = new VertexPositionColorNormal[terrain.Vertices.Length];

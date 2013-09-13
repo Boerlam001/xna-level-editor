@@ -51,7 +51,25 @@ namespace XleModel
 
     public class BaseTerrain : BaseObject
     {
+        #region attributes
+        #region encapsulated attributes
         protected int width;
+        protected int height;
+        protected float[,] heightData;
+        protected VertexPositionColorNormal[] vertices;
+        protected short[] indices;
+        private VertexBuffer vertexBuffer;
+        protected Color[] heightMapColors;
+        protected Texture2D heightMap;
+        #endregion
+        #region unencapsulated attributes
+        protected GraphicsDevice graphicsDevice;
+        private IndexBuffer indexBuffer;
+        protected float minHeight;
+        protected float maxHeight;
+        protected Camera camera;
+        #endregion
+        #endregion
 
         public int Width
         {
@@ -59,15 +77,11 @@ namespace XleModel
             set { width = value; }
         }
 
-        protected int height;
-
         public int Height
         {
             get { return height; }
             set { height = value; }
         }
-
-        protected float[,] heightData;
 
         public float[,] HeightData
         {
@@ -75,15 +89,11 @@ namespace XleModel
             set { heightData = value; }
         }
 
-        protected VertexPositionColorNormal[] vertices;
-
         public VertexPositionColorNormal[] Vertices
         {
             get { return vertices; }
             set { vertices = value; }
         }
-
-        protected short[] indices;
 
         public short[] Indices
         {
@@ -91,21 +101,28 @@ namespace XleModel
             set { indices = value; }
         }
 
-        private VertexBuffer vertexBuffer;
-
         public VertexBuffer VertexBuffer
         {
             get { return vertexBuffer; }
             set { vertexBuffer = value; }
         }
 
-        protected GraphicsDevice graphicsDevice;
-        protected float[,] heightFactor;
-        private IndexBuffer indexBuffer;
+        public Color[] HeightMapColors
+        {
+            get { return heightMapColors; }
+            set { heightMapColors = value; }
+        }
 
-        public BaseTerrain(GraphicsDevice graphicsDevice)
+        public Texture2D HeightMap
+        {
+            get { return heightMap; }
+            set { heightMap = value; }
+        }
+
+        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera)
         {
             this.graphicsDevice = graphicsDevice;
+            this.camera = camera;
             LoadHeightData();
             InitializeVertices();
             InitializeIndices();
@@ -113,16 +130,19 @@ namespace XleModel
             CopyToBuffers();
         }
 
-        public BaseTerrain(GraphicsDevice graphicsDevice, Texture2D heightMap, bool initialize = true)
+        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera, Texture2D heightMap, bool initialize = true)
         {
             this.graphicsDevice = graphicsDevice;
+            this.camera = camera;
+            this.heightMap = heightMap;
             if (initialize)
                 InitializeAll(heightMap);
         }
 
-        public BaseTerrain(GraphicsDevice graphicsDevice, int width, int height, bool initialize = true)
+        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera, int width, int height, bool initialize = true)
         {
             this.graphicsDevice = graphicsDevice;
+            this.camera = camera;
             this.width = width;
             this.height = height;
             if (initialize)
@@ -149,13 +169,19 @@ namespace XleModel
 
         protected virtual void LoadHeightData()
         {
+            heightMapColors = new Color[width * height];
             heightData = new float[width, height];
-            heightFactor = new float[width, height];
             for (int x = 0; x < width; x++)
+            {
                 for (int y = 0; y < height; y++)
                 {
-                    heightData[x, y] = heightFactor[x, y] = 0;
+                    heightMapColors[x + y * width].R = 0;
+                    heightMapColors[x + y * width].G = 0;
+                    heightMapColors[x + y * width].B = 0;
+                    heightMapColors[x + y * width].A = 255;
+                    heightData[x, y] = 0;
                 }
+            }
         }
 
         protected virtual void LoadHeightData(Texture2D heightMap)
@@ -163,11 +189,11 @@ namespace XleModel
             width = heightMap.Width;
             height = heightMap.Height;
 
-            Color[] heightMapColors = new Color[width * height];
+            heightMapColors = new Color[width * height];
             heightMap.GetData(heightMapColors);
 
-            float minHeight = float.MaxValue;
-            float maxHeight = float.MinValue;
+            minHeight = float.MaxValue;
+            maxHeight = float.MinValue;
 
             heightData = new float[width, height];
             for (int x = 0; x < width; x++)
@@ -179,15 +205,6 @@ namespace XleModel
                         minHeight = heightData[x, y];
                     if (heightData[x, y] > maxHeight)
                         maxHeight = heightData[x, y];
-                }
-            }
-
-            heightFactor = new float[width, height];
-            for (int x = 0; x < width; x++)
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    heightFactor[x, y] = heightData[x, y] / maxHeight;
                 }
             }
         }
@@ -270,7 +287,7 @@ namespace XleModel
             indexBuffer.SetData(indices);
         }
 
-        public virtual void Draw(Effect effect, Camera camera)
+        public virtual void Draw(Effect effect)
         {
             try
             {

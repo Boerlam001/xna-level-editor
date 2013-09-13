@@ -51,7 +51,25 @@ namespace EditorModel
 
     public class BaseTerrain : BaseObject
     {
+        #region attributes
+        #region encapsulated attributes
         protected int width;
+        protected int height;
+        protected float[,] heightData;
+        protected VertexPositionColorNormal[] vertices;
+        protected short[] indices;
+        private VertexBuffer vertexBuffer;
+        protected Color[] heightMapColors;
+        protected Texture2D heightMap;
+        #endregion
+        #region unencapsulated attributes
+        protected GraphicsDevice graphicsDevice;
+        private IndexBuffer indexBuffer;
+        protected float minHeight;
+        protected float maxHeight;
+        protected Camera camera;
+        #endregion
+        #endregion
 
         public int Width
         {
@@ -59,15 +77,11 @@ namespace EditorModel
             set { width = value; }
         }
 
-        protected int height;
-
         public int Height
         {
             get { return height; }
             set { height = value; }
         }
-
-        protected float[,] heightData;
 
         public float[,] HeightData
         {
@@ -75,15 +89,11 @@ namespace EditorModel
             set { heightData = value; }
         }
 
-        protected VertexPositionColorNormal[] vertices;
-
         public VertexPositionColorNormal[] Vertices
         {
             get { return vertices; }
             set { vertices = value; }
         }
-
-        protected short[] indices;
 
         public short[] Indices
         {
@@ -91,15 +101,11 @@ namespace EditorModel
             set { indices = value; }
         }
 
-        private VertexBuffer vertexBuffer;
-
         public VertexBuffer VertexBuffer
         {
             get { return vertexBuffer; }
             set { vertexBuffer = value; }
         }
-
-        protected Color[] heightMapColors;
 
         public Color[] HeightMapColors
         {
@@ -107,22 +113,16 @@ namespace EditorModel
             set { heightMapColors = value; }
         }
 
-        protected Texture2D heightMap;
-
         public Texture2D HeightMap
         {
             get { return heightMap; }
             set { heightMap = value; }
         }
 
-        protected GraphicsDevice graphicsDevice;
-        private IndexBuffer indexBuffer;
-        protected float minHeight;
-        protected float maxHeight;
-
-        public BaseTerrain(GraphicsDevice graphicsDevice)
+        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera)
         {
             this.graphicsDevice = graphicsDevice;
+            this.camera = camera;
             LoadHeightData();
             InitializeVertices();
             InitializeIndices();
@@ -130,17 +130,19 @@ namespace EditorModel
             CopyToBuffers();
         }
 
-        public BaseTerrain(GraphicsDevice graphicsDevice, Texture2D heightMap, bool initialize = true)
+        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera, Texture2D heightMap, bool initialize = true)
         {
             this.graphicsDevice = graphicsDevice;
+            this.camera = camera;
             this.heightMap = heightMap;
             if (initialize)
                 InitializeAll(heightMap);
         }
 
-        public BaseTerrain(GraphicsDevice graphicsDevice, int width, int height, bool initialize = true)
+        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera, int width, int height, bool initialize = true)
         {
             this.graphicsDevice = graphicsDevice;
+            this.camera = camera;
             this.width = width;
             this.height = height;
             if (initialize)
@@ -285,7 +287,7 @@ namespace EditorModel
             indexBuffer.SetData(indices);
         }
 
-        public virtual void Draw(Effect effect, Camera camera)
+        public virtual void Draw(Effect effect)
         {
             try
             {

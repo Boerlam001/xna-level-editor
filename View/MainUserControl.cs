@@ -10,6 +10,7 @@ using EditorModel;
 using EnvDTE;
 using EnvDTE80;
 using XleGenerator;
+using System.IO;
 
 namespace View
 {
@@ -78,6 +79,9 @@ namespace View
                     //while (form.ShowDialog() != DialogResult.OK) ;
                     //ClassManager.applicationObject = applicationObject;
                     //classManager = new Generator.ClassManager(form.ProjectName, form.ClassName, form.IsOpen);
+
+                    string heightMapFile = Path.GetDirectoryName(classManager.ContentProject.FullName) + "\\heightmap_" + classManager.Name + ".png";
+
                     if (isOpen)
                     {
                         Dictionary<string, DrawingObject> objects = classManager.ReadCodeLines();
@@ -87,8 +91,12 @@ namespace View
                             string name = System.IO.Path.GetFileNameWithoutExtension(file);
                             editor1.AddObject(file, name, objects[key].Position, objects[key].EulerRotation);
                         }
+                        if (File.Exists(heightMapFile))
+                            editor1.ImportHeightmap(heightMapFile);
                     }
-                    window.Caption = classManager.Name;
+                    
+                    classManager.AddHeightMapToContentProject(editor1.Terrain);
+                    window.Caption = classManager.Name + ".cs";
                 }
             }
         }
@@ -154,6 +162,11 @@ namespace View
 
         private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
+        }
+
+        private void saveHeightmapToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            classManager.AddHeightMapToContentProject(editor1.Terrain);
         }
     }
 }

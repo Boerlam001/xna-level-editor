@@ -9,15 +9,22 @@ namespace EditorModel
 {
     public class Terrain : BaseTerrain
     {
+        #region attributes
+        #region encapsulated attributes
         private TerrainIndexer terrainIndexer;
+        private string heightMapFile;
+        private string effectFile;
+        #endregion
+        #region unencapsulated attributes
+        #endregion
+        #endregion
 
+        #region getters and setters
         public TerrainIndexer TerrainIndexer
         {
             get { return terrainIndexer; }
             set { terrainIndexer = value; }
         }
-
-        private string effectFile;
 
         public string EffectFile
         {
@@ -25,22 +32,27 @@ namespace EditorModel
             set { effectFile = value; }
         }
 
-        private string heightMapFile;
-
         public string HeightMapFile
         {
             get { return heightMapFile; }
             set { heightMapFile = value; }
         }
+        #endregion
 
-        public Terrain(GraphicsDevice graphicsDevice)
-            : base(graphicsDevice, 128, 128)
+        public Terrain(GraphicsDevice graphicsDevice, Camera camera, string heightMapFile, string effectFile)
+            : base(graphicsDevice, camera, 128, 128)
         {
+            terrainIndexer = new TerrainIndexer(this, camera, graphicsDevice);
+            this.heightMapFile = heightMapFile;
+            this.effectFile = effectFile;
         }
 
-        public Terrain(GraphicsDevice graphicsDevice, Texture2D heightMap)
-            : base(graphicsDevice, heightMap)
+        public Terrain(GraphicsDevice graphicsDevice, Camera camera, Texture2D heightMap, string heightMapFile, string effectFile)
+            : base(graphicsDevice, camera, heightMap)
         {
+            terrainIndexer = new TerrainIndexer(this, camera, graphicsDevice);
+            this.heightMapFile = heightMapFile;
+            this.effectFile = effectFile;
         }
 
         public void SaveHeightMap()

@@ -132,6 +132,8 @@ namespace View
         private MouseEventArgs mouseEventArgs;
         private int tempMouseX;
         private int tempMouseY;
+        private ContentManager heightmapContent;
+        private string effectFile;
 
         public Editor()
         {
@@ -147,10 +149,11 @@ namespace View
             basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
             contentBuilder = ContentBuilder.Instance;
             contentManager = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
+            heightmapContent = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
             spriteBatch = new SpriteBatch(graphicsDeviceControl1.GraphicsDevice);
             
             string errorBuild = "";
-            string effectFile = AssemblyDirectory + "\\effects.fx";
+            effectFile = AssemblyDirectory + "\\effects.fx";
             try
             {
                 //importer reference: http://msdn.microsoft.com/en-us/library/bb447762%28v=xnagamestudio.20%29.aspx
@@ -161,7 +164,7 @@ namespace View
                 errorBuild = contentBuilder.Build();
                 spriteFont = contentManager.Load<SpriteFont>("SegoeUI.spritefont");
                 terrainEffect = contentManager.Load<Effect>("effects");
-                heightMap = contentManager.Load<Texture2D>("heightmap");
+                heightMap = heightmapContent.Load<Texture2D>("heightmap");
                 brushHeightMap = contentManager.Load<Texture2D>("brush");
             }
             catch (Exception ex)
@@ -171,25 +174,24 @@ namespace View
 
             try
             {
-                //heightMap = null;
-                if (heightMap != null)
-                    terrain = new Terrain(GraphicsDevice, heightMap);
-                else
-                    terrain = new Terrain(GraphicsDevice);
-                terrain.EffectFile = effectFile;
-                if (mainUserControl != null)
-                    terrain.HeightMapFile = AssemblyDirectory + "\\" + mainUserControl._ClassManager.Name + ".png";
-                else
-                    terrain.HeightMapFile = AssemblyDirectory + "\\test_HeightMap.png";
-            
                 camera = new Camera();
-                //camera.Position = new Vector3(0, terrain.HeightData[0, 0] + 1, 0);
                 camera.Position = new Vector3(0, 50, 0);
                 camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
-                camera.Rotate(0, 135, 0);
+                camera.Rotate(20, 135, 0);
                 camera.Attach(this);
 
-                terrain.TerrainIndexer = new TerrainIndexer(terrain, camera, GraphicsDevice);
+                heightMap = null;
+                string heightMapFile = AssemblyDirectory + "\\test_HeightMap.png";
+                if (heightMap != null)
+                    terrain = new Terrain(GraphicsDevice, camera, heightMap, heightMapFile, effectFile);
+                else
+                    terrain = new Terrain(GraphicsDevice, camera, heightMapFile, effectFile);
+
+                //impossible
+                //if (mainUserControl == null)
+                    //terrain.HeightMapFile = AssemblyDirectory + "\\" + mainUserControl._ClassManager.Name + ".png";
+                //else
+                    //terrain.HeightMapFile = AssemblyDirectory + "\\test_HeightMap.png";
 
                 editorMode = new EditorMode_Select(this);
 
@@ -220,6 +222,18 @@ namespace View
         void IObserver.UpdateObserver()
         {
             graphicsDeviceControl1.Invalidate();
+        }
+
+        public void ImportHeightmap(string heightmapFile)
+        {
+            heightmapContent = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
+            contentBuilder.Add(heightmapFile, "heightmap", null, "TextureProcessor");
+            contentBuilder.Build();
+            heightMap = heightmapContent.Load<Texture2D>("heightmap");
+            camera.Detach(terrain.TerrainIndexer);
+            terrain = new Terrain(GraphicsDevice, camera, heightMap, heightmapFile, effectFile);
+            terrainBrush = new TerrainBrush(GraphicsDevice, terrain, brushHeightMap);
+            camera.Notify();
         }
 
         public void AddObject(string file, string name, Vector3 position, Vector3 eulerRotation)
@@ -295,7 +309,7 @@ namespace View
         
         private void graphicsDeviceControl1_Paint(object sender, PaintEventArgs e)
         {
-            graphicsDeviceControl1.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Microsoft.Xna.Framework.Color.Black, 1.0f, 0);
+            graphicsDeviceControl1.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Microsoft.Xna.Framework.Color.CornflowerBlue, 1.0f, 0);
 
             GraphicsDevice.BlendState = BlendState.Opaque;
             GraphicsDevice.DepthStencilState = DepthStencilState.Default;
@@ -310,7 +324,10 @@ namespace View
 
             try
             {
-                terrain.Draw(terrainEffect, camera);
+                if (terrainEffect == null)
+                    terrain.Draw(basicEffect);
+                else
+                    terrain.Draw(terrainEffect);
             }
             catch (Exception ex)
             {
@@ -461,6 +478,7 @@ namespace View
             if (camera == null || graphicsDeviceControl1.GraphicsDevice == null)
                 return;
             camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
+            terrain.TerrainIndexer.Resize();
             camera.Notify();
         }
 
@@ -583,11 +601,6 @@ namespace View
                 string path = Uri.UnescapeDataString(uri.Path);
                 return System.IO.Path.GetDirectoryName(path);
             }
-        }
-
-        private void Editor_Resize(object sender, EventArgs e)
-        {
-            graphicsDeviceControl1.Invalidate();
         }
     }
 }

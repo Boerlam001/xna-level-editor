@@ -87,6 +87,20 @@ namespace EditorModel
             text = "";
         }
 
+        public void Resize()
+        {
+            width = graphicsDevice.Viewport.Width + 1;
+            height = graphicsDevice.Viewport.Height + 1;
+            indices = new int[width, height];
+            for (int i = 0; i < width; i++)
+            {
+                for (int j = 0; j < height; j++)
+                {
+                    indices[i, j] = -1;
+                }
+            }
+        }
+
         private bool OutOfBounds(Vector3 pos)
         {
             return !(pos.X >= 0 && pos.X <= graphicsDevice.Viewport.Width && pos.Y >= 0 && pos.Y <= graphicsDevice.Viewport.Height);

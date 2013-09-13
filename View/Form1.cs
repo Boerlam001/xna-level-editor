@@ -39,9 +39,13 @@ namespace View
             form.Show();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button3_Click(object sender, EventArgs e)
         {
-            mainUserControl1.Editor1.Terrain.SaveHeightMap();
+            if (mainUserControl1.Editor1.openFileDialog1.ShowDialog() != DialogResult.OK)
+            {
+                return;
+            }
+            mainUserControl1.Editor1.ImportHeightmap(mainUserControl1.Editor1.openFileDialog1.FileName);
         }
     }
 }

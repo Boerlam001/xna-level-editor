@@ -65,6 +65,12 @@ namespace XleGenerator
             set { mapModel = value; }
         }
 
+        public Project ContentProject
+        {
+            get { return contentProject; }
+            set { contentProject = value; }
+        }
+
         private CodeNamespace codeNamespace;
         private CodeClass2 codeClass;
         private CodeFunction2 loadContentFunction;
@@ -248,6 +254,20 @@ namespace XleGenerator
             }
         }
 
+        public void AddHeightMapToContentProject(Terrain terrain)
+        {            
+            terrain.SaveHeightMap();
+            heightMapAsset = Path.GetFileNameWithoutExtension(terrain.HeightMapFile);
+            contentProject.ProjectItems.AddFromFile(terrain.HeightMapFile);
+
+            string target = Path.GetDirectoryName(contentProject.FullName) + "\\" + Path.GetFileName(terrain.EffectFile);
+            if (!File.Exists(target))
+            {
+                File.Copy(terrain.EffectFile, target);
+            }
+            contentProject.ProjectItems.AddFromFile(target);
+        }
+
         public void GenerateClass()
         {
             if (classFile == null)
@@ -260,21 +280,23 @@ namespace XleGenerator
             StringBuilder sb = new StringBuilder();
             string variable = sb.
                        Append("Camera camera;\r\n").
-                       //Append("Terrain terrain;\r\n").
-                       //Append("Effect terrainEffect;\r\n").
+                       Append("Terrain terrain;\r\n").
+                       Append("Effect terrainEffect;\r\n").
+                       Append("Texture2D heightMap;\r\n").
                        ToString();
             sb.Clear();
             string loadContent = sb.
                        Append("camera = new Camera();\r\n").
                        Append("camera.Position = new Vector3(0, 50, 0);\r\n").
                        Append("camera.AspectRatio = GraphicsDevice.Viewport.AspectRatio;\r\n").
-                       Append("camera.Rotate(0, 135, 0);\r\n\r\n").
-                       //Append("terrain = new Terrain(GraphicsDevice);\r\n").
-                       //Append("terrainEffect = contentManager.Load<Effect>(\"effects\");\r\n").
+                       Append("camera.Rotate(20, 135, 0);\r\n\r\n").
+                       Append("terrainEffect = Content.Load<Effect>(\"effects\");\r\n").
+                       Append("heightMap = Content.Load<Texture2D>(\"" + heightMapAsset + "\");\r\n").
+                       Append("terrain = new Terrain(GraphicsDevice, camera, heightMap);\r\n").
                        ToString();
             sb.Clear();
             string draw = sb.
-                       //Append("terrain.Draw(terrainEffect, camera);\r\n").
+                       Append("terrain.Draw(terrainEffect);\r\n").
                        ToString();
             sb.Clear();
             foreach (CodeLines codeLines in codeLinesList)
@@ -489,6 +511,7 @@ namespace XleGenerator
 
         private static string assemblyDirectory = null;
         private CodeImport lastImportStatement;
+        private string heightMapAsset;
 
         public static string AssemblyDirectory
         {
