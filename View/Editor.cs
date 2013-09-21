@@ -177,7 +177,7 @@ namespace View
                 camera = new Camera();
                 camera.Position = new Vector3(0, 50, 0);
                 camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
-                camera.Rotate(20, 135, 0);
+                camera.Rotate(20, 45, 0);
                 camera.Attach(this);
 
                 heightMap = null;
@@ -317,7 +317,7 @@ namespace View
 
             if (mapModel != null)
                 foreach (DrawingObject obj in mapModel.Objects)
-                    obj.Draw(camera.World, camera.Projection);
+                    obj.Draw(camera.World, camera.Projection, false, camera.Direction);
             
             basicEffect.View = camera.World;
             basicEffect.Projection = camera.Projection;

@@ -37,11 +37,11 @@ namespace EditorModel
             : base(graphicsDevice, null, heightMap, false)
         {
             this.terrain = terrain;
-            vertices = new VertexPositionColorNormal[terrain.Vertices.Length];
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                vertices[i].Position = terrain.Vertices[i].Position;
-            }
+            //vertices = new VertexPositionColorNormal[terrain.Vertices.Length];
+            //for (int i = 0; i < vertices.Length; i++)
+            //{
+            //    vertices[i].Position = terrain.Vertices[i].Position;
+            //}
             //vertices = terrain.Vertices;
             InitializeAll(heightMap);
         }
@@ -62,75 +62,80 @@ namespace EditorModel
 
         protected override void InitializeVertices()
         {
+            vertices = new VertexPositionColorNormal[width * height];
+
             halfWidth = (int)Math.Round((double)width / 2);
             halfHeight = (int)Math.Round((double)height / 2);
             startX = (int)position.X - halfWidth;
-            startY = (int)-position.Z - halfHeight;
+            startY = (int)position.Z - halfHeight;
             endX = (int)position.X + halfWidth;
-            endY = (int)-position.Z + halfHeight;
+            endY = (int)position.Z + halfHeight;
 
-            for (int x = 0; x < terrain.Width; x++)
-            {
-                for (int y = 0; y < terrain.Height; y++)
-                {
-                    int i = x + y * terrain.Width;
-                    vertices[i].Position.Y += 0.1f;
-                    if (x >= startX && x < endX && y >= startY && y < endY)
-                    {
-                        vertices[i].Color = Color.Yellow * heightFactor[x - startX, y - startY];
-                    }
-                    else
-                    {
-                        vertices[i].Color = Color.Yellow * 0;
-                    }
-                }
-            }
+            //for (int x = 0; x < terrain.Width; x++)
+            //{
+            //    for (int y = 0; y < terrain.Height; y++)
+            //    {
+            //        int i = x + y * terrain.Width;
+            //        vertices[i].Position.Y += 0.1f;
+            //        if (x >= startX && x < endX && y >= startY && y < endY)
+            //        {
+            //            vertices[i].Color = Color.Yellow * heightFactor[x - startX, y - startY];
+            //        }
+            //        else
+            //        {
+            //            vertices[i].Color = Color.Yellow * 0;
+            //        }
+            //    }
+            //}
 
             //int startX = (int)position.X - (int)Math.Round((double)width / 2),
             //    startY = (int)-position.Z - (int)Math.Round((double)height /2);
             //
-            //for (int x = 0; x < width; x++)
-            //{
-            //    for (int y = 0; y < height; y++)
-            //    {
-            //        float posX = startX + x, posY = startY + y;
-            //        int i = x + y * width;
-            //        if (posX >= 0 && posX < terrain.HeightData.GetLength(0) && posY >= 0 && posY < terrain.HeightData.GetLength(1))
-            //        {
-            //            int j = (int)posX + (int)posY * terrain.Width;
-            //            vertices[i].Position = new Vector3(posX, terrain.Vertices[j].Position.Y + 0.1f, -posY);
-            //        }
-            //        else
-            //        {
-            //            vertices[i].Position = new Vector3(posX, 0, -posY);
-            //        }
-            //        vertices[i].Color = Color.Yellow * heightFactor[x, y];
-            //    }
-            //}
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    float posX = startX + x, posY = startY + y;
+                    int i = x + y * width;
+                    if (posX >= 0 && posX < terrain.HeightData.GetLength(0) && posY >= 0 && posY < terrain.HeightData.GetLength(1))
+                    {
+                        int j = (int)posX + (int)posY * terrain.Width;
+                        vertices[i].Position = new Vector3(posX, terrain.Vertices[j].Position.Y + 0.1f, posY);
+                        vertices[i].Color = Color.Yellow * heightFactor[x, y];
+                    }
+                    else
+                    {
+                        vertices[i].Position = new Vector3(posX, 0, posY);
+                        vertices[i].Color = new Color(0, 0, 0, 0);
+                    }
+                    
+                }
+            }
         }
 
         protected override void InitializeIndices()
         {
-            indices = new short[(terrain.Width - 1) * (terrain.Height - 1) * 6];
-            int counter = 0;
-            for (int y = 0; y < terrain.Width - 1; y++)
-            {
-                for (int x = 0; x < terrain.Height - 1; x++)
-                {
-                    int lowerLeft = x + y * terrain.Width;
-                    int lowerRight = (x + 1) + y * terrain.Width;
-                    int topLeft = x + (y + 1) * terrain.Width;
-                    int topRight = (x + 1) + (y + 1) * terrain.Width;
-
-                    indices[counter++] = (short)topLeft;
-                    indices[counter++] = (short)lowerRight;
-                    indices[counter++] = (short)lowerLeft;
-
-                    indices[counter++] = (short)topLeft;
-                    indices[counter++] = (short)topRight;
-                    indices[counter++] = (short)lowerRight;
-                }
-            }
+            base.InitializeIndices();
+            //indices = new short[(terrain.Width - 1) * (terrain.Height - 1) * 6];
+            //int counter = 0;
+            //for (int y = 0; y < terrain.Width - 1; y++)
+            //{
+            //    for (int x = 0; x < terrain.Height - 1; x++)
+            //    {
+            //        int lowerLeft = x + y * terrain.Width;
+            //        int lowerRight = (x + 1) + y * terrain.Width;
+            //        int topLeft = x + (y + 1) * terrain.Width;
+            //        int topRight = (x + 1) + (y + 1) * terrain.Width;
+            //
+            //        indices[counter++] = (short)topLeft;
+            //        indices[counter++] = (short)lowerRight;
+            //        indices[counter++] = (short)lowerLeft;
+            //
+            //        indices[counter++] = (short)topLeft;
+            //        indices[counter++] = (short)topRight;
+            //        indices[counter++] = (short)lowerRight;
+            //    }
+            //}
         }
 
         public override void CalculateNormals()
@@ -141,32 +146,58 @@ namespace EditorModel
 
         protected void RecolourizeVertices()
         {
-            for (int x = Math.Max(0, startX); x <= Math.Min(terrain.Width - 1, endX); x++)
-            {
-                for (int y = Math.Max(0, startY); y <= Math.Min(terrain.Height - 1, endY); y++)
-                {
-                    int i = x + y * terrain.Width;
-                    if (x >= startX && x < endX && y >= startY && y < endY)
-                    {
-                        vertices[i].Color = Color.Yellow * 0;
-                    }
-                }
-            }
+            //for (int x = Math.Max(0, startX); x <= Math.Min(terrain.Width - 1, endX); x++)
+            //{
+            //    for (int y = Math.Max(0, startY); y <= Math.Min(terrain.Height - 1, endY); y++)
+            //    {
+            //        int i = x + y * terrain.Width;
+            //        if (x >= startX && x < endX && y >= startY && y < endY)
+            //        {
+            //            vertices[i].Color = Color.Yellow * 0;
+            //        }
+            //    }
+            //}
+            //
+            //startX = (int)position.X - halfWidth;
+            //startY = (int)-position.Z - halfHeight;
+            //endX = (int)position.X + halfWidth;
+            //endY = (int)-position.Z + halfHeight;
+            //
+            //for (int x = Math.Max(0, startX); x <= Math.Min(terrain.Width - 1, endX); x++)
+            //{
+            //    for (int y = Math.Max(0, startY); y <= Math.Min(terrain.Height - 1, endY); y++)
+            //    {
+            //        int i = x + y * terrain.Width;
+            //        if (x >= startX && x < endX && y >= startY && y < endY)
+            //        {
+            //            vertices[i].Color = Color.Yellow * heightFactor[x - startX, y - startY];
+            //        }
+            //    }
+            //}
 
             startX = (int)position.X - halfWidth;
-            startY = (int)-position.Z - halfHeight;
+            startY = (int)position.Z - halfHeight;
             endX = (int)position.X + halfWidth;
-            endY = (int)-position.Z + halfHeight;
+            endY = (int)position.Z + halfHeight;
 
-            for (int x = Math.Max(0, startX); x <= Math.Min(terrain.Width - 1, endX); x++)
+            for (int x = 0; x < width; x++)
             {
-                for (int y = Math.Max(0, startY); y <= Math.Min(terrain.Height - 1, endY); y++)
+                for (int y = 0; y < height; y++)
                 {
-                    int i = x + y * terrain.Width;
-                    if (x >= startX && x < endX && y >= startY && y < endY)
+                    float posX = startX + x, posY = startY + y;
+                    int i = x + y * width;
+                    if (posX >= 0 && posX < terrain.HeightData.GetLength(0) && posY >= 0 && posY < terrain.HeightData.GetLength(1))
                     {
-                        vertices[i].Color = Color.Yellow * heightFactor[x - startX, y - startY];
+                        int j = (int)posX + (int)posY * terrain.Width;
+                        vertices[i].Position = new Vector3(posX, terrain.Vertices[j].Position.Y + 0.1f, posY);
+                        vertices[i].Color = Color.Yellow * heightFactor[x, y];
                     }
+                    else
+                    {
+                        vertices[i].Position = new Vector3(posX, 0, posY);
+                        vertices[i].Color = new Color(0, 0, 0, 0);
+                    }
+
                 }
             }
         }
@@ -216,26 +247,50 @@ namespace EditorModel
 
         public void ModifyTerrain(int k)
         {
-            for (int x = Math.Max(0, startX); x <= Math.Min(terrain.Width - 1, endX); x++)
+            //for (int x = Math.Max(0, startX); x <= Math.Min(terrain.Width - 1, endX); x++)
+            //{
+            //    for (int y = Math.Max(0, startY); y <= Math.Min(terrain.Height - 1, endY); y++)
+            //    {
+            //        int i = x + y * terrain.Width;
+            //        if (x >= startX && x < endX && y >= startY && y < endY)
+            //        {
+            //            float newHeight = terrain.Vertices[i].Position.Y + k * heightFactor[x - startX, y - startY];
+            //            if (newHeight * 5 >= 0 && newHeight * 5 <= 255)
+            //            {
+            //                terrain.Vertices[i].Position.Y += k * heightFactor[x - startX, y - startY];
+            //                terrain.HeightMapColors[i].R = (byte)(terrain.Vertices[i].Position.Y / 0.2f);
+            //                terrain.HeightMapColors[i].G = (byte)(terrain.Vertices[i].Position.Y / 0.2f);
+            //                terrain.HeightMapColors[i].B = (byte)(terrain.Vertices[i].Position.Y / 0.2f);
+            //                terrain.HeightMapColors[i].A = 255;
+            //                vertices[i].Position.Y += k * heightFactor[x - startX, y - startY];
+            //            }
+            //        }
+            //    }
+            //}
+
+            for (int x = 0; x < width; x++)
             {
-                for (int y = Math.Max(0, startY); y <= Math.Min(terrain.Height - 1, endY); y++)
+                for (int y = 0; y < height; y++)
                 {
-                    int i = x + y * terrain.Width;
-                    if (x >= startX && x < endX && y >= startY && y < endY)
+                    float posX = startX + x, posY = startY + y;
+                    int i = x + y * width;
+                    if (posX >= 0 && posX < terrain.HeightData.GetLength(0) && posY >= 0 && posY < terrain.HeightData.GetLength(1))
                     {
-                        float newHeight = terrain.Vertices[i].Position.Y + k * heightFactor[x - startX, y - startY];
+                        int j = (int)posX + (int)posY * terrain.Width;
+                        float newHeight = terrain.Vertices[j].Position.Y + k * heightFactor[x, y];
                         if (newHeight * 5 >= 0 && newHeight * 5 <= 255)
                         {
-                            terrain.Vertices[i].Position.Y += k * heightFactor[x - startX, y - startY];
-                            terrain.HeightMapColors[i].R = (byte)(terrain.Vertices[i].Position.Y / 0.2f);
-                            terrain.HeightMapColors[i].G = (byte)(terrain.Vertices[i].Position.Y / 0.2f);
-                            terrain.HeightMapColors[i].B = (byte)(terrain.Vertices[i].Position.Y / 0.2f);
-                            terrain.HeightMapColors[i].A = 255;
-                            vertices[i].Position.Y += k * heightFactor[x - startX, y - startY];
+                            terrain.Vertices[j].Position.Y += k * heightFactor[x, y];
+                            terrain.HeightMapColors[j].R = (byte)(terrain.Vertices[j].Position.Y / 0.2f);
+                            terrain.HeightMapColors[j].G = (byte)(terrain.Vertices[j].Position.Y / 0.2f);
+                            terrain.HeightMapColors[j].B = (byte)(terrain.Vertices[j].Position.Y / 0.2f);
+                            terrain.HeightMapColors[j].A = 255;
+                            vertices[i].Position.Y += k * heightFactor[x, y];
                         }
                     }
                 }
             }
+
             CopyToBuffers();
             terrain.CalculateNormals();
             terrain.CopyToBuffers();

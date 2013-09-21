@@ -9,17 +9,19 @@ namespace EditorModel
 {
     public class DrawingObject : BaseObject
     {
-        Model drawingModel;
-
+        #region attributes
+        private Model drawingModel;
         private Matrix[] boneTransforms;
+        private string sourceFile;
+        private Vector3 center;
+        #endregion
 
+        #region getters and setters
         public Matrix[] BoneTransforms
         {
             get { return boneTransforms; }
             set { boneTransforms = value; }
         }
-
-        string sourceFile;
 
         public string SourceFile
         {
@@ -39,13 +41,14 @@ namespace EditorModel
                 }
             }
         }
+        #endregion
 
-        public DrawingObject()
+        public DrawingObject() : base()
         {
             
         }
 
-        public void Draw(Matrix view, Matrix projection)
+        public void Draw(Matrix view, Matrix projection, bool lightDirectionEnabled = false, Vector3 lightDirection = new Vector3())
         {
             if (drawingModel == null)
                 return;
@@ -59,6 +62,11 @@ namespace EditorModel
                     effect.EnableDefaultLighting();
                     effect.PreferPerPixelLighting = true;
                     effect.SpecularPower = 16;
+                    if (lightDirectionEnabled)
+                    {
+                        effect.DirectionalLight0.Enabled = lightDirectionEnabled;
+                        effect.DirectionalLight0.Direction = lightDirection;
+                    }
                 }
                 mesh.Draw();
             }
@@ -73,17 +81,20 @@ namespace EditorModel
 
             // Compute an (approximate) model center position by
             // averaging the center of each mesh bounding sphere.
-            
+
+            Vector3 centerTemp = new Vector3();
             foreach (ModelMesh mesh in drawingModel.Meshes)
             {
                 BoundingSphere meshBounds = mesh.BoundingSphere;
                 Matrix transform = boneTransforms[mesh.ParentBone.Index];
                 Vector3 meshCenter = Vector3.Transform(meshBounds.Center, transform);
 
-                position += meshCenter;
+                centerTemp += meshCenter;
             }
 
-            position /= drawingModel.Meshes.Count;
+            centerTemp /= drawingModel.Meshes.Count;
+            center = centerTemp;
+            position += centerTemp;
 
             // Now we know the center point, we can compute the model radius
             // by examining the radius of each mesh bounding sphere.
@@ -164,6 +175,20 @@ namespace EditorModel
                         result = BoundingBox.CreateMerged(result, meshPartBoundingBox.Value);
                 }
             return result;
+        }
+
+        protected override void OnRotationChanged(object sender, EventArgs e)
+        {
+            base.OnRotationChanged(sender, e);
+            Vector3 v = Vector3.Transform(center, rotation);
+            world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position - v);
+        }
+
+        protected override void OnPositionChanged(object sender, EventArgs e)
+        {
+            base.OnPositionChanged(sender, e);
+            Vector3 v = Vector3.Transform(center, rotation);
+            world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position - v);
         }
     }
 }

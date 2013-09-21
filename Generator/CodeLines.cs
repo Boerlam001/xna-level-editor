@@ -54,10 +54,12 @@ namespace XleGenerator
                   rotX = model.RotationX, rotY = model.RotationY, rotZ = model.RotationZ;
             code[CodePosition.LoadContent] =
                 sb.
-                Append(name).Append(" = new DrawingObject();\r\n").
+                Append(name).Append(" = new DrawingObject(this, world);\r\n").
                 Append(name).Append(".DrawingModel = Content.Load<Model>(\"").Append(System.IO.Path.GetFileNameWithoutExtension(model.SourceFile)).Append("\");\r\n").
                 Append(name).Append(".Position = new Vector3(").Append(x).Append("f, ").Append(y).Append("f, ").Append(z).Append("f);\r\n").
-                Append(name).Append(".EulerRotation = new Vector3(").Append(rotX).Append("f, ").Append(rotY).Append("f, ").Append(rotZ).Append("f);").ToString();
+                Append(name).Append(".EulerRotation = new Vector3(").Append(rotX).Append("f, ").Append(rotY).Append("f, ").Append(rotZ).Append("f);\r\n").
+                Append("Components.Add(").Append(name).Append(");\r\n").
+                ToString();
             sb.Clear();
             code[CodePosition.Draw] = sb.Append(name).Append(".Draw(camera.World, camera.Projection);").ToString();
         }

@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace EditorModel
 {
-    public class BoundingBoxBuffer : BaseObject
+    public class BoundingBoxBuffer
     {
         private ModelBoundingBox parent;
 
@@ -136,7 +136,7 @@ namespace EditorModel
             vertices.Add(new VertexPositionColor(position, Color.Green));
         }
 
-        public BoundingBoxBuffer(GraphicsDevice graphicsDevice) : base()
+        public BoundingBoxBuffer(GraphicsDevice graphicsDevice)
         {
             primitiveCount = 24;
             vertexCount = 48;
@@ -144,7 +144,7 @@ namespace EditorModel
             vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColor), vertexCount, BufferUsage.WriteOnly);
         }
 
-        public void Draw(BasicEffect effect)
+        public void Draw(BasicEffect effect, Matrix world)
         {
             graphicsDevice.SetVertexBuffer(vertexBuffer);
             graphicsDevice.Indices = indices;

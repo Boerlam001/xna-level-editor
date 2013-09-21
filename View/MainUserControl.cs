@@ -95,7 +95,7 @@ namespace View
                             editor1.ImportHeightmap(heightMapFile);
                     }
                     
-                    classManager.AddHeightMapToContentProject(editor1.Terrain);
+                    classManager.AddHeightMapToContentProject(editor1.Terrain, isOpen, heightMapFile);
                     window.Caption = classManager.Name + ".cs";
                 }
             }

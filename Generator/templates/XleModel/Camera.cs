@@ -125,12 +125,12 @@ namespace XleModel
             get { return projection; }
         }
 
-        public Camera()
+        public Camera(Game game) : base(game)
         {
             name = "camera";
             fieldOfViewAngle = MathHelper.ToRadians(45);
             nearPlaneDistance = 0.01f;
-            farPlaneDistance = 100f;
+            farPlaneDistance = 2000f;
             aspectRatio = 16 / 9;
             projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
         }

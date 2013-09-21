@@ -100,6 +100,171 @@
     <Compile Include="FileHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SolutionManager.cs" />
+    <None Include="templates\XleModel\ConvexHullHelper.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\CollisionIsland.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\CollisionSystem.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\CollisionSystemBrute.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\CollisionSystemPersistentSAP.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\CollisionSystemSAP.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\DynamicTree.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\GJKCollide.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\IslandManager.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Octree.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\BoxShape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\CapsuleShape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\CompoundShape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\ConeShape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\ConvexHullShape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\CylinderShape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\MinkowskiSumShape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\Multishape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\Shape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\SphereShape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\TerrainShape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\Shapes\TriangleMeshShape.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Collision\XenoCollide.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\DataStructures\Hashset.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\DataStructures\ReadOnlyHashset.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Arbiter.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\ArbiterMap.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Constraint.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Constraints\FixedAngle.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Constraints\PointOnLine.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Constraints\PointOnPoint.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Constraints\PointPointDistance.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Constraints\SingleBody\FixedAngle.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Constraints\SingleBody\PointOnLine.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Constraints\SingleBody\PointOnPoint.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Contact.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\IConstraint.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Joints\HingeJoint.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Joints\Joint.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Joints\PrismaticJoint.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\Material.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\RigidBody.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Dynamics\SoftBody.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\LinearMath\JBBox.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\LinearMath\JConvexHull.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\LinearMath\JMath.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\LinearMath\JMatrix.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\LinearMath\JQuaternion.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\LinearMath\JVector.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Properties\AssemblyInfo.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\IDebugDraw.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\ResourcePool.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\ThreadManager.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\World.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\MouseAction.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="templates\XleModel\BaseTerrain.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -131,12 +296,26 @@
       <Name>EditorModel</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="templates\Jitter\Jitter.csproj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\Jitter360.csproj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\JitterPhone.csproj">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\Jitter\ToDo.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <ItemGroup>
     <None Include="templates\XleModel\XleModel.csproj">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

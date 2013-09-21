@@ -5,6 +5,8 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+using Jitter.LinearMath;
+using Microsoft.Xna.Framework;
 
 namespace XleModel
 {
@@ -64,9 +66,9 @@ namespace XleModel
                 up = Vector3.Transform(up, Matrix.CreateRotationX(-rotationaxes.X));
                 rotationaxes.Z = ArcTanAngle(up.Y, -up.X);
             }
-            eulerX = rotationaxes.X;
-            eulerY = rotationaxes.Y;
-            eulerZ = rotationaxes.Z;
+            eulerX = MathHelper.ToDegrees(rotationaxes.X);
+            eulerY = MathHelper.ToDegrees(rotationaxes.Y);
+            eulerZ = MathHelper.ToDegrees(rotationaxes.Z);
         }
 
         public static void Pointing(GraphicsDevice graphicsDevice, Camera camera, float mouseX, float mouseY, out Vector3 nearPoint, out Vector3 direction)
@@ -191,6 +193,49 @@ namespace XleModel
 
             // Return pixel coordinates as 2D (change this to 3D if you need Z)
             return new Vector2(vProjected.X, vProjected.Y);
+        }
+
+        public static JVector ToJitterVector(Vector3 vector)
+        {
+            return new JVector(vector.X, vector.Y, vector.Z);
+        }
+
+        public static Matrix ToXNAMatrix(JMatrix matrix)
+        {
+            return new Matrix(matrix.M11,
+                            matrix.M12,
+                            matrix.M13,
+                            0.0f,
+                            matrix.M21,
+                            matrix.M22,
+                            matrix.M23,
+                            0.0f,
+                            matrix.M31,
+                            matrix.M32,
+                            matrix.M33,
+                            0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+        }
+
+        public static JMatrix ToJitterMatrix(Matrix matrix)
+        {
+            JMatrix result;
+            result.M11 = matrix.M11;
+            result.M12 = matrix.M12;
+            result.M13 = matrix.M13;
+            result.M21 = matrix.M21;
+            result.M22 = matrix.M22;
+            result.M23 = matrix.M23;
+            result.M31 = matrix.M31;
+            result.M32 = matrix.M32;
+            result.M33 = matrix.M33;
+            return result;
+
+        }
+
+
+        public static Vector3 ToXNAVector(JVector vector)
+        {
+            return new Vector3(vector.X, vector.Y, vector.Z);
         }
     }
 }

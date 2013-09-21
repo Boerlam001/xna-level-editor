@@ -8,14 +8,28 @@ namespace EditorModel
 {
     public class BaseObject : Subject
     {
+        #region attributes
+        private Vector3 direction;
         protected float rotationX;
         protected float rotationY;
         protected float rotationZ;
         protected Matrix world;
         protected string name;
-        
+        protected Vector3 position;
+        protected Quaternion rotation;
         protected bool isMoving;
+        protected Vector3 scale;
+        protected Vector3 eulerRotation;
+        public static Vector3 rotationReference = new Vector3(0, 0, 10);
+        #endregion
 
+        public delegate void RotationChangedEventHandler(object sender, EventArgs e);
+        public RotationChangedEventHandler RotationChanged;
+
+        public delegate void PositionChangedEventHandler(object sender, EventArgs e);
+        public RotationChangedEventHandler PositionChanged;
+
+        #region setters and getters
         public bool IsMoving
         {
             get { return isMoving; }
@@ -28,11 +42,6 @@ namespace EditorModel
             set { name = value; }
         }
 
-        protected Vector3 position;
-        protected Quaternion rotation;
-        
-        protected Vector3 scale;
-
         public Vector3 Scale
         {
             get { return scale; }
@@ -42,8 +51,6 @@ namespace EditorModel
                 world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             }
         }
-
-        protected Vector3 eulerRotation;
 
         public Vector3 EulerRotation
         {
@@ -62,10 +69,11 @@ namespace EditorModel
             }
         }
 
-        public delegate void RotationChangedEventHandler(object sender, EventArgs e);
-        public RotationChangedEventHandler RotationChanged;
-
-        public static Vector3 rotationReference = new Vector3(0, 0, 10);
+        public Vector3 Direction
+        {
+            get { return direction; }
+            set { direction = value; }
+        }
         
         public virtual Vector3 Position
         {
@@ -74,6 +82,8 @@ namespace EditorModel
             {
                 position = value;
                 world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
+
+                OnPositionChanged(this, null);
             }
         }
 
@@ -136,6 +146,7 @@ namespace EditorModel
         {
             get { return world; }
         }
+        #endregion
 
         public BaseObject()
         {
@@ -145,6 +156,8 @@ namespace EditorModel
             scale = Vector3.One;
             world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             world.Decompose(out scale, out rotation, out position);
+
+            OnRotationChanged(this, null);
         }
 
         public virtual void Rotate(float x, float y, float z)
@@ -155,18 +168,16 @@ namespace EditorModel
             eulerRotation = new Vector3(rotationX, rotationY, rotationZ);
             world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             world.Decompose(out scale, out rotation, out position);
+
+            OnRotationChanged(this, null);
         }
 
         public void LookAt(Vector3 target)
         {
             world = Matrix.CreateLookAt(position, target, Vector3.Up);
             world.Decompose(out scale, out rotation, out position);
-        }
 
-        protected void OnRotationChanged(object sender, EventArgs e)
-        {
-            if (RotationChanged != null)
-                RotationChanged(this, e);
+            OnRotationChanged(this, null);
         }
 
         public void MoveForward(float speed)
@@ -187,6 +198,22 @@ namespace EditorModel
             v.Y += position.Y;
             v.Z += position.Z;
             Position = v;
+        }
+
+        protected virtual void OnRotationChanged(object sender, EventArgs e)
+        {
+            direction = new Vector3(0, 0, 1);
+            direction = Vector3.Transform(direction, Matrix.CreateFromQuaternion(rotation));
+            direction.Normalize();
+
+            if (RotationChanged != null)
+                RotationChanged(sender, e);
+        }
+
+        protected virtual void OnPositionChanged(object sender, EventArgs e)
+        {
+            if (PositionChanged != null)
+                PositionChanged(sender, e);
         }
     }
 }

@@ -50,8 +50,11 @@ namespace EditorModel
                 }
                 i++;
             }
-            observers.RemoveAt(i);
-            threads.RemoveAt(i);
+            if (i < observers.Count)
+            {
+                observers.RemoveAt(i);
+                threads.RemoveAt(i);
+            }
         }
     }
 }

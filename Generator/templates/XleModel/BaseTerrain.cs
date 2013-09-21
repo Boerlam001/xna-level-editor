@@ -119,18 +119,16 @@ namespace XleModel
             set { heightMap = value; }
         }
 
-        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera)
+        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera, Game game)
+            : base(game)
         {
             this.graphicsDevice = graphicsDevice;
             this.camera = camera;
-            LoadHeightData();
-            InitializeVertices();
-            InitializeIndices();
-            CalculateNormals();
-            CopyToBuffers();
+            InitializeAll();
         }
 
-        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera, Texture2D heightMap, bool initialize = true)
+        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera, Texture2D heightMap, Game game, bool initialize = true)
+            : base(game)
         {
             this.graphicsDevice = graphicsDevice;
             this.camera = camera;
@@ -139,7 +137,8 @@ namespace XleModel
                 InitializeAll(heightMap);
         }
 
-        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera, int width, int height, bool initialize = true)
+        public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera, int width, int height, Game game, bool initialize = true)
+            : base(game)
         {
             this.graphicsDevice = graphicsDevice;
             this.camera = camera;
@@ -216,15 +215,7 @@ namespace XleModel
             {
                 for (int y = 0; y < height; y++)
                 {
-                    vertices[x + y * width].Position = new Vector3(x, heightData[x, y], -y);
-
-                    //if (heightData[x, y] < minHeight + (maxHeight - minHeight) / 4)
-                    //    vertices[x + y * width].Color = Color.Blue;
-                    //else if (heightData[x, y] < minHeight + (maxHeight - minHeight) * 2 / 4)
-                    //    vertices[x + y * width].Color = Color.Green;
-                    //else if (heightData[x, y] < minHeight + (maxHeight - minHeight) * 3 / 4)
-                    //    vertices[x + y * width].Color = Color.Brown;
-                    //else
+                    vertices[x + y * width].Position = new Vector3(x, heightData[x, y], y);
                     vertices[x + y * width].Color = Color.White;
                 }
             }
@@ -268,10 +259,10 @@ namespace XleModel
                 Vector3 side1 = vertices[index1].Position - vertices[index3].Position;
                 Vector3 side2 = vertices[index1].Position - vertices[index2].Position;
                 Vector3 normal = Vector3.Cross(side1, side2);
-
-                vertices[index1].Normal += normal;
-                vertices[index2].Normal += normal;
-                vertices[index3].Normal += normal;
+                
+                vertices[index1].Normal -= normal;
+                vertices[index2].Normal -= normal;
+                vertices[index3].Normal -= normal;
             }
 
             for (int i = 0; i < vertices.Length; i++)
@@ -312,7 +303,6 @@ namespace XleModel
                 {
                     pass.Apply();
                     graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Length, 0, indices.Length / 3);
-                    //graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, indices.Length / 3, VertexPositionColorNormal.VertexDeclaration);
                 }
                 graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             }
@@ -339,7 +329,6 @@ namespace XleModel
                 {
                     pass.Apply();
                     graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Length, 0, indices.Length / 3);
-                    //graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, indices.Length / 3, VertexPositionColor.VertexDeclaration);
                 }
 
                 basicEffect.World = Matrix.Identity;

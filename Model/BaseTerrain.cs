@@ -216,7 +216,7 @@ namespace EditorModel
             {
                 for (int y = 0; y < height; y++)
                 {
-                    vertices[x + y * width].Position = new Vector3(x, heightData[x, y], -y);
+                    vertices[x + y * width].Position = new Vector3(x, heightData[x, y], y);
 
                     //if (heightData[x, y] < minHeight + (maxHeight - minHeight) / 4)
                     //    vertices[x + y * width].Color = Color.Blue;
@@ -269,9 +269,9 @@ namespace EditorModel
                 Vector3 side2 = vertices[index1].Position - vertices[index2].Position;
                 Vector3 normal = Vector3.Cross(side1, side2);
 
-                vertices[index1].Normal += normal;
-                vertices[index2].Normal += normal;
-                vertices[index3].Normal += normal;
+                vertices[index1].Normal -= normal;
+                vertices[index2].Normal -= normal;
+                vertices[index3].Normal -= normal;
             }
 
             for (int i = 0; i < vertices.Length; i++)
@@ -298,8 +298,8 @@ namespace EditorModel
                 graphicsDevice.SetVertexBuffer(vertexBuffer);
                 graphicsDevice.Indices = indexBuffer;
 
-                Vector3 lightDirection = new Vector3(1.0f, -1.0f, -1.0f);
-                lightDirection.Normalize();
+                Vector3 lightDirection = camera.Direction;//Vector3.Transform(new Vector3(0, 0, 1), Matrix.CreateFromQuaternion(camera.Rotation));// new Vector3(1.0f, -1.0f, 1.0f);
+                //lightDirection.Normalize();
 
                 effect.CurrentTechnique = effect.Techniques["Colored"];
                 effect.Parameters["xView"].SetValue(camera.World);

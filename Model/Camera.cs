@@ -157,6 +157,7 @@ namespace EditorModel
             world = Matrix.CreateScale(scale) * Matrix.CreateLookAt(position, lookAtVector, Vector3.Up);
             Vector3 s, t;
             rotationMatrix.Decompose(out s, out rotation, out t);
+            OnRotationChanged(this, null);
         }
     }
 }

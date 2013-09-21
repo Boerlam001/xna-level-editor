@@ -89,15 +89,13 @@ namespace EditorModel
 
         public void Draw(ref BasicEffect basicEffect)
         {
-            boundingBoxBuffer.Draw(basicEffect);
+            boundingBoxBuffer.Draw(basicEffect, model.World);
             axisLines.Draw(ref basicEffect, graphicsDevice);
         }
 
         public void UpdateObserver()
         {
             boundingBoxBuffer.BoundingBox = model.CreateBoundingBox();
-            boundingBoxBuffer.Position = model.Position;
-            boundingBoxBuffer.Rotation = model.Rotation;
             axisLines.Position = model.Position;
         }
 

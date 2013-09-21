@@ -22,6 +22,8 @@ namespace WindowsGame1
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
+        MouseAction mouseAction;
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -53,6 +55,8 @@ namespace WindowsGame1
             #region XnaLevelEditor
             #endregion
 
+            mouseAction = new MouseAction(this, camera);
+
             // TODO: use this.Content to load your game content here
         }
 
@@ -75,6 +79,11 @@ namespace WindowsGame1
             // Allows the game to exit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
+
+            #region XnaLevelEditor
+            #endregion
+
+            mouseAction.Update(gameTime);
 
             // TODO: Add your update logic here
 

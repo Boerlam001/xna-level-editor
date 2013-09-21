@@ -64,9 +64,9 @@ namespace EditorModel
                 up = Vector3.Transform(up, Matrix.CreateRotationX(-rotationaxes.X));
                 rotationaxes.Z = ArcTanAngle(up.Y, -up.X);
             }
-            eulerX = rotationaxes.X;
-            eulerY = rotationaxes.Y;
-            eulerZ = rotationaxes.Z;
+            eulerX = MathHelper.ToDegrees(rotationaxes.X);
+            eulerY = MathHelper.ToDegrees(rotationaxes.Y);
+            eulerZ = MathHelper.ToDegrees(rotationaxes.Z);
         }
 
         public static void Pointing(GraphicsDevice graphicsDevice, Camera camera, float mouseX, float mouseY, out Vector3 nearPoint, out Vector3 direction)
