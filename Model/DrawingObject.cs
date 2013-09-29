@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.ComponentModel;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -23,6 +24,9 @@ namespace EditorModel
             set { boneTransforms = value; }
         }
 
+        //[Category("File")]
+        [Description("Source file for model")]
+        [EditorAttribute(typeof(System.Windows.Forms.Design.FileNameEditor), typeof(System.Drawing.Design.UITypeEditor))]
         public string SourceFile
         {
             get { return sourceFile; }
@@ -76,25 +80,24 @@ namespace EditorModel
         {
             // Look up the absolute bone transforms for this model.
             boneTransforms = new Matrix[drawingModel.Bones.Count];
-
+            
             drawingModel.CopyAbsoluteBoneTransformsTo(boneTransforms);
 
             // Compute an (approximate) model center position by
             // averaging the center of each mesh bounding sphere.
 
-            Vector3 centerTemp = new Vector3();
+            center = new Vector3();
             foreach (ModelMesh mesh in drawingModel.Meshes)
             {
                 BoundingSphere meshBounds = mesh.BoundingSphere;
                 Matrix transform = boneTransforms[mesh.ParentBone.Index];
                 Vector3 meshCenter = Vector3.Transform(meshBounds.Center, transform);
 
-                centerTemp += meshCenter;
+                center += meshCenter;
             }
 
-            centerTemp /= drawingModel.Meshes.Count;
-            center = centerTemp;
-            position += centerTemp;
+            center /= drawingModel.Meshes.Count;
+            OnPositionChanged(this, null);
 
             // Now we know the center point, we can compute the model radius
             // by examining the radius of each mesh bounding sphere.

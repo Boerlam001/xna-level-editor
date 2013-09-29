@@ -21,13 +21,18 @@ namespace WindowsGame1
 
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-
         MouseAction mouseAction;
 
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
+
+            #region XnaLevelEditor
+            #endregion
+
+            mouseAction = new MouseAction(this, camera);
+            Components.Add(mouseAction);
         }
 
         /// <summary>
@@ -55,8 +60,6 @@ namespace WindowsGame1
             #region XnaLevelEditor
             #endregion
 
-            mouseAction = new MouseAction(this, camera);
-
             // TODO: use this.Content to load your game content here
         }
 
@@ -83,8 +86,6 @@ namespace WindowsGame1
             #region XnaLevelEditor
             #endregion
 
-            mouseAction.Update(gameTime);
-
             // TODO: Add your update logic here
 
             base.Update(gameTime);
@@ -97,6 +98,9 @@ namespace WindowsGame1
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.BlendState = BlendState.Opaque;
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
 
             #region XnaLevelEditor
             #endregion

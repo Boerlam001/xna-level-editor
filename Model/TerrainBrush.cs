@@ -278,14 +278,33 @@ namespace EditorModel
                     {
                         int j = (int)posX + (int)posY * terrain.Width;
                         float newHeight = terrain.Vertices[j].Position.Y + k * heightFactor[x, y];
-                        if (newHeight * 5 >= 0 && newHeight * 5 <= 255)
+                        float newHeightColor = (newHeight - minHeight) / terrain.HeightColorFactor;
+                        if (newHeightColor >= 0 && newHeightColor <= 255)
                         {
-                            terrain.Vertices[j].Position.Y += k * heightFactor[x, y];
-                            terrain.HeightMapColors[j].R = (byte)(terrain.Vertices[j].Position.Y / 0.2f);
-                            terrain.HeightMapColors[j].G = (byte)(terrain.Vertices[j].Position.Y / 0.2f);
-                            terrain.HeightMapColors[j].B = (byte)(terrain.Vertices[j].Position.Y / 0.2f);
+                            terrain.Vertices[j].Position.Y = terrain.HeightData[(int)posX, (int)posY] = newHeight;
+                            terrain.HeightMapColors[j].R = (byte)newHeightColor;
+                            terrain.HeightMapColors[j].G = (byte)newHeightColor;
+                            terrain.HeightMapColors[j].B = (byte)newHeightColor;
                             terrain.HeightMapColors[j].A = 255;
                             vertices[i].Position.Y += k * heightFactor[x, y];
+                        }
+                        else if (newHeightColor < 0)
+                        {
+                            terrain.Vertices[j].Position.Y = terrain.HeightData[(int)posX, (int)posY] = minHeight;
+                            terrain.HeightMapColors[j].R = (byte)0;
+                            terrain.HeightMapColors[j].G = (byte)0;
+                            terrain.HeightMapColors[j].B = (byte)0;
+                            terrain.HeightMapColors[j].A = 255;
+                            vertices[i].Position.Y = minHeight + 0.1f;
+                        }
+                        else if (newHeightColor > 255)
+                        {
+                            terrain.Vertices[j].Position.Y = terrain.HeightData[(int)posX, (int)posY] = maxHeight;
+                            terrain.HeightMapColors[j].R = (byte)255;
+                            terrain.HeightMapColors[j].G = (byte)255;
+                            terrain.HeightMapColors[j].B = (byte)255;
+                            terrain.HeightMapColors[j].A = 255;
+                            vertices[i].Position.Y = maxHeight + 0.1f;
                         }
                     }
                 }

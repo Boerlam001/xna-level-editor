@@ -58,9 +58,11 @@ namespace XleModel
         protected float[,] heightData;
         protected VertexPositionColorNormal[] vertices;
         protected short[] indices;
-        private VertexBuffer vertexBuffer;
+        protected VertexBuffer vertexBuffer;
         protected Color[] heightMapColors;
         protected Texture2D heightMap;
+        protected Effect effect;
+        protected BasicEffect basicEffect;
         #endregion
         #region unencapsulated attributes
         protected GraphicsDevice graphicsDevice;
@@ -117,6 +119,18 @@ namespace XleModel
         {
             get { return heightMap; }
             set { heightMap = value; }
+        }
+
+        public Effect Effect
+        {
+            get { return effect; }
+            set { effect = value; }
+        }
+
+        public BasicEffect BasicEffect
+        {
+            get { return basicEffect; }
+            set { basicEffect = value; }
         }
 
         public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera, Game game)
@@ -259,7 +273,7 @@ namespace XleModel
                 Vector3 side1 = vertices[index1].Position - vertices[index3].Position;
                 Vector3 side2 = vertices[index1].Position - vertices[index2].Position;
                 Vector3 normal = Vector3.Cross(side1, side2);
-                
+
                 vertices[index1].Normal -= normal;
                 vertices[index2].Normal -= normal;
                 vertices[index3].Normal -= normal;
@@ -278,7 +292,7 @@ namespace XleModel
             indexBuffer.SetData(indices);
         }
 
-        public virtual void Draw(Effect effect)
+        public override void Draw(GameTime gameTime)
         {
             try
             {
@@ -288,21 +302,36 @@ namespace XleModel
                 graphicsDevice.RasterizerState = rs;
                 graphicsDevice.SetVertexBuffer(vertexBuffer);
                 graphicsDevice.Indices = indexBuffer;
-
-                Vector3 lightDirection = new Vector3(1.0f, -1.0f, -1.0f);
-                lightDirection.Normalize();
-
-                effect.CurrentTechnique = effect.Techniques["Colored"];
-                effect.Parameters["xView"].SetValue(camera.World);
-                effect.Parameters["xProjection"].SetValue(camera.Projection);
-                effect.Parameters["xWorld"].SetValue(world);
-                effect.Parameters["xLightDirection"].SetValue(lightDirection);
-                effect.Parameters["xAmbient"].SetValue(0.1f);
-                effect.Parameters["xEnableLighting"].SetValue(true);
-                foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                if (effect != null)
                 {
-                    pass.Apply();
-                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Length, 0, indices.Length / 3);
+                    Vector3 lightDirection = new Vector3(1.0f, -1.0f, -1.0f);
+                    lightDirection.Normalize();
+
+                    effect.CurrentTechnique = effect.Techniques["Colored"];
+                    effect.Parameters["xView"].SetValue(camera.World);
+                    effect.Parameters["xProjection"].SetValue(camera.Projection);
+                    effect.Parameters["xWorld"].SetValue(world);
+                    effect.Parameters["xLightDirection"].SetValue(lightDirection);
+                    effect.Parameters["xAmbient"].SetValue(0.1f);
+                    effect.Parameters["xEnableLighting"].SetValue(true);
+                    foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+                    {
+                        pass.Apply();
+                        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Length, 0, indices.Length / 3);
+                    }
+                }
+                else if (basicEffect != null)
+                {
+                    basicEffect.World = Matrix.Identity;
+                    basicEffect.VertexColorEnabled = true;
+
+                    foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+                    {
+                        pass.Apply();
+                        graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Length, 0, indices.Length / 3);
+                    }
+
+                    basicEffect.World = Matrix.Identity;
                 }
                 graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             }
@@ -310,34 +339,7 @@ namespace XleModel
             {
                 throw ex;
             }
-        }
-
-        public virtual void Draw(BasicEffect basicEffect)
-        {
-            try
-            {
-                RasterizerState rs = new RasterizerState();
-                rs.CullMode = CullMode.None;
-                graphicsDevice.RasterizerState = rs;
-                basicEffect.World = Matrix.Identity;
-                basicEffect.VertexColorEnabled = true;
-
-                graphicsDevice.SetVertexBuffer(vertexBuffer);
-                graphicsDevice.Indices = indexBuffer;
-
-                foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
-                {
-                    pass.Apply();
-                    graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, vertices.Length, 0, indices.Length / 3);
-                }
-
-                basicEffect.World = Matrix.Identity;
-                graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            base.Draw(gameTime);
         }
     }
 }

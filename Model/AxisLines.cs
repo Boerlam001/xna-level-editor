@@ -170,7 +170,7 @@ namespace EditorModel
                 Vector3 y2 = parent.GraphicsDevice.Viewport.Project(axisVertices[3].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
                 Vector3 z2 = parent.GraphicsDevice.Viewport.Project(axisVertices[5].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
 
-                Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, x1.X, x1.Y);
+                Ray ray = Helper.Pick(parent.GraphicsDevice.Viewport, parent.Camera, x1.X, x1.Y);
                 Vector3 screenToAxis = ray.Direction * 2;
                 if (screenToAxis.Length() < (axisVertices[0].Position - ray.Position).Length())
                 {
@@ -290,7 +290,7 @@ namespace EditorModel
         public virtual int OnMouseDown(float x, float y)
         {
             this.min = -1;
-            Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, x, y);
+            Ray ray = Helper.Pick(parent.GraphicsDevice.Viewport, parent.Camera, x, y);
             float min = float.MaxValue;
             Vector2 axisEnd = Vector2.Zero;
             for (short i = 0; i < 3; i++)

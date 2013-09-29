@@ -16,7 +16,40 @@ namespace XleGenerator
 {
     public class ClassManager
     {
+        #region attributes
         private string name;
+        public static DTE2 applicationObject;
+        ContentBuilder contentBuilder;
+        string output;
+        List<CodeLines> codeLinesList;
+        private ProjectItem classFile;
+        private MapModel mapModel;
+        private CodeNamespace codeNamespace;
+        private CodeClass2 codeClass;
+        private CodeFunction2 loadContentFunction;
+        private CodeFunction2 drawFunction;
+        private Project currentProject, contentProject, xleModelProject, jitterProject, skinnedModelProject, skinnedModelPipelineProject;
+        private const string xleModelProjectName = "XleModel";
+        private const string jitterProjectName = "Jitter";
+        private const string skinnedModelProjectName = "SkinnedModel";
+        private const string skinnedModelPipelineProjectName = "SkinnedModelPipeline";
+        private bool xleModelImportStmtExist;
+        private static string assemblyDirectory = null;
+        private CodeImport lastImportStatement;
+        private string heightMapAsset;
+        private bool jitterImportStmtExist;
+        private bool jitterCollisionImportStmtExist;
+        private CodeFunction2 updateFunction;
+        private CodeFunction2 constructorFunction;
+        private bool open;
+        private ProjectItem scriptsFolder;
+        #endregion
+
+        #region properties
+        public List<CodeLines> CodeLinesList
+        {
+            get { return codeLinesList; }
+        }
 
         public string Name
         {
@@ -24,17 +57,11 @@ namespace XleGenerator
             set { name = value; }
         }
 
-        public static DTE2 applicationObject;
-
-        ContentBuilder contentBuilder;
-
         public ContentBuilder ContentBuilder
         {
             get { return contentBuilder; }
             set { contentBuilder = value; }
         }
-
-        string output;
 
         public string Output
         {
@@ -42,22 +69,11 @@ namespace XleGenerator
             set { output = value; }
         }
 
-        List<CodeLines> codeLinesList;
-
-        public List<CodeLines> CodeLinesList
-        {
-            get { return codeLinesList; }
-        }
-
-        private ProjectItem classFile;
-
         public ProjectItem ClassFile
         {
             get { return classFile; }
             set { classFile = value; }
         }
-
-        private MapModel mapModel;
 
         public MapModel MapModel
         {
@@ -71,16 +87,29 @@ namespace XleGenerator
             set { contentProject = value; }
         }
 
-        private CodeNamespace codeNamespace;
-        private CodeClass2 codeClass;
-        private CodeFunction2 loadContentFunction;
-        private CodeFunction2 drawFunction;
-        private Project currentProject, contentProject, xleModelProject, jitterProject;
-        private const string xleModelProjectName = "XleModel";
-        private const string jitterProjectName = "Jitter";
+        public Project CurrentProject
+        {
+            get { return currentProject; }
+            set { currentProject = value; }
+        }
 
-        private bool xleModelImportStmtExist;
+        public static string AssemblyDirectory
+        {
+            get
+            {
+                if (assemblyDirectory == null)
+                {
+                    string codeBase = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
+                    UriBuilder uri = new UriBuilder(codeBase);
+                    string path = Uri.UnescapeDataString(uri.Path);
+                    assemblyDirectory = System.IO.Path.GetDirectoryName(path);
+                }
+                return assemblyDirectory;
+            }
+        }
+        #endregion
 
+        #region Constructors
         public ClassManager()
         {
             codeLinesList = new List<CodeLines>();
@@ -89,6 +118,8 @@ namespace XleGenerator
 
         public ClassManager(string projectName, string className, bool open = false)
         {
+            this.name = className;
+            this.open = open;
             codeLinesList = new List<CodeLines>();
             TraverseProjects(projectName);
             classFile = AddClass("MouseAction", "MouseAction.cs");
@@ -119,8 +150,8 @@ namespace XleGenerator
                 if (codeClass != null)
                     codeClass.Name = className;
             }
-            this.name = className;
         }
+        #endregion Constructors
 
         public ProjectItem SelectClass(string className)
         {
@@ -153,7 +184,7 @@ namespace XleGenerator
                 {
                     File.Delete(Path.GetDirectoryName(currentProject.FullName) + "\\" + className + ".cs");
                 }
-
+                
                 currentProject.ProjectItems.AddFromTemplate(AssemblyDirectory + "\\templates\\" + templateName, className + ".cs");
                 ProjectItem projectItem = currentProject.ProjectItems.Item(className + ".cs");
 
@@ -172,12 +203,38 @@ namespace XleGenerator
                     jitterProject = project;
                 if (project.Name == xleModelProjectName)
                     xleModelProject = project;
+                if (project.Name == skinnedModelProjectName)
+                    skinnedModelProject = project;
+                if (project.Name == skinnedModelPipelineProjectName)
+                    skinnedModelPipelineProject = project;
                 if (project.FullName.Contains(".contentproj"))
                     contentProject = project;
+            }
+
+            bool scriptsFolderExists = false;
+            foreach (ProjectItem item in currentProject.ProjectItems)
+            {
+                if (item.Name == "Scripts")
+                    scriptsFolderExists = true;
+            }
+
+            if (scriptsFolderExists)
+                scriptsFolder = currentProject.ProjectItems.Item("Scripts");
+            else
+            {
+                string scriptsFolderPath = Path.GetDirectoryName(currentProject.FullName) + "\\Scripts";
+                if (!Directory.Exists(scriptsFolderPath))
+                    currentProject.ProjectItems.AddFolder("Scripts");
+                else
+                    currentProject.ProjectItems.AddFromDirectory(scriptsFolderPath);
             }
             if (jitterProject == null)
             {
                 AddJitterProject();
+            }
+            if (skinnedModelProject == null)
+            {
+                AddSkinnedModelAndPipeLineProject();
             }
             if (xleModelProject == null)
             {
@@ -204,9 +261,39 @@ namespace XleGenerator
             project.References.AddProject(jitterProject);
         }
 
+        private void AddSkinnedModelAndPipeLineProject()
+        {
+            if (currentProject == null)
+            {
+                return;
+            }
+
+            Solution2 solution = (Solution2)applicationObject.Solution;
+
+            string dirPath = Path.GetDirectoryName(solution.FullName) + "\\SkinnedModel";
+            FileHelper.DirectoryCopy(AssemblyDirectory + "\\templates\\SkinnedModel", dirPath, true);
+            skinnedModelProject = solution.AddFromFile(dirPath + "\\SkinnedModel.csproj");
+
+            VSLangProj.VSProject project;
+
+            project = (VSLangProj.VSProject)currentProject.Object;
+            project.References.AddProject(skinnedModelProject);
+
+
+            dirPath = Path.GetDirectoryName(solution.FullName) + "\\SkinnedModelPipeline";
+            FileHelper.DirectoryCopy(AssemblyDirectory + "\\templates\\SkinnedModelPipeline", dirPath, true);
+            skinnedModelPipelineProject = solution.AddFromFile(dirPath + "\\SkinnedModelPipeline.csproj");
+
+            project = (VSLangProj.VSProject)skinnedModelPipelineProject.Object;
+            project.References.AddProject(skinnedModelProject);
+
+            project = (VSLangProj.VSProject)contentProject.Object;
+            project.References.AddProject(skinnedModelPipelineProject);
+        }
+
         private void AddXleModelProject()
         {
-            if (currentProject == null || jitterProject == null)
+            if (currentProject == null || jitterProject == null || skinnedModelProject == null)
             {
                 return;
             }
@@ -221,6 +308,7 @@ namespace XleGenerator
 
             project = (VSLangProj.VSProject)xleModelProject.Object;
             project.References.AddProject(jitterProject);
+            project.References.AddProject(skinnedModelProject);
 
             project = (VSLangProj.VSProject)currentProject.Object;
             project.References.AddProject(xleModelProject);
@@ -229,6 +317,8 @@ namespace XleGenerator
         private void TraverseCodeElements()
         {
             xleModelImportStmtExist = false;
+            jitterImportStmtExist = false;
+            jitterCollisionImportStmtExist = false;
             foreach (CodeElement codeElement in classFile.FileCodeModel.CodeElements)
             {
                 ExpandSubCodeElement(codeElement);
@@ -261,17 +351,21 @@ namespace XleGenerator
             if (codeElement.Kind == vsCMElement.vsCMElementFunction)
             {
                 CodeFunction2 codeFunction = (CodeFunction2)codeElement;
-                switch (codeFunction.Name)
+                if (codeFunction.Name == "LoadContent")
                 {
-                    case "LoadContent":
-                        loadContentFunction = codeFunction;
-                        break;
-                    case "Draw":
-                        drawFunction = codeFunction;
-                        break;
-                    case "Update":
-                        updateFunction = codeFunction;
-                        break;
+                    loadContentFunction = codeFunction;
+                }
+                else if ((!open && codeFunction.Name == "Game1") /*ngikut template*/ || (open && codeFunction.Name == name))
+                {
+                    constructorFunction = codeFunction;
+                }
+                else if (codeFunction.Name == "Draw")
+                {
+                    drawFunction = codeFunction;
+                }
+                else if (codeFunction.Name == "Update")
+                {
+                    updateFunction = codeFunction;
                 }
             }
             if (codeElement.Kind == vsCMElement.vsCMElementImportStmt)
@@ -329,38 +423,44 @@ namespace XleGenerator
                        Append("World world;\r\n").
                        ToString();
             sb.Clear();
-            string loadContent = sb.
+            string constructor = sb.
                        Append("CollisionSystem collisionSystem = new CollisionSystemPersistentSAP();\r\n").
                        Append("world = new World(collisionSystem);\r\n").
-                       Append("world.AllowDeactivation = true;\r\n").
+                       Append("world.AllowDeactivation = true;\r\n\r\n").
                        Append("camera = new Camera(this);\r\n").
                        Append("camera.Position = new Vector3(0, 50, 0);\r\n").
-                       Append("camera.AspectRatio = GraphicsDevice.Viewport.AspectRatio;\r\n").
-                       Append("camera.Rotate(20, 45, 0);\r\n\r\n").
+                       Append("camera.Rotate(20, 45, 0);\r\n").
+                       Append("Components.Add(camera);\r\n\r\n").
+                       ToString();
+            sb.Clear();
+            string loadContent = sb.
                        Append("terrainEffect = Content.Load<Effect>(\"effects\");\r\n").
                        Append("heightMap = Content.Load<Texture2D>(\"" + heightMapAsset + "\");\r\n").
                        Append("terrain = new Terrain(GraphicsDevice, camera, heightMap, this, world);\r\n").
+                       Append("terrain.Effect = terrainEffect;\r\n").
+                       Append("Components.Add(terrain);\r\n\r\n").
                        ToString();
             sb.Clear();
             string update = sb.
                        Append("float step = (float)gameTime.ElapsedGameTime.TotalSeconds;\r\n").
                        Append("if (step > 1.0f / 100.0f) step = 1.0f / 100.0f;\r\n").
                        Append("world.Step(step, true);\r\n").
-                       Append("foreach (GameComponent component in Components)\r\n").
-                       Append("{\r\n").
-                       Append("    component.Update(gameTime);\r\n").
-                       Append("}\r\n").
+                       //Append("foreach (GameComponent component in Components)\r\n").
+                       //Append("{\r\n").
+                       //Append("    component.Update(gameTime);\r\n").
+                       //Append("}\r\n").
                        ToString();
             sb.Clear();
             string draw = sb.
-                       Append("terrain.Draw(terrainEffect);\r\n").
+                       //Append("terrain.Draw(terrainEffect);\r\n").
                        ToString();
             sb.Clear();
             foreach (CodeLines codeLines in codeLinesList)
             {
-                variable += codeLines.Code[CodeLines.CodePosition.Variable] + "\r\n";
-                loadContent += codeLines.Code[CodeLines.CodePosition.LoadContent] + "\r\n";
-                draw += codeLines.Code[CodeLines.CodePosition.Draw] + "\r\n";
+                variable += codeLines.Code[CodeLines.CodePosition.Variable] + ((codeLines.Code[CodeLines.CodePosition.Variable] != "") ? "\r\n" : "");
+                constructor += codeLines.Code[CodeLines.CodePosition.Constructor] + ((codeLines.Code[CodeLines.CodePosition.Constructor] != "") ? "\r\n" : "");
+                loadContent += codeLines.Code[CodeLines.CodePosition.LoadContent] + ((codeLines.Code[CodeLines.CodePosition.LoadContent] != "") ? "\r\n" : "");
+                draw += codeLines.Code[CodeLines.CodePosition.Draw] + ((codeLines.Code[CodeLines.CodePosition.Draw] != "") ? "\r\n" : "");
             }
 
             EditPoint editPoint = null;
@@ -375,6 +475,16 @@ namespace XleGenerator
                 movePoint = editPoint.CreateEditPoint();
                 movePoint.FindPattern(endPattern, (int)vsFindOptions.vsFindOptionsNone);
                 editPoint.ReplaceText(movePoint, "\r\n" + variable, (int)vsEPReplaceTextOptions.vsEPReplaceTextAutoformat);
+                movePoint.SmartFormat(movePoint);
+            }
+
+            if (constructorFunction != null)
+            {
+                editPoint = constructorFunction.GetStartPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
+                editPoint.FindPattern(startPattern, (int)vsFindOptions.vsFindOptionsNone, ref editPoint);
+                movePoint = editPoint.CreateEditPoint();
+                movePoint.FindPattern(endPattern, (int)vsFindOptions.vsFindOptionsNone);
+                editPoint.ReplaceText(movePoint, "\r\n" + constructor, (int)vsEPReplaceTextOptions.vsEPReplaceTextAutoformat);
                 movePoint.SmartFormat(movePoint);
             }
 
@@ -439,7 +549,7 @@ namespace XleGenerator
              * simple declaration of DrawingObject
              * \s*DrawingObject\s+<variable>\s*
              * instantiation DrawingObject
-             * \s*<variable>\s*=\s*new\s+DrawingObject\(\)\s*
+             * \s*<variable>\s*=\s*new\s+DrawingObject\(\s*this\s*,\s*camera\s*,\s*\"\w+\"\s*,\s*world\s*\)\s*
              * declaration (and instantiationon) of DrawingObject
              * \s*DrawingObject\s+<variable>(\s*=\s*new\s+DrawingObject\(\))?(,\s*<variable>\s*(=\s*new\s+DrawingObject\(\))))*
              * integer or float <integerFloat>
@@ -461,7 +571,8 @@ namespace XleGenerator
             const string integerOrFloatRegex = "\\-?\\d+(.\\d+)?f?";
             const string variableIntegerFloatRegex = integerOrFloatRegex + "|" + variableRegex;
             const string declarationRegex = "^\\s*DrawingObject\\s+" + variableRegex + "\\s*$";
-            const string loadContentRegex = "^\\s*" + variableRegex + "\\s*.\\s*DrawingModel\\s*=\\s*Content\\s*.\\s*Load\\s*<\\s*Model\\s*>\\s*\\(\\s*\\\"\\w+\\\"\\s*\\)\\s*$";
+            const string instantiationRegex = "^\\s*" + variableRegex + "\\s*=\\s*new\\s+DrawingObject\\(\\s*this\\s*,\\s*camera\\s*,\\s*\\\"\\w+\\\"\\s*,\\s*world\\s*\\)\\s*$";
+            //const string loadContentRegex = "^\\s*" + variableRegex + "\\s*.\\s*DrawingModel\\s*=\\s*Content\\s*.\\s*Load\\s*<\\s*Model\\s*>\\s*\\(\\s*\\\"\\w+\\\"\\s*\\)\\s*$";
             const string instantiationVector3 = "\\s*new\\s+Vector3\\s*\\((\\s*(" + variableIntegerFloatRegex + ")\\s*,\\s*(" + variableIntegerFloatRegex + ")\\s*,\\s*(" + variableIntegerFloatRegex + ")\\s*)?\\)\\s*";
             const string setPositionRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*Position\\s*=" + instantiationVector3 + "$";
             const string setRotationRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*EulerRotation\\s*=" + instantiationVector3 + "$";
@@ -484,21 +595,22 @@ namespace XleGenerator
                 }
             }
 
-            if (loadContentFunction != null)
+            if (constructorFunction != null)
             {
-                editPoint = loadContentFunction.GetStartPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
+                editPoint = constructorFunction.GetStartPoint(vsCMPart.vsCMPartBody).CreateEditPoint();
                 editPoint.FindPattern(startPattern, (int)vsFindOptions.vsFindOptionsNone, ref editPoint);
                 movePoint = editPoint.CreateEditPoint();
                 movePoint.FindPattern(endPattern, (int)vsFindOptions.vsFindOptionsNone);
                 string lines = editPoint.GetText(movePoint);
                 foreach (string line in lines.Split(';'))
                 {
-                    if (Regex.IsMatch(line, loadContentRegex))
+                    if (Regex.IsMatch(line, instantiationRegex))
                     {
                         string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
                         if (objects.Keys.Contains(varName))
                         {
-                            string contentName = Regex.Replace(Regex.Match(line, "\\s*\\(.*\\)\\s*$").Value.Trim(), "(^\\(\\s*\\\")|(\\\"\\s*\\)$)", "");
+                            string contentWithQuotes = Regex.Match(line, "\\\"\\w+\\\"").Value;
+                            string contentName = Regex.Replace(contentWithQuotes.Trim(), "\\\"", "");
                             try
                             {
                                 ProjectItem item = contentProject.ProjectItems.Item(contentName + ".fbx");
@@ -510,6 +622,23 @@ namespace XleGenerator
                             }
                         }
                     }
+                    //if (Regex.IsMatch(line, loadContentRegex))
+                    //{
+                    //    string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+                    //    if (objects.Keys.Contains(varName))
+                    //    {
+                    //        string contentName = Regex.Replace(Regex.Match(line, "\\s*\\(.*\\)\\s*$").Value.Trim(), "(^\\(\\s*\\\")|(\\\"\\s*\\)$)", "");
+                    //        try
+                    //        {
+                    //            ProjectItem item = contentProject.ProjectItems.Item(contentName + ".fbx");
+                    //            objects[varName].SourceFile = Path.GetDirectoryName(contentProject.FullName) + "\\" + contentName + ".fbx";
+                    //        }
+                    //        catch
+                    //        {
+                    //            objects.Remove(varName);
+                    //        }
+                    //    }
+                    //}
                     if (Regex.IsMatch(line, setPositionRegex))
                     {
                         string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
@@ -573,28 +702,6 @@ namespace XleGenerator
                 {
                     contentProject.ProjectItems.AddFromFile(target);
                 }
-            }
-        }
-
-        private static string assemblyDirectory = null;
-        private CodeImport lastImportStatement;
-        private string heightMapAsset;
-        private bool jitterImportStmtExist;
-        private bool jitterCollisionImportStmtExist;
-        private CodeFunction2 updateFunction;
-
-        public static string AssemblyDirectory
-        {
-            get
-            {
-                if (assemblyDirectory == null)
-                {
-                    string codeBase = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-                    UriBuilder uri = new UriBuilder(codeBase);
-                    string path = Uri.UnescapeDataString(uri.Path);
-                    assemblyDirectory = System.IO.Path.GetDirectoryName(path);
-                }
-                return assemblyDirectory;
             }
         }
     }

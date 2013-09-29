@@ -16,109 +16,20 @@ namespace View
 {
     public partial class Editor : UserControl, IObserver
     {
+        #region attributes
         private MapModel mapModel;
-        
-        public MapModel MapModel
-        {
-            get { return mapModel; }
-            set { mapModel = value; }
-        }
-
         private MainUserControl mainUserControl;
-
-        public MainUserControl MainUserControl
-        {
-            get { return mainUserControl; }
-            set
-            {
-                mainUserControl = value;
-            }
-        }
-
         private Camera camera;
-
-        public Camera Camera
-        {
-            get { return camera; }
-        }
-
         private ContentBuilder contentBuilder;
-
-        public ContentBuilder ContentBuilder
-        {
-            get { return contentBuilder; }
-        }
-
         private DrawingObject selected;
-
-        public DrawingObject Selected
-        {
-            get { return selected; }
-            set { selected = value; }
-        }
-
         private ModelBoundingBox selectedBoundingBox;
-
-        public ModelBoundingBox SelectedBoundingBox
-        {
-            get { return selectedBoundingBox; }
-        }
-
         private EditorMode editorMode;
-
-        public GraphicsDevice GraphicsDevice
-        {
-            get
-            {
-                return graphicsDeviceControl1.GraphicsDevice;
-            }
-        }
-
         private SpriteBatch spriteBatch;
-
-        public SpriteBatch SpriteBatch
-        {
-            get { return spriteBatch; }
-        }
-
         private SpriteFont spriteFont;
-
-        public SpriteFont SpriteFont
-        {
-            get { return spriteFont; }
-        }
-
         private Terrain terrain;
-
-        public Terrain Terrain
-        {
-            get { return terrain; }
-        }
-        
         private string text;
-
-        public string Text1
-        {
-            get { return text; }
-            set { text = value; }
-        }
-
         private TerrainPointer terrainPointer;
-
-        public TerrainPointer TerrainPointer
-        {
-            get { return terrainPointer; }
-            set { terrainPointer = value; }
-        }
-
         private TerrainBrush terrainBrush;
-
-        public TerrainBrush TerrainBrush
-        {
-            get { return terrainBrush; }
-            set { terrainBrush = value; }
-        }
-
         private BasicEffect basicEffect;
         private Effect terrainEffect;
         private bool moveForward;
@@ -134,6 +45,95 @@ namespace View
         private int tempMouseY;
         private ContentManager heightmapContent;
         private string effectFile;
+        #endregion
+
+        public MapModel MapModel
+        {
+            get { return mapModel; }
+            set { mapModel = value; }
+        }
+
+        public MainUserControl MainUserControl
+        {
+            get { return mainUserControl; }
+            set
+            {
+                mainUserControl = value;
+            }
+        }
+
+        public Camera Camera
+        {
+            get { return camera; }
+        }
+
+        public ContentBuilder ContentBuilder
+        {
+            get { return contentBuilder; }
+        }
+
+        public DrawingObject Selected
+        {
+            get { return selected; }
+            set { selected = value; }
+        }
+
+        public ModelBoundingBox SelectedBoundingBox
+        {
+            get { return selectedBoundingBox; }
+        }
+
+        public GraphicsDevice GraphicsDevice
+        {
+            get
+            {
+                return graphicsDeviceControl1.GraphicsDevice;
+            }
+        }
+
+        public SpriteBatch SpriteBatch
+        {
+            get { return spriteBatch; }
+        }
+
+        public SpriteFont SpriteFont
+        {
+            get { return spriteFont; }
+        }
+
+        public Terrain Terrain
+        {
+            get { return terrain; }
+        }
+
+        public string Text1
+        {
+            get { return text; }
+            set { text = value; }
+        }
+
+        public TerrainPointer TerrainPointer
+        {
+            get { return terrainPointer; }
+            set { terrainPointer = value; }
+        }
+
+        public TerrainBrush TerrainBrush
+        {
+            get { return terrainBrush; }
+            set { terrainBrush = value; }
+        }
+
+        public static string AssemblyDirectory
+        {
+            get
+            {
+                string codeBase = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
+                UriBuilder uri = new UriBuilder(codeBase);
+                string path = Uri.UnescapeDataString(uri.Path);
+                return System.IO.Path.GetDirectoryName(path);
+            }
+        }
 
         public Editor()
         {
@@ -174,11 +174,12 @@ namespace View
 
             try
             {
-                camera = new Camera();
+                camera = new Camera(GraphicsDevice);
                 camera.Position = new Vector3(0, 50, 0);
                 camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
                 camera.Rotate(20, 45, 0);
                 camera.Attach(this);
+                CheckIsOrthographic();
 
                 heightMap = null;
                 string heightMapFile = AssemblyDirectory + "\\test_HeightMap.png";
@@ -248,18 +249,24 @@ namespace View
                     break;
                 name = originalName + "_" + i;
             }
-            
-            obj.DrawingModel = OpenModel(file);
-            obj.Name = name;
-            obj.Position = position;
-            obj.EulerRotation = eulerRotation;
-            obj.SourceFile = file;
-            obj.Attach(this);
-            mapModel.Objects.Add(obj);
-            XleGenerator.CodeLines codeLines = new XleGenerator.CodeLines();
-            codeLines.Model = obj;
-            mainUserControl._ClassManager.CodeLinesList.Add(codeLines);
-            obj.Notify();
+            try
+            {
+                obj.DrawingModel = OpenModel(file);
+                obj.Name = name;
+                obj.Position = position;
+                obj.EulerRotation = eulerRotation;
+                obj.SourceFile = file;
+                obj.Attach(this);
+                mapModel.Objects.Add(obj);
+                XleGenerator.CodeLines codeLines = new XleGenerator.CodeLines();
+                codeLines.Model = obj;
+                mainUserControl._ClassManager.CodeLinesList.Add(codeLines);
+                obj.Notify();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+            }
         }
 
         public Model LoadModel()
@@ -296,6 +303,11 @@ namespace View
                     Model model = contentManager.Load<Model>(name);
                     graphicsDeviceControl1.Invalidate();
                     return model;
+                }
+                else
+                {
+                    contentBuilder.Remove(name);
+                    throw new ArgumentException(errorBuild);
                 }
             }
             else
@@ -348,6 +360,8 @@ namespace View
                 selectedBoundingBox.Draw(ref basicEffect);
                 text += selectedBoundingBox.AxisLines.Text + "\r\n";
             }
+
+            text += camera.Zoom + "\r\n";
 
             if (spriteFont != null)
             {
@@ -442,9 +456,15 @@ namespace View
             if (moveLeft)
                 camera.MoveRight(-speed);
             if (moveForward)
+            {
                 camera.MoveForward(speed);
+                camera.Zoom += 5;
+            }
             if (moveBackward)
+            {
                 camera.MoveForward(-speed);
+                camera.Zoom -= 5;
+            }
             if (mouseMoving)
             {
                 if (mouseEventArgs != null && mouseEventArgs.X == tempMouseX && mouseEventArgs.Y == tempMouseY)
@@ -592,14 +612,43 @@ namespace View
             camera.Notify();
         }
 
-        public static string AssemblyDirectory
+        private void orthogonalStripButton_Click(object sender, EventArgs e)
         {
-            get
+            camera.IsOrthographic = !camera.IsOrthographic;
+            CheckIsOrthographic();
+            camera.Notify();
+        }
+
+        private void CheckIsOrthographic()
+        {
+            if (camera.IsOrthographic)
             {
-                string codeBase = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-                UriBuilder uri = new UriBuilder(codeBase);
-                string path = Uri.UnescapeDataString(uri.Path);
-                return System.IO.Path.GetDirectoryName(path);
+                orthogonalStripButton.Checked = true;
+                orthogonalStripButton.CheckState = CheckState.Checked;
+            }
+            else
+            {
+                orthogonalStripButton.Checked = false;
+                orthogonalStripButton.CheckState = CheckState.Unchecked;
+            }
+        }
+
+        public void SelectObject(DrawingObject temp)
+        {
+            selected = temp;
+            selectedBoundingBox.Model = selected;
+            selected.Attach(mainUserControl.ObjectProperties1);
+            mainUserControl.ObjectProperties1.Model = selected;
+            selected.Notify();
+        }
+
+        public void DeselectObject()
+        {
+            if (selected != null)
+            {
+                selected.Detach(mainUserControl.ObjectProperties1);
+                mainUserControl.ObjectProperties1.Model = null;
+                selected = null;
             }
         }
     }

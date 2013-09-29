@@ -43,8 +43,8 @@ namespace View
             {
                 if (editor.MapModel.Objects.Count == 0)
                     return;
-                Ray ray = Helper.Pick(editor.GraphicsDevice, editor.Camera, e.X, e.Y);
-                float min = float.MaxValue;
+                Ray ray = Helper.Pick(editor.GraphicsDevice.Viewport, editor.Camera, e.X, e.Y);
+                
                 if (editor.Selected != null)
                 {
                     isDrag = editor.SelectedBoundingBox.AxisLines.OnMouseDown(e.X, e.Y);
@@ -52,12 +52,11 @@ namespace View
                     if (isDrag != -1)
                         return;
 
-                    editor.Selected.Detach(editor.MainUserControl.ObjectProperties1);
-                    editor.MainUserControl.ObjectProperties1.Model = null;
-                    editor.Selected = null;
+                    editor.DeselectObject();
                 }
 
-                min = float.MaxValue;
+                float min = float.MaxValue;
+                DrawingObject temp = null;
                 foreach (DrawingObject obj in editor.MapModel.Objects)
                 {
                     if (obj.RayIntersects(ray))
@@ -65,18 +64,15 @@ namespace View
                         float dist = Vector3.Distance(ray.Position, obj.Position);
                         if (dist < min)
                         {
-                            editor.Selected = obj;
+                            temp = obj;
                             min = dist;
                         }
                     }
                 }
 
-                if (editor.Selected != null)
+                if (temp != null)
                 {
-                    editor.SelectedBoundingBox.Model = editor.Selected;
-                    editor.Selected.Attach(editor.MainUserControl.ObjectProperties1);
-                    editor.MainUserControl.ObjectProperties1.Model = editor.Selected;
-                    editor.Selected.Notify();
+                    editor.SelectObject(temp);
                 }
                 ((IObserver) editor).UpdateObserver();
             }
@@ -134,7 +130,7 @@ namespace View
                 foreach (string file in files)
                 {
                     string name = file.Substring(file.LastIndexOf('\\') + 1);
-                    editor.AddObject(file, name, Helper.Put(editor.GraphicsDevice, editor.Camera, mouseX, mouseY, 3), Vector3.Zero);
+                    editor.AddObject(file, name, Helper.Put(editor.GraphicsDevice.Viewport, editor.Camera, mouseX, mouseY, 3), Vector3.Zero);
                 }
             }
         }

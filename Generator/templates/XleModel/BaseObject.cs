@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace XleModel
 {
-    public class BaseObject : GameComponent
+    public class BaseObject : DrawableGameComponent
     {
         #region attributes
         private Vector3 direction;
@@ -21,6 +21,7 @@ namespace XleModel
         protected Vector3 scale;
         protected Vector3 eulerRotation;
         public static Vector3 rotationReference = new Vector3(0, 0, 10);
+        List<ControllerScript> scripts;
         #endregion
 
         public delegate void RotationChangedEventHandler(object sender, EventArgs e);
@@ -156,7 +157,8 @@ namespace XleModel
         }
         #endregion
 
-        public BaseObject(Game game) : base(game)
+        public BaseObject(Game game)
+            : base(game)
         {
             position = new Vector3(0, 0, 0);
             rotationX = rotationY = rotationZ = 0;
@@ -164,8 +166,42 @@ namespace XleModel
             scale = Vector3.One;
             world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             world.Decompose(out scale, out rotation, out position);
+            scripts = new List<ControllerScript>();
 
             OnRotationChanged(this, null);
+        }
+
+        public override void Initialize()
+        {
+            base.Initialize();
+
+            foreach (ControllerScript script in scripts)
+            {
+                script.Start();
+            }
+        }
+
+        public override void Update(GameTime gameTime)
+        {
+            base.Update(gameTime);
+
+            foreach (ControllerScript script in scripts)
+            {
+                script.Update(gameTime);
+            }
+        }
+
+        public void AddScript(ControllerScript script)
+        {
+            script.Game = Game;
+            script.Parent = this;
+            scripts.Add(script);
+        }
+
+        public void RemoveScript(int index)
+        {
+            if (index < scripts.Count)
+                scripts.RemoveAt(index);
         }
 
         public virtual void Rotate(float x, float y, float z)

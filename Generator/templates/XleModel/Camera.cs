@@ -23,13 +23,13 @@ namespace XleModel
                 LookAt();
             }
         }
-        
+
         public override Quaternion Rotation
         {
             get { return rotation; }
             set
             {
-                
+
                 rotation = value;
                 Helper.QuaternionToEuler(rotation, out rotationX, out rotationY, out rotationZ);
                 LookAt();
@@ -125,7 +125,8 @@ namespace XleModel
             get { return projection; }
         }
 
-        public Camera(Game game) : base(game)
+        public Camera(Game game)
+            : base(game)
         {
             name = "camera";
             fieldOfViewAngle = MathHelper.ToRadians(45);
@@ -135,15 +136,22 @@ namespace XleModel
             projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
         }
 
+        public override void Initialize()
+        {
+            base.Initialize();
+            AspectRatio = GraphicsDevice.Viewport.AspectRatio;
+        }
+
         public override void Rotate(float x, float y, float z)
         {
             rotationY += y;
             rotationX += x;
             rotationZ += z;
+            eulerRotation = new Vector3(rotationX, rotationY, rotationZ);
             LookAt();
         }
 
-        private void LookAt()
+        public void LookAt()
         {
             Matrix rotationMatrix = Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ));
             Vector3 transformedReference = Vector3.Transform(rotationReference, rotationMatrix);

@@ -215,6 +215,26 @@ namespace EditorModel
         /// </summary>
         public void Add(string filename, string name, string importer, string processor)
         {
+            Remove(name);
+            ProjectItem item = buildProject.AddItem("Compile", filename)[0];
+
+            item.SetMetadataValue("Link", Path.GetFileName(filename));
+            item.SetMetadataValue("Name", name);
+
+            if (!string.IsNullOrEmpty(importer))
+                item.SetMetadataValue("Importer", importer);
+
+            if (!string.IsNullOrEmpty(processor))
+                item.SetMetadataValue("Processor", processor);
+
+            projectItems.Add(item);
+        }
+
+        /// <summary>
+        /// Remove selected item
+        /// </summary>
+        public void Remove(string name)
+        {
             int i = 0;
             bool itemExists = false;
             for (; i < projectItems.Count; i++)
@@ -235,20 +255,7 @@ namespace EditorModel
                 buildProject.RemoveItem(projectItems[i]);
                 projectItems.RemoveAt(i);
             }
-            ProjectItem item = buildProject.AddItem("Compile", filename)[0];
-
-            item.SetMetadataValue("Link", Path.GetFileName(filename));
-            item.SetMetadataValue("Name", name);
-
-            if (!string.IsNullOrEmpty(importer))
-                item.SetMetadataValue("Importer", importer);
-
-            if (!string.IsNullOrEmpty(processor))
-                item.SetMetadataValue("Processor", processor);
-
-            projectItems.Add(item);
         }
-
 
         /// <summary>
         /// Removes all content files from the MSBuild project.

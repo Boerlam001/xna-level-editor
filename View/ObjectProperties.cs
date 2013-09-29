@@ -20,7 +20,19 @@ namespace View
         public BaseObject Model
         {
             get { return model; }
-            set { model = value; }
+            set
+            {
+                model = value;
+                propertyGrid1.SelectedObject = model;
+            }
+        }
+
+        private MainUserControl mainUserControl;
+
+        public MainUserControl MainUserControl
+        {
+            get { return mainUserControl; }
+            set { mainUserControl = value; }
         }
 
         private delegate void SetTextDelegate(TextBox textBox, string value);
@@ -32,6 +44,7 @@ namespace View
 
         public void UpdateObserver()
         {
+            propertyGrid1.Refresh();
             SetText(txt_name, model.Name);
 
             SetText(txt_posX, model.Position.X.ToString());
@@ -146,6 +159,22 @@ namespace View
             txt_posZ.Text = p.Z.ToString();
 
             model.Notify();
+        }
+
+        private void propertyGrid1_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
+        {
+            if (propertyGrid1.SelectedObject is DrawingObject)
+            {
+                DrawingObject obj = propertyGrid1.SelectedObject as DrawingObject;
+                if (e.ChangedItem.Label == "SourceFile")
+                {
+                    if (mainUserControl != null)
+                        obj.DrawingModel = mainUserControl.Editor1.OpenModel(e.ChangedItem.Value.ToString());
+                    else
+                        obj.SourceFile = e.OldValue.ToString();
+                }
+                obj.Notify();
+            }
         }
 
     }

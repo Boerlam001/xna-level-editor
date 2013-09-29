@@ -69,32 +69,32 @@ namespace EditorModel
             eulerZ = MathHelper.ToDegrees(rotationaxes.Z);
         }
 
-        public static void Pointing(GraphicsDevice graphicsDevice, Camera camera, float mouseX, float mouseY, out Vector3 nearPoint, out Vector3 direction)
+        public static void Pointing(Viewport viewport, Camera camera, float mouseX, float mouseY, out Vector3 nearPoint, out Vector3 direction)
         {
             Vector3 nearsource = new Vector3(mouseX, mouseY, 0);
             Vector3 farsource = new Vector3(mouseX, mouseY, 1);
 
             Matrix world = Matrix.CreateTranslation(0, 0, 0);
 
-            nearPoint = graphicsDevice.Viewport.Unproject(nearsource, camera.Projection, camera.World, world);
-            Vector3 farPoint = graphicsDevice.Viewport.Unproject(farsource, camera.Projection, camera.World, world);
+            nearPoint = viewport.Unproject(nearsource, camera.Projection, camera.World, world);
+            Vector3 farPoint = viewport.Unproject(farsource, camera.Projection, camera.World, world);
 
             direction = farPoint - nearPoint;
 
             direction.Normalize();
         }
 
-        public static Vector3 Put(GraphicsDevice graphicsDevice, Camera camera, float mouseX, float mouseY, float dist)
+        public static Vector3 Put(Viewport viewport, Camera camera, float mouseX, float mouseY, float dist)
         {
             Vector3 nearPoint, direction;
-            Helper.Pointing(graphicsDevice, camera, mouseX, mouseY, out nearPoint, out direction);
+            Helper.Pointing(viewport, camera, mouseX, mouseY, out nearPoint, out direction);
             return nearPoint + dist * direction;
         }
 
-        public static Ray Pick(GraphicsDevice graphicsDevice, Camera camera, float mouseX, float mouseY)
+        public static Ray Pick(Viewport viewport, Camera camera, float mouseX, float mouseY)
         {
             Vector3 nearPoint, direction;
-            Helper.Pointing(graphicsDevice, camera, mouseX, mouseY, out nearPoint, out direction);
+            Helper.Pointing(viewport, camera, mouseX, mouseY, out nearPoint, out direction);
             return new Ray(nearPoint, direction);
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace EditorModel
 {
@@ -13,6 +14,9 @@ namespace EditorModel
         protected float farPlaneDistance;
         protected Matrix projection;
         protected float aspectRatio;
+        private bool isOrthographic;
+        private GraphicsDevice graphicsDevice;
+        private float zoom;
 
         public override Vector3 Position
         {
@@ -90,7 +94,7 @@ namespace EditorModel
             set
             {
                 fieldOfViewAngle = value;
-                projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
+                CalculateProjection();
             }
         }
 
@@ -100,7 +104,7 @@ namespace EditorModel
             set
             {
                 nearPlaneDistance = value;
-                projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
+                CalculateProjection();
             }
         }
 
@@ -110,7 +114,7 @@ namespace EditorModel
             set
             {
                 farPlaneDistance = value;
-                projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
+                CalculateProjection();
             }
         }
 
@@ -120,7 +124,7 @@ namespace EditorModel
             set
             {
                 aspectRatio = value;
-                projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
+                CalculateProjection();
             }
         }
 
@@ -129,15 +133,42 @@ namespace EditorModel
             get { return projection; }
         }
 
-        public Camera()
+        public bool IsOrthographic
+        {
+            get { return isOrthographic; }
+            set
+            {
+                isOrthographic = value;
+                CalculateProjection();
+            }
+        }
+
+        public float Zoom
+        {
+            get { return zoom; }
+            set { zoom = value; }
+        }
+
+        public Camera(GraphicsDevice graphicsDevice) : base()
         {
             name = "camera";
             fieldOfViewAngle = MathHelper.PiOver4;// MathHelper.ToRadians(45);
             nearPlaneDistance = 1f;
             farPlaneDistance = 2000f;
             aspectRatio = 16 / 9;
-            projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
+            isOrthographic = false;
+            this.graphicsDevice = graphicsDevice;
+            CalculateProjection();
             isMoving = false;
+            zoom = 100f;
+        }
+
+        private void CalculateProjection()
+        {
+            if (!isOrthographic)
+                projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
+            else
+                projection = Matrix.CreateOrthographicOffCenter(-zoom / 2, zoom, -zoom / 2, zoom / 2, nearPlaneDistance, farPlaneDistance);
         }
 
         public override void Rotate(float x, float y, float z)
@@ -145,6 +176,7 @@ namespace EditorModel
             rotationY += y;
             rotationX += x;
             rotationZ += z;
+            eulerRotation = new Vector3(rotationX, rotationY, rotationZ);
             isMoving = true;
             LookAt();
         }

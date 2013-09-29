@@ -68,6 +68,7 @@ namespace EditorModel
         protected float minHeight;
         protected float maxHeight;
         protected Camera camera;
+        protected float heightColorFactor;
         #endregion
         #endregion
 
@@ -119,10 +120,18 @@ namespace EditorModel
             set { heightMap = value; }
         }
 
+        public float HeightColorFactor
+        {
+            get { return heightColorFactor; }
+        }
+
         public BaseTerrain(GraphicsDevice graphicsDevice, Camera camera)
         {
             this.graphicsDevice = graphicsDevice;
             this.camera = camera;
+            heightColorFactor = 0.2f;
+            minHeight = -255 * heightColorFactor / 2;
+            maxHeight = minHeight * -1;
             LoadHeightData();
             InitializeVertices();
             InitializeIndices();
@@ -135,6 +144,9 @@ namespace EditorModel
             this.graphicsDevice = graphicsDevice;
             this.camera = camera;
             this.heightMap = heightMap;
+            heightColorFactor = 0.2f;
+            minHeight = -255 * heightColorFactor / 2;
+            maxHeight = minHeight * -1;
             if (initialize)
                 InitializeAll(heightMap);
         }
@@ -145,6 +157,9 @@ namespace EditorModel
             this.camera = camera;
             this.width = width;
             this.height = height;
+            heightColorFactor = 0.2f;
+            minHeight = -255 * heightColorFactor / 2;
+            maxHeight = minHeight * -1;
             if (initialize)
                 InitializeAll();
         }
@@ -171,15 +186,17 @@ namespace EditorModel
         {
             heightMapColors = new Color[width * height];
             heightData = new float[width, height];
+            float tempHeight = 0;
+            float tempColor = tempHeight / heightColorFactor;
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    heightMapColors[x + y * width].R = 0;
-                    heightMapColors[x + y * width].G = 0;
-                    heightMapColors[x + y * width].B = 0;
+                    heightMapColors[x + y * width].R = (byte)tempColor;
+                    heightMapColors[x + y * width].G = (byte)tempColor;
+                    heightMapColors[x + y * width].B = (byte)tempColor;
                     heightMapColors[x + y * width].A = 255;
-                    heightData[x, y] = 0;
+                    heightData[x, y] = tempHeight;
                 }
             }
         }
@@ -192,19 +209,16 @@ namespace EditorModel
             heightMapColors = new Color[width * height];
             heightMap.GetData(heightMapColors);
 
-            minHeight = float.MaxValue;
-            maxHeight = float.MinValue;
-
             heightData = new float[width, height];
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    heightData[x, y] = heightMapColors[x + y * width].R / 5.0f;
-                    if (heightData[x, y] < minHeight)
-                        minHeight = heightData[x, y];
-                    if (heightData[x, y] > maxHeight)
-                        maxHeight = heightData[x, y];
+                    heightData[x, y] = heightMapColors[x + y * width].R * heightColorFactor;
+                    //if (heightData[x, y] < minHeight)
+                    //    minHeight = heightData[x, y];
+                    //if (heightData[x, y] > maxHeight)
+                    //    maxHeight = heightData[x, y];
                 }
             }
         }

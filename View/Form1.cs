@@ -47,5 +47,11 @@ namespace View
             }
             mainUserControl1.Editor1.ImportHeightmap(mainUserControl1.Editor1.openFileDialog1.FileName);
         }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            mainUserControl1.Editor1.Camera.Zoom += 50;
+            mainUserControl1.Editor1.Camera.Notify();
+        }
     }
 }

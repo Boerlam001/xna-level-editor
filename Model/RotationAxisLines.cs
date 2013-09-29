@@ -13,7 +13,7 @@ namespace EditorModel
         public override int OnMouseDown(float x, float y)
         {
             this.min = -1;
-            Ray ray = Helper.Pick(parent.GraphicsDevice, parent.Camera, x, y);
+            Ray ray = Helper.Pick(parent.GraphicsDevice.Viewport, parent.Camera, x, y);
             float min = float.MaxValue;
             Vector2 axisEnd = Vector2.Zero;
             for (short i = 0; i < 3; i++)

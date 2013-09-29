@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.ComponentModel;
 using Microsoft.Xna.Framework;
 
 namespace EditorModel
@@ -21,6 +22,9 @@ namespace EditorModel
         protected Vector3 scale;
         protected Vector3 eulerRotation;
         public static Vector3 rotationReference = new Vector3(0, 0, 10);
+        protected bool isActive;
+        protected bool isStatic;
+        private List<string> scripts;
         #endregion
 
         public delegate void RotationChangedEventHandler(object sender, EventArgs e);
@@ -30,6 +34,7 @@ namespace EditorModel
         public RotationChangedEventHandler PositionChanged;
 
         #region setters and getters
+        [Browsable(false)]
         public bool IsMoving
         {
             get { return isMoving; }
@@ -42,6 +47,7 @@ namespace EditorModel
             set { name = value; }
         }
 
+        [Category("Transform")]
         public Vector3 Scale
         {
             get { return scale; }
@@ -52,6 +58,7 @@ namespace EditorModel
             }
         }
 
+        [Category("Transform")]
         public Vector3 EulerRotation
         {
             get { return eulerRotation; }
@@ -69,12 +76,7 @@ namespace EditorModel
             }
         }
 
-        public Vector3 Direction
-        {
-            get { return direction; }
-            set { direction = value; }
-        }
-        
+        [Category("Transform")]
         public virtual Vector3 Position
         {
             get { return position; }
@@ -87,6 +89,7 @@ namespace EditorModel
             }
         }
 
+        [Category("Transform")]
         public virtual Quaternion Rotation
         {
             get { return rotation; }
@@ -100,6 +103,22 @@ namespace EditorModel
             }
         }
 
+        [Category("Transform")]
+        public Vector3 Direction
+        {
+            get { return direction; }
+            set
+            {
+                direction = value;
+                Matrix w = Matrix.CreateLookAt(position, position + direction, Vector3.Up);
+                Vector3 s, t;
+                Quaternion r;
+                w.Decompose(out s, out r, out t);
+                Rotation = r;
+            }
+        }
+
+        [Browsable(false)]
         public virtual float RotationX
         {
             get { return rotationX; }
@@ -114,6 +133,7 @@ namespace EditorModel
             }
         }
 
+        [Browsable(false)]
         public virtual float RotationY
         {
             get { return rotationY; }
@@ -128,6 +148,7 @@ namespace EditorModel
             }
         }
 
+        [Browsable(false)]
         public virtual float RotationZ
         {
             get { return rotationZ; }
@@ -142,9 +163,33 @@ namespace EditorModel
             }
         }
 
+
+        [Category("Transform")]
         public virtual Matrix World
         {
             get { return world; }
+        }
+
+        [Category("Body")]
+        public bool IsActive
+        {
+            get { return isActive; }
+            set { isActive = value; }
+        }
+
+        [Category("Body")]
+        public bool IsStatic
+        {
+            get { return isStatic; }
+            set { isStatic = value; }
+        }
+
+        [Description("The controller scripts")]
+        [EditorAttribute("System.Windows.Forms.Design.StringCollectionEditor, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", typeof(System.Drawing.Design.UITypeEditor))]
+        public List<string> Scripts
+        {
+            get { return scripts; }
+            set { scripts = value; }
         }
         #endregion
 

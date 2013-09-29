@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
@@ -9,9 +10,10 @@ namespace EditorModel
 {
     public class MapModel : Subject
     {
-        List<DrawingObject> objects;
+        ObservableCollection<DrawingObject> objects;
+        //List<DrawingObject> objects;
 
-        public List<DrawingObject> Objects
+        public ObservableCollection<DrawingObject> Objects
         {
             get { return objects; }
             set { objects = value; }
@@ -19,17 +21,28 @@ namespace EditorModel
 
         public MapModel()
         {
-            objects = new List<DrawingObject>();
+            objects = new ObservableCollection<DrawingObject>();
+            objects.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(objects_CollectionChanged);
         }
 
-        public bool NameExists(string name)
+        void objects_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            Notify();
+        }
+
+        public DrawingObject getObjectByName(string name)
         {
             foreach (DrawingObject obj in objects)
             {
                 if (obj.Name == name)
-                    return true;
+                    return obj;
             }
-            return false;
+            return null;
+        }
+
+        public bool NameExists(string name)
+        {
+            return getObjectByName(name) != null;
         }
 
         /*

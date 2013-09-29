@@ -35,21 +35,22 @@
             this.txt_rotZ = new System.Windows.Forms.TextBox();
             this.txt_rotY = new System.Windows.Forms.TextBox();
             this.txt_rotX = new System.Windows.Forms.TextBox();
-            this.panel1 = new System.Windows.Forms.Panel();
-            this.panel2 = new System.Windows.Forms.Panel();
-            this.panel3 = new System.Windows.Forms.Panel();
+            this.quaternionPanel = new System.Windows.Forms.Panel();
+            this.positionPanel = new System.Windows.Forms.Panel();
             this.txt_posX = new System.Windows.Forms.TextBox();
             this.txt_posY = new System.Windows.Forms.TextBox();
             this.txt_posZ = new System.Windows.Forms.TextBox();
             this.txt_name = new System.Windows.Forms.TextBox();
-            this.panel1.SuspendLayout();
-            this.panel2.SuspendLayout();
-            this.panel3.SuspendLayout();
+            this.eulerPanel = new System.Windows.Forms.Panel();
+            this.propertyGrid1 = new System.Windows.Forms.PropertyGrid();
+            this.quaternionPanel.SuspendLayout();
+            this.positionPanel.SuspendLayout();
+            this.eulerPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // txt_qZ
             // 
-            this.txt_qZ.Location = new System.Drawing.Point(321, 3);
+            this.txt_qZ.Location = new System.Drawing.Point(3, 3);
             this.txt_qZ.Name = "txt_qZ";
             this.txt_qZ.Size = new System.Drawing.Size(100, 20);
             this.txt_qZ.TabIndex = 20;
@@ -72,7 +73,7 @@
             // 
             // txt_qW
             // 
-            this.txt_qW.Location = new System.Drawing.Point(3, 3);
+            this.txt_qW.Location = new System.Drawing.Point(321, 3);
             this.txt_qW.Name = "txt_qW";
             this.txt_qW.Size = new System.Drawing.Size(100, 20);
             this.txt_qW.TabIndex = 17;
@@ -102,38 +103,30 @@
             this.txt_rotX.TabIndex = 14;
             this.txt_rotX.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.txt_rot_PreviewKeyDown);
             // 
-            // panel1
+            // quaternionPanel
             // 
-            this.panel1.Controls.Add(this.txt_rotX);
-            this.panel1.Controls.Add(this.txt_rotY);
-            this.panel1.Controls.Add(this.txt_rotZ);
-            this.panel1.Location = new System.Drawing.Point(0, 30);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(320, 29);
-            this.panel1.TabIndex = 21;
+            this.quaternionPanel.AutoScroll = true;
+            this.quaternionPanel.AutoScrollMinSize = new System.Drawing.Size(320, 0);
+            this.quaternionPanel.Controls.Add(this.txt_qW);
+            this.quaternionPanel.Controls.Add(this.txt_qX);
+            this.quaternionPanel.Controls.Add(this.txt_qZ);
+            this.quaternionPanel.Controls.Add(this.txt_qY);
+            this.quaternionPanel.Location = new System.Drawing.Point(0, 65);
+            this.quaternionPanel.Name = "quaternionPanel";
+            this.quaternionPanel.Size = new System.Drawing.Size(320, 44);
+            this.quaternionPanel.TabIndex = 22;
+            this.quaternionPanel.Visible = false;
             // 
-            // panel2
+            // positionPanel
             // 
-            this.panel2.AutoScroll = true;
-            this.panel2.AutoScrollMinSize = new System.Drawing.Size(320, 0);
-            this.panel2.Controls.Add(this.txt_qW);
-            this.panel2.Controls.Add(this.txt_qX);
-            this.panel2.Controls.Add(this.txt_qZ);
-            this.panel2.Controls.Add(this.txt_qY);
-            this.panel2.Location = new System.Drawing.Point(0, 65);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(320, 44);
-            this.panel2.TabIndex = 22;
-            // 
-            // panel3
-            // 
-            this.panel3.Controls.Add(this.txt_posX);
-            this.panel3.Controls.Add(this.txt_posY);
-            this.panel3.Controls.Add(this.txt_posZ);
-            this.panel3.Location = new System.Drawing.Point(0, 115);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(320, 29);
-            this.panel3.TabIndex = 22;
+            this.positionPanel.Controls.Add(this.txt_posX);
+            this.positionPanel.Controls.Add(this.txt_posY);
+            this.positionPanel.Controls.Add(this.txt_posZ);
+            this.positionPanel.Location = new System.Drawing.Point(0, 115);
+            this.positionPanel.Name = "positionPanel";
+            this.positionPanel.Size = new System.Drawing.Size(320, 29);
+            this.positionPanel.TabIndex = 22;
+            this.positionPanel.Visible = false;
             // 
             // txt_posX
             // 
@@ -165,23 +158,47 @@
             this.txt_name.Name = "txt_name";
             this.txt_name.Size = new System.Drawing.Size(312, 20);
             this.txt_name.TabIndex = 23;
+            this.txt_name.Visible = false;
+            // 
+            // eulerPanel
+            // 
+            this.eulerPanel.Controls.Add(this.txt_rotX);
+            this.eulerPanel.Controls.Add(this.txt_rotY);
+            this.eulerPanel.Controls.Add(this.txt_rotZ);
+            this.eulerPanel.Location = new System.Drawing.Point(0, 30);
+            this.eulerPanel.Name = "eulerPanel";
+            this.eulerPanel.Size = new System.Drawing.Size(320, 29);
+            this.eulerPanel.TabIndex = 21;
+            this.eulerPanel.Visible = false;
+            // 
+            // propertyGrid1
+            // 
+            this.propertyGrid1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.propertyGrid1.Location = new System.Drawing.Point(0, 4);
+            this.propertyGrid1.Name = "propertyGrid1";
+            this.propertyGrid1.Size = new System.Drawing.Size(340, 157);
+            this.propertyGrid1.TabIndex = 24;
+            this.propertyGrid1.PropertyValueChanged += new System.Windows.Forms.PropertyValueChangedEventHandler(this.propertyGrid1_PropertyValueChanged);
             // 
             // ObjectProperties
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.propertyGrid1);
             this.Controls.Add(this.txt_name);
-            this.Controls.Add(this.panel3);
-            this.Controls.Add(this.panel2);
-            this.Controls.Add(this.panel1);
+            this.Controls.Add(this.positionPanel);
+            this.Controls.Add(this.quaternionPanel);
+            this.Controls.Add(this.eulerPanel);
             this.Name = "ObjectProperties";
-            this.Size = new System.Drawing.Size(328, 151);
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
-            this.panel2.ResumeLayout(false);
-            this.panel2.PerformLayout();
-            this.panel3.ResumeLayout(false);
-            this.panel3.PerformLayout();
+            this.Size = new System.Drawing.Size(343, 164);
+            this.quaternionPanel.ResumeLayout(false);
+            this.quaternionPanel.PerformLayout();
+            this.positionPanel.ResumeLayout(false);
+            this.positionPanel.PerformLayout();
+            this.eulerPanel.ResumeLayout(false);
+            this.eulerPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -196,12 +213,13 @@
         private System.Windows.Forms.TextBox txt_rotZ;
         private System.Windows.Forms.TextBox txt_rotY;
         private System.Windows.Forms.TextBox txt_rotX;
-        private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Panel panel3;
+        private System.Windows.Forms.Panel quaternionPanel;
+        private System.Windows.Forms.Panel positionPanel;
         private System.Windows.Forms.TextBox txt_posX;
         private System.Windows.Forms.TextBox txt_posY;
         private System.Windows.Forms.TextBox txt_posZ;
         private System.Windows.Forms.TextBox txt_name;
+        private System.Windows.Forms.Panel eulerPanel;
+        private System.Windows.Forms.PropertyGrid propertyGrid1;
     }
 }
