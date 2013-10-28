@@ -80,6 +80,7 @@ namespace EditorModel
         protected int min;
         protected float mouseX, mouseY, mouseX2, mouseY2;
         protected bool dragStarted;
+        private float zProjection = 0;
 
         #endregion
 
@@ -90,7 +91,7 @@ namespace EditorModel
             axisCount = 3;
 
             axisVertices[0].Color = axisVertices[1].Color = Color.Red;
-            axisVertices[2].Color = axisVertices[3].Color = Color.Green;
+            axisVertices[2].Color = axisVertices[3].Color = Color.LightGreen;
             axisVertices[4].Color = axisVertices[5].Color = Color.Blue;
             axisVertices[6].Color = axisVertices[7].Color = Color.Yellow;
 
@@ -118,7 +119,9 @@ namespace EditorModel
 
         public void Draw(ref BasicEffect effect, GraphicsDevice graphicsDevice)
         {
+            if (zProjection > 1) return;
             effect.VertexColorEnabled = true;
+            effect.World = Matrix.Identity;
             
             DepthStencilState d = new DepthStencilState();
             d.DepthBufferEnable = false;
@@ -169,6 +172,7 @@ namespace EditorModel
                 Vector3 x2 = parent.GraphicsDevice.Viewport.Project(axisVertices[1].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity); //Helper.ProjectAndClipToViewport(axisVertices[1].Position, 0, 0, parent.GraphicsDevice.Viewport.Width, parent.GraphicsDevice.Viewport.Height, 0, 1, parent.Camera.World, out pointXWasInsideScreen);
                 Vector3 y2 = parent.GraphicsDevice.Viewport.Project(axisVertices[3].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
                 Vector3 z2 = parent.GraphicsDevice.Viewport.Project(axisVertices[5].Position, parent.Camera.Projection, parent.Camera.World, Matrix.Identity);
+                zProjection = Math.Max(x1.Z, Math.Max(x2.Z, Math.Max(y2.Z, z2.Z)));
 
                 Ray ray = Helper.Pick(parent.GraphicsDevice.Viewport, parent.Camera, x1.X, x1.Y);
                 Vector3 screenToAxis = ray.Direction * 2;
@@ -194,8 +198,7 @@ namespace EditorModel
                 pointZ.X = z2.X;
                 pointZ.Y = z2.Y;
 
-                text =
-                    x1.X + ", " + x1.Y + "\r\n";
+                text = (parent.Camera.Position - parent.Model.Position).Length() + "\r\n";
             }
             catch (Exception ex)
             {
@@ -255,13 +258,12 @@ namespace EditorModel
                 Vector2 mouseVector0 = mouseVector - point0;
                 Vector2 proj = point0 + (Vector2.Dot(axis, mouseVector0) / axis.LengthSquared()) * axis;
 
-                text = dragStart + " " + proj + " " + min;
-
                 float sf = (proj - dragStart).Length(),
                       f0 = (proj - point0Start).Length(),
-                      s0 = (dragStart - point0Start).Length();
+                      s0 = (dragStart - point0Start).Length(),
+                      ratio = (parent.Camera.Position - parent.Model.Position).Length() * 0.002f;
 
-                float diff = sf / 100;
+                float diff = sf * ratio;
 
                 if ((sf >= f0 && sf >= s0) || (s0 >= f0 && s0 >= sf))
                 {

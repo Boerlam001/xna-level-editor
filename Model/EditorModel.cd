@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="EditorModel.BaseObject" Collapsed="true">
+    <Position X="2" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAEAAAABAAJKAgECKgIBQKEAUlCAEEQCABBAAAAAI=</HashCode>
+      <FileName>BaseObject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EditorModel.DrawingObject" Collapsed="true">
+    <Position X="0.5" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAgAAAgAAAAIBhAAEAAAAhgoAAIAAAAAACAAAAAAAAA=</HashCode>
+      <FileName>DrawingObject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EditorModel.Camera" Collapsed="true">
+    <Position X="4" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ARAAAAAACAIAAMAiEwAAABAIEAAAIAQAAgQAAAAQAAI=</HashCode>
+      <FileName>Camera.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EditorModel.Subject" Collapsed="true">
+    <Position X="2.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAgAAAAAAAIAAAAAAAAAAIAAAABAAAAAAAAAAAA=</HashCode>
+      <FileName>Subject.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EditorModel.MapModel" Collapsed="true">
+    <Position X="6" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAQAAAAAAAAAEAAAAAAAQAAAAEAAAAAAEAAAAA=</HashCode>
+      <FileName>MapModel.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="objects" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="EditorModel.Terrain" Collapsed="true">
+    <Position X="2.25" Y="3.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQQSRAgFlgAEgQAQAAAEEAAQhCQEkQAkKIAEAAEMBA=</HashCode>
+      <FileName>Terrain.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EditorModel.ContentBuilder" Collapsed="true">
+    <Position X="4.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAIAABABACUAABAAEAAABAAOEAhFgAAA0IAAAEBAAAA=</HashCode>
+      <FileName>ContentBuilder.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

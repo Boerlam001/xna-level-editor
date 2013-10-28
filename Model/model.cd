@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ClassDiagram MajorVersion="1" MinorVersion="1">
-  <Class Name="EditorModel.Subject">
+  <Class Name="EditorModel.Subject" Collapsed="true">
     <Position X="1" Y="1" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAIAAAAAAAAAAIAAAAAAAAAAIAAAABAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAIAAAAAAAAAAIAAAAAAAAAAIAAAABAAAAAAAAQAAA=</HashCode>
       <FileName>Subject.cs</FileName>
     </TypeIdentifier>
     <ShowAsCollectionAssociation>
@@ -13,59 +13,49 @@
   <Class Name="EditorModel.BaseObject" Collapsed="true">
     <Position X="1" Y="3.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAAAEAAAABAABIAgAACAIAQCEAUkAAAAQAAAAAAAAAI=</HashCode>
+      <HashCode>AAAQEAIAEBAAJKAgECKhIBQKkQUlCIEEQCABBAAQAII=</HashCode>
       <FileName>BaseObject.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="EditorModel.TrueModel">
     <Position X="4.5" Y="2" Width="1.5" />
-    <AssociationLine Name="objects" Type="EditorModel.DrawingObject" ManuallyRouted="true" FixedFromPoint="true" FixedToPoint="true">
-      <Path>
-        <Point X="4.5" Y="3.214" />
-        <Point X="1.833" Y="3.214" Type="JumpStart" />
-        <Point X="1.667" Y="3.214" Type="JumpEnd" />
-        <Point X="0.76" Y="3.214" />
-        <Point X="0.76" Y="5.25" />
-        <Point X="1" Y="5.25" />
-      </Path>
-    </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAQAAAAEAAAAAAAAAAAA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAACBAAAAgQAAAAAAAAAA=</HashCode>
       <FileName>TrueModel.cs</FileName>
     </TypeIdentifier>
-    <ShowAsCollectionAssociation>
-      <Field Name="objects" />
-    </ShowAsCollectionAssociation>
   </Class>
   <Class Name="EditorModel.DrawingObject" Collapsed="true">
     <Position X="1" Y="5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>CAAAAAgAAAAIAhAAEAAAABgoAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>CAgAAAgAAAAIBhAAEAAAAhgoAAIAAAAAACAAAAAIAAA=</HashCode>
       <FileName>DrawingObject.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="EditorModel.Camera" Collapsed="true">
     <Position X="2.75" Y="5" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>ARAAAAAACAAAAMAgAwAAAAAAEAAAIAAAAgQAAAAQAAI=</HashCode>
+      <HashCode>ARAAAAAACAIAAOAiEwAAABAIEAAAIAQAAgQAAAAQAAI=</HashCode>
       <FileName>Camera.cs</FileName>
     </TypeIdentifier>
   </Class>
   <Class Name="EditorModel.BoundingBoxBuffer" Collapsed="true">
     <Position X="5.25" Y="6.25" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAQQQAAAAAAAAgAAAQAAAAAAACAAACQgAAgEAAAIAAg=</HashCode>
+      <HashCode>AAAQQAAAAAAAAgBAAQAAQAAAACAAACQgAAAEAAAAAAg=</HashCode>
       <FileName>BoundingBoxBuffer.cs</FileName>
     </TypeIdentifier>
-    <ShowAsAssociation>
-      <Field Name="model" />
-    </ShowAsAssociation>
-    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="EditorModel.DrawingCamera">
+    <Position X="1" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>DrawingCamera.cs</FileName>
+    </TypeIdentifier>
   </Class>
   <Interface Name="EditorModel.IObserver">
     <Position X="4.5" Y="0.75" Width="1.5" />
     <TypeIdentifier>
-      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <HashCode>ACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
       <FileName>IObserver.cs</FileName>
     </TypeIdentifier>
   </Interface>

@@ -3,11 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
+using Jitter;
+using Jitter.Collision;
+using Jitter.Collision.Shapes;
+using Jitter.Dynamics;
+using Jitter.LinearMath;
 
 namespace XleModel
 {
     public class BaseObject : DrawableGameComponent
     {
+        public delegate void RotationChangedEventHandler(object sender, EventArgs e);
+        public RotationChangedEventHandler RotationChanged;
+
+        public delegate void PositionChangedEventHandler(object sender, EventArgs e);
+        public RotationChangedEventHandler PositionChanged;
+
         #region attributes
         private Vector3 direction;
         protected float rotationX;
@@ -22,13 +33,15 @@ namespace XleModel
         protected Vector3 eulerRotation;
         public static Vector3 rotationReference = new Vector3(0, 0, 10);
         List<ControllerScript> scripts;
+        protected World physicsWorld;
+        protected bool physicsEnabled;
+        protected PhysicsAdapter physicsAdapter;
+        protected Type physicsAdapterType;
+        private bool physicsAdapterChangeRequested;
+        private object[] physicsAdapterParameters;
+        protected BaseObject parent;
+        protected Vector3 relativePosition;
         #endregion
-
-        public delegate void RotationChangedEventHandler(object sender, EventArgs e);
-        public RotationChangedEventHandler RotationChanged;
-
-        public delegate void PositionChangedEventHandler(object sender, EventArgs e);
-        public RotationChangedEventHandler PositionChanged;
 
         #region setters and getters
         public bool IsMoving
@@ -53,7 +66,7 @@ namespace XleModel
             }
         }
 
-        public Vector3 EulerRotation
+        public virtual Vector3 EulerRotation
         {
             get { return eulerRotation; }
             set
@@ -82,6 +95,11 @@ namespace XleModel
             set
             {
                 position = value;
+                if (parent != null)
+                {
+                    Vector3 v = position - parent.Position;
+                    relativePosition = Vector3.Transform(v, Matrix.Invert(Matrix.CreateFromQuaternion(rotation)));
+                }
                 world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
 
                 OnPositionChanged(this, null);
@@ -155,6 +173,35 @@ namespace XleModel
                 OnPositionChanged(this, null);
             }
         }
+
+        public bool PhysicsEnabled
+        {
+            get { return physicsEnabled; }
+            set { physicsEnabled = value; }
+        }
+
+        public PhysicsAdapter PhysicsAdapter
+        {
+            get
+            {
+                return physicsAdapter;
+            }
+        }
+
+        public Vector3 RelativePosition
+        {
+            get { return relativePosition; }
+            set
+            {
+                relativePosition = value;
+                if (parent != null)
+                {
+                    Vector3 v = Vector3.Transform(relativePosition, Matrix.CreateFromQuaternion(rotation));
+                    position = parent.Position + v;
+                    OnPositionChanged(this, null);
+                }
+            }
+        }
         #endregion
 
         public BaseObject(Game game)
@@ -167,7 +214,19 @@ namespace XleModel
             world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             world.Decompose(out scale, out rotation, out position);
             scripts = new List<ControllerScript>();
+            physicsEnabled = false;
+        }
 
+        public BaseObject(Game game, World physicsWorld)
+            : this(game)
+        {
+            this.physicsWorld = physicsWorld;
+            if (!(this is PhysicsAdapter))
+            {
+                physicsAdapter = new BoxAdapter(game, this, physicsWorld, Vector3.Zero, Vector3.One);
+                physicsAdapterType = typeof(BoxAdapter);
+                physicsAdapterChangeRequested = false;
+            }
             OnRotationChanged(this, null);
         }
 
@@ -185,9 +244,47 @@ namespace XleModel
         {
             base.Update(gameTime);
 
+            if (physicsAdapterChangeRequested)
+            {
+                bool reenableCharacterController = false;
+                if (physicsAdapter != null && physicsAdapter.CharacterController != null)
+                    reenableCharacterController = true;
+                physicsAdapter = (PhysicsAdapter)Activator.CreateInstance(physicsAdapterType, physicsAdapterParameters);
+                if (reenableCharacterController)
+                    physicsAdapter.EnableCharacterController();
+                physicsAdapterChangeRequested = false;
+            }
+
             foreach (ControllerScript script in scripts)
             {
                 script.Update(gameTime);
+            }
+
+            if (physicsEnabled)
+            {
+                if (physicsAdapter != null)
+                {
+                    physicsAdapter.Update(gameTime);
+                    Vector3 v = Vector3.Transform(physicsAdapter.RelativePosition, Matrix.CreateFromQuaternion(physicsAdapter.Rotation));
+                    position = physicsAdapter.Position - v;
+                    rotation = physicsAdapter.Rotation;
+
+                    OnRotationChanged(this, new BodyGeoEventArgs(false));
+                    OnPositionChanged(this, new BodyGeoEventArgs(false));
+                }
+            }
+            else
+            {
+                if (physicsAdapter != null)
+                {
+                    physicsAdapter.Position = position;
+                    physicsAdapter.Rotation = rotation;
+                }
+            }
+
+            foreach (ControllerScript script in scripts)
+            {
+                script.LateUpdate();
             }
         }
 
@@ -212,7 +309,7 @@ namespace XleModel
             eulerRotation = new Vector3(rotationX, rotationY, rotationZ);
             world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             world.Decompose(out scale, out rotation, out position);
-
+            
             OnRotationChanged(this, null);
         }
 
@@ -220,7 +317,8 @@ namespace XleModel
         {
             world = Matrix.CreateLookAt(position, target, Vector3.Up);
             world.Decompose(out scale, out rotation, out position);
-
+            Helper.QuaternionToEuler(rotation, out rotationX, out rotationY, out rotationZ);
+            eulerRotation = new Vector3(rotationX, rotationY, rotationZ);
             OnRotationChanged(this, null);
         }
 
@@ -244,6 +342,19 @@ namespace XleModel
             Position = v;
         }
 
+        public void ChangePhysicsAdapter(object[] parameters)
+        {
+            physicsWorld.RemoveBody(physicsAdapter.Body);
+            physicsAdapterChangeRequested = true;
+            this.physicsAdapterParameters = parameters;
+        }
+
+        public void ChangePhysicsAdapter(Type physicsAdapterType, object[] parameters)
+        {
+            this.physicsAdapterType = physicsAdapterType;
+            ChangePhysicsAdapter(parameters);
+        }
+
         protected virtual void OnRotationChanged(object sender, EventArgs e)
         {
             direction = new Vector3(0, 0, 1);
@@ -252,12 +363,36 @@ namespace XleModel
 
             if (RotationChanged != null)
                 RotationChanged(sender, e);
+
+            if (physicsAdapter != null && e == null)
+                physicsAdapter.Rotation = rotation;
+
+            if (this is PhysicsAdapter &&
+                (e == null || (e != null && e is BodyGeoEventArgs && (e as BodyGeoEventArgs).SetBodyGeo)) &&
+                ((PhysicsAdapter)this).Body != null)
+                ((PhysicsAdapter)this).Body.Orientation = Helper.ToJitterMatrix(Matrix.CreateFromQuaternion(rotation));
         }
 
         protected virtual void OnPositionChanged(object sender, EventArgs e)
         {
             if (PositionChanged != null)
                 PositionChanged(sender, e);
+
+            if (physicsAdapter != null && e == null)
+                physicsAdapter.RelativePosition = physicsAdapter.RelativePosition;
+
+            if (this is PhysicsAdapter &&
+                (e == null || (e != null && e is BodyGeoEventArgs && (e as BodyGeoEventArgs).SetBodyGeo)) &&
+                ((PhysicsAdapter)this).Body != null)
+                ((PhysicsAdapter)this).Body.Position = Helper.ToJitterVector(position);
+        }
+
+        public virtual void CollisionDetected(BaseObject other)
+        {
+            foreach (ControllerScript script in scripts)
+            {
+                script.CollisionDetected(other);
+            }
         }
     }
 }

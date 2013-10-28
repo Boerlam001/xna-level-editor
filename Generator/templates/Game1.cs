@@ -8,6 +8,11 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using Jitter;
+using Jitter.Collision;
+using Jitter.Collision.Shapes;
+using Jitter.Dynamics;
+using Jitter.LinearMath;
 
 namespace WindowsGame1
 {
@@ -21,7 +26,6 @@ namespace WindowsGame1
 
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        MouseAction mouseAction;
 
         public Game1()
         {
@@ -30,9 +34,6 @@ namespace WindowsGame1
 
             #region XnaLevelEditor
             #endregion
-
-            mouseAction = new MouseAction(this, camera);
-            Components.Add(mouseAction);
         }
 
         /// <summary>
@@ -46,6 +47,35 @@ namespace WindowsGame1
             // TODO: Add your initialization logic here
 
             base.Initialize();
+        }
+
+        void collisionSystem_CollisionDetected(RigidBody body1, RigidBody body2, JVector point1, JVector point2, JVector normal, float penetration)
+        {
+            BaseObject obj1 = null, obj2 = null;
+
+            foreach (GameComponent component in Components)
+            {
+                if (component is DrawingObject)
+                {
+                    BaseObject obj = component as BaseObject;
+                    if (obj.PhysicsAdapter.Body == body1 || obj.PhysicsAdapter.Body == body2)
+                    {
+                        if (obj1 == null)
+                        {
+                            obj1 = obj;
+                        }
+                        else if (obj2 == null)
+                        {
+                            obj2 = obj;
+                        }
+                    }
+                }
+            }
+            if (obj1 != null && obj2 != null)
+            {
+                obj1.CollisionDetected(obj2);
+                obj2.CollisionDetected(obj1);
+            }
         }
 
         /// <summary>

@@ -27,12 +27,16 @@ namespace View
 
         public override void PreviewKeyDown(object sender, System.Windows.Forms.PreviewKeyDownEventArgs e)
         {
-            throw new NotImplementedException();
         }
 
         public override void KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
         {
-            throw new NotImplementedException();
+            if (editor.Selected != null && e.KeyCode == Keys.Delete)
+            {
+                BaseObject obj = editor.Selected;
+                editor.DeselectObject();
+                editor.DeleteObject(obj);
+            }
         }
 
         public override void MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
@@ -56,10 +60,10 @@ namespace View
                 }
 
                 float min = float.MaxValue;
-                DrawingObject temp = null;
-                foreach (DrawingObject obj in editor.MapModel.Objects)
+                BaseObject temp = null;
+                foreach (BaseObject obj in editor.MapModel.Objects)
                 {
-                    if (obj.RayIntersects(ray))
+                    if (obj.RayIntersects(ray, e.X, e.Y))
                     {
                         float dist = Vector3.Distance(ray.Position, obj.Position);
                         if (dist < min)
@@ -91,7 +95,7 @@ namespace View
                 {
                     editor.SelectedBoundingBox.AxisLines.OnMouseMove(e.X, e.Y);
                     editor.Selected.Notify();
-                    ((IObserver)editor).UpdateObserver();
+                    editor.Camera.Notify();
                 }
             }
             mouseX = e.X;
@@ -129,8 +133,8 @@ namespace View
                 Array files = (Array)e.Data.GetData(DataFormats.FileDrop);
                 foreach (string file in files)
                 {
-                    string name = file.Substring(file.LastIndexOf('\\') + 1);
-                    editor.AddObject(file, name, Helper.Put(editor.GraphicsDevice.Viewport, editor.Camera, mouseX, mouseY, 3), Vector3.Zero);
+                    string name = System.IO.Path.GetFileName(file).Replace(".", "_");
+                    editor.AddObject(file, name, Helper.Put(editor.GraphicsDevice.Viewport, editor.Camera, e.X, e.Y, 3), Vector3.Zero);
                 }
             }
         }

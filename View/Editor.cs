@@ -8,9 +8,11 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using EditorModel;
+using EditorModel.QuadTreeTerrain;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+using XleGenerator;
 
 namespace View
 {
@@ -21,14 +23,12 @@ namespace View
         private MainUserControl mainUserControl;
         private Camera camera;
         private ContentBuilder contentBuilder;
-        private DrawingObject selected;
         private ModelBoundingBox selectedBoundingBox;
         private EditorMode editorMode;
         private SpriteBatch spriteBatch;
         private SpriteFont spriteFont;
         private Terrain terrain;
         private string text;
-        private TerrainPointer terrainPointer;
         private TerrainBrush terrainBrush;
         private BasicEffect basicEffect;
         private Effect terrainEffect;
@@ -37,7 +37,6 @@ namespace View
         private bool moveLeft;
         private bool moveRight;
         private ContentManager contentManager;
-        private Texture2D heightMap;
         private Texture2D brushHeightMap;
         private bool mouseMoving;
         private MouseEventArgs mouseEventArgs;
@@ -45,12 +44,39 @@ namespace View
         private int tempMouseY;
         private ContentManager heightmapContent;
         private string effectFile;
+        private Texture2D grassTexture;
+        private Grid grid;
+        private GridPointer gridPointer;
+        private List<GridPointer> gridPointers;
+        private QuadTree quadTreeTerrain;
+        private bool viewBody;
+        private System.Threading.Timer timer;
+        private int easeRemain = 0;
+        Vector3 easeSpeed;
         #endregion
 
         public MapModel MapModel
         {
             get { return mapModel; }
-            set { mapModel = value; }
+            set
+            {
+                if (mapModel != null)
+                {
+                    mapModel.PhysicsWorld.Detach(this);
+                }
+                mapModel = value;
+                if (mapModel == null)
+                    return;
+                if (contentManager != null)
+                {
+                    mapModel.MainCamera.Texture = contentManager.Load<Texture2D>("video_camera");
+                    mapModel.MainCamera.GraphicsDevice = GraphicsDevice;
+                    mapModel.MainCamera.Camera = camera;
+                    mapModel.MainCamera.BasicEffect = basicEffect;
+                }
+                mapModel.PhysicsWorld.Attach(this);
+                mapModel.PhysicsWorld.Notify();
+            }
         }
 
         public MainUserControl MainUserControl
@@ -72,10 +98,18 @@ namespace View
             get { return contentBuilder; }
         }
 
-        public DrawingObject Selected
+        public BaseObject Selected
         {
-            get { return selected; }
-            set { selected = value; }
+            get
+            {
+                if (mapModel == null) return null;
+                return mapModel.Selected;
+            }
+            set
+            {
+                if (mapModel == null) return;
+                mapModel.Selected = value;
+            }
         }
 
         public ModelBoundingBox SelectedBoundingBox
@@ -112,16 +146,45 @@ namespace View
             set { text = value; }
         }
 
-        public TerrainPointer TerrainPointer
-        {
-            get { return terrainPointer; }
-            set { terrainPointer = value; }
-        }
-
         public TerrainBrush TerrainBrush
         {
             get { return terrainBrush; }
             set { terrainBrush = value; }
+        }
+
+        public Texture2D GrassTexture
+        {
+            get { return grassTexture; }
+            set { grassTexture = value; }
+        }
+
+        public Grid Grid
+        {
+            get { return grid; }
+            set { grid = value; }
+        }
+
+        public GridPointer GridPointer
+        {
+            get { return gridPointer; }
+            set { gridPointer = value; }
+        }
+
+        public List<GridPointer> GridPointers
+        {
+            get { return gridPointers; }
+            set { gridPointers = value; }
+        }
+
+        public bool ViewBody
+        {
+            get { return viewBody; }
+            set
+            {
+                viewBody = value;
+                if (selectedBoundingBox != null)
+                    selectedBoundingBox.ViewBody = value;
+            }
         }
 
         public static string AssemblyDirectory
@@ -142,38 +205,41 @@ namespace View
 
         private void Editor_Load(object sender, EventArgs e)
         {
-            mouseMoving = false;
-            mouseEventArgs = null;
-            tempMouseX = tempMouseY = -1;
-            text = "";
-            basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
-            contentBuilder = ContentBuilder.Instance;
-            contentManager = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
-            heightmapContent = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
-            spriteBatch = new SpriteBatch(graphicsDeviceControl1.GraphicsDevice);
-            
             string errorBuild = "";
-            effectFile = AssemblyDirectory + "\\effects.fx";
             try
             {
+                mouseMoving = false;
+                mouseEventArgs = null;
+                tempMouseX = tempMouseY = -1;
+                text = "";
+                basicEffect = new BasicEffect(graphicsDeviceControl1.GraphicsDevice);
+                contentBuilder = ContentBuilder.Instance;
+                contentManager = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
+                heightmapContent = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
+                spriteBatch = new SpriteBatch(graphicsDeviceControl1.GraphicsDevice);
+
+                effectFile = AssemblyDirectory + "\\Assets\\effects.fx";
                 //importer reference: http://msdn.microsoft.com/en-us/library/bb447762%28v=xnagamestudio.20%29.aspx
-                contentBuilder.Add(AssemblyDirectory + "\\SegoeUI.spritefont", "SegoeUI.spritefont", null, "FontDescriptionProcessor");
+                contentBuilder.Add(AssemblyDirectory + "\\Assets\\SegoeUI.spritefont", "SegoeUI.spritefont", null, "FontDescriptionProcessor");
                 contentBuilder.Add(effectFile, "effects", null, "EffectProcessor");
-                contentBuilder.Add(AssemblyDirectory + "\\heightmap.png", "heightmap", null, "TextureProcessor");
-                contentBuilder.Add(AssemblyDirectory + "\\brush.bmp", "brush", null, "TextureProcessor");
+                contentBuilder.Add(AssemblyDirectory + "\\Assets\\brush.bmp", "brush", null, "TextureProcessor");
+                contentBuilder.Add(AssemblyDirectory + "\\Assets\\Textures\\grass.dds", "grass", null, "TextureProcessor");
+                contentBuilder.Add(AssemblyDirectory + "\\Assets\\video_camera.png", "video_camera", null, "TextureProcessor");
+                contentBuilder.Add(AssemblyDirectory + "\\Assets\\Roads\\jalan_raya.fbx", "jalan_raya", null, "ModelProcessor");
+                contentBuilder.Add(AssemblyDirectory + "\\Assets\\Roads\\jalan_raya_belok.fbx", "jalan_raya_belok", null, "ModelProcessor");
+                contentBuilder.Add(AssemblyDirectory + "\\Assets\\heightmap2.png", "heightmap", null, "TextureProcessor");
+                string error = contentBuilder.Build();
+                if (!string.IsNullOrEmpty(error))
+                {
+                    throw new Exception(error);
+                }
+
                 errorBuild = contentBuilder.Build();
                 spriteFont = contentManager.Load<SpriteFont>("SegoeUI.spritefont");
                 terrainEffect = contentManager.Load<Effect>("effects");
-                heightMap = heightmapContent.Load<Texture2D>("heightmap");
                 brushHeightMap = contentManager.Load<Texture2D>("brush");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace + "\r\n" + errorBuild);
-            }
+                grassTexture = contentManager.Load<Texture2D>("grass");
 
-            try
-            {
                 camera = new Camera(GraphicsDevice);
                 camera.Position = new Vector3(0, 50, 0);
                 camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
@@ -181,47 +247,73 @@ namespace View
                 camera.Attach(this);
                 CheckIsOrthographic();
 
-                heightMap = null;
                 string heightMapFile = AssemblyDirectory + "\\test_HeightMap.png";
-                if (heightMap != null)
-                    terrain = new Terrain(GraphicsDevice, camera, heightMap, heightMapFile, effectFile);
-                else
-                    terrain = new Terrain(GraphicsDevice, camera, heightMapFile, effectFile);
+                terrain = new Terrain(GraphicsDevice, camera, heightMapFile, effectFile, 128, 128);
+                terrain.Texture = grassTexture;
 
-                //impossible
-                //if (mainUserControl == null)
-                    //terrain.HeightMapFile = AssemblyDirectory + "\\" + mainUserControl._ClassManager.Name + ".png";
-                //else
-                    //terrain.HeightMapFile = AssemblyDirectory + "\\test_HeightMap.png";
+                //heightmapContent = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
+                //quadTreeTerrain = new QuadTree(Vector3.Zero, 1025, 1025, camera, GraphicsDevice, 1);
+                //quadTreeTerrain.Effect.Texture = grassTexture;
 
                 editorMode = new EditorMode_Select(this);
 
-                selected = null;
-                selectedBoundingBox = new ModelBoundingBox(graphicsDeviceControl1.GraphicsDevice, camera);
+                Selected = null;
+                selectedBoundingBox = new ModelBoundingBox(graphicsDeviceControl1.GraphicsDevice, camera, false);
                 selectedBoundingBox.SpriteBatch = spriteBatch;
                 selectedBoundingBox.SpriteFont = spriteFont;
                 CheckActiveTransformMode();
 
-                terrainPointer = new TerrainPointer(terrain);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace + "\r\n" + errorBuild);
-            }
-            try
-            {
-                terrainBrush = new TerrainBrush(GraphicsDevice, terrain, brushHeightMap);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace + "\r\n" + errorBuild);
-            }
+                grid = new Grid(terrain, 8, camera, GraphicsDevice, basicEffect);
+                grid.RoadModel = contentManager.Load<Model>("jalan_raya");
+                grid.RoadModel_belok = contentManager.Load<Model>("jalan_raya_belok");
 
-            camera.Notify();
+                terrainBrush = new TerrainBrush(GraphicsDevice, terrain, brushHeightMap);
+                terrainBrush.BasicEffect = basicEffect;
+
+                gridPointer = new GridPointer(grid);
+                gridPointers = new List<GridPointer>();
+
+                if (mapModel != null)
+                {
+                    mapModel.MainCamera.Texture = contentManager.Load<Texture2D>("video_camera");
+                    mapModel.MainCamera.GraphicsDevice = GraphicsDevice;
+                    mapModel.MainCamera.Camera = camera;
+                    mapModel.MainCamera.BasicEffect = basicEffect;
+                }
+
+                timer = new System.Threading.Timer((c) => SetGravity(), null, Timeout.Infinite, Timeout.Infinite);
+
+                camera.Notify();
+            }
+            catch (Exception ex)
+            {
+                if (!DesignMode)
+                {
+                    if (mainUserControl != null && mainUserControl.StatusStrip1 != null)
+                        mainUserControl.StatusStrip1.Text = ex.Message + "\r\n" + ex.StackTrace;
+                    else
+                        MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                }
+            }
         }
 
-        void IObserver.UpdateObserver()
+        void UpdateGravity()
         {
+            if (gravityToolStripTextBox.TextBox.InvokeRequired)
+                gravityToolStripTextBox.TextBox.Invoke(new Action(UpdateGravity));
+            else
+            {
+                gravityToolStripTextBox.Text = mapModel.PhysicsWorld.Gravity.ToString();
+                materialCoefficientMixingToolStripComboBox.SelectedIndex = (int)mapModel.PhysicsWorld.MaterialCoefficientMixing;
+            }
+        }
+
+        public void UpdateObserver()
+        {
+            if (mapModel != null)
+            {
+                UpdateGravity();
+            }
             graphicsDeviceControl1.Invalidate();
         }
 
@@ -230,17 +322,40 @@ namespace View
             heightmapContent = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
             contentBuilder.Add(heightmapFile, "heightmap", null, "TextureProcessor");
             contentBuilder.Build();
-            heightMap = heightmapContent.Load<Texture2D>("heightmap");
             camera.Detach(terrain.TerrainIndexer);
-            terrain = new Terrain(GraphicsDevice, camera, heightMap, heightmapFile, effectFile);
-            terrainBrush = new TerrainBrush(GraphicsDevice, terrain, brushHeightMap);
+            terrain = new Terrain(GraphicsDevice, camera, heightmapContent.Load<Texture2D>("heightmap"), heightmapFile, effectFile);
+            terrain.Texture = grassTexture;
+
+            terrainBrush.Terrain = terrain;
+
+            camera.Attach(terrain.TerrainIndexer);
             camera.Notify();
+        }
+
+        public void AddObject(string file, string name, Vector3 position, Vector3 eulerRotation, bool physicsEnabled, bool isActive, bool isStatic, bool characterControllerEnabled, PhysicsShapeKind physicsShapeKind, Vector3 bodyPosition)
+        {
+            DrawingObject obj = new DrawingObject();
+            obj.Position = position;
+            obj.EulerRotation = eulerRotation;
+            obj.PhysicsEnabled = physicsEnabled;
+            obj.IsActive = isActive;
+            obj.IsStatic = isStatic;
+            obj.CharacterControllerEnabled = characterControllerEnabled;
+            obj.PhysicsShapeKind = physicsShapeKind;
+            obj.BodyPosition = bodyPosition;
+            AddObject(file, name, obj);
         }
 
         public void AddObject(string file, string name, Vector3 position, Vector3 eulerRotation)
         {
             DrawingObject obj = new DrawingObject();
+            obj.Position = position;
+            obj.EulerRotation = eulerRotation;
+            AddObject(file, name, obj);
+        }
 
+        public void AddObject(string file, string name, DrawingObject obj)
+        {
             string originalName = name;
 
             for (int i = 1; ; ++i)
@@ -253,9 +368,9 @@ namespace View
             {
                 obj.DrawingModel = OpenModel(file);
                 obj.Name = name;
-                obj.Position = position;
-                obj.EulerRotation = eulerRotation;
                 obj.SourceFile = file;
+                obj.Camera = camera;
+                obj.GraphicsDevice = GraphicsDevice;
                 obj.Attach(this);
                 mapModel.Objects.Add(obj);
                 XleGenerator.CodeLines codeLines = new XleGenerator.CodeLines();
@@ -267,6 +382,31 @@ namespace View
             {
                 MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
             }
+        }
+
+        public void DeleteObject(BaseObject obj)
+        {
+            if (obj == null || obj == mapModel.MainCamera)
+                return;
+            obj.DetachAll();
+            List<CodeLines> codeLinesToBeRemovedList = new List<CodeLines>();
+            foreach (CodeLines codeLines in mainUserControl._ClassManager.CodeLinesList)
+            {
+                if (codeLines.Model == obj)
+                    codeLinesToBeRemovedList.Add(codeLines);
+            }
+            foreach (CodeLines codeLinesToBeRemoved in codeLinesToBeRemovedList)
+            {
+                mainUserControl._ClassManager.CodeLinesList.Remove(codeLinesToBeRemoved);
+            }
+            mapModel.Objects.Remove(obj);
+            camera.Notify();
+        }
+
+        public void DeleteObject(string name)
+        {
+            BaseObject obj = mapModel.getObjectByName(name);
+            DeleteObject(obj);
         }
 
         public Model LoadModel()
@@ -321,61 +461,83 @@ namespace View
         
         private void graphicsDeviceControl1_Paint(object sender, PaintEventArgs e)
         {
-            graphicsDeviceControl1.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Microsoft.Xna.Framework.Color.CornflowerBlue, 1.0f, 0);
-
-            GraphicsDevice.BlendState = BlendState.Opaque;
-            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
-            GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
-
-            if (mapModel != null)
-                foreach (DrawingObject obj in mapModel.Objects)
-                    obj.Draw(camera.World, camera.Projection, false, camera.Direction);
-            
-            basicEffect.View = camera.World;
-            basicEffect.Projection = camera.Projection;
-
             try
             {
-                if (terrainEffect == null)
-                    terrain.Draw(basicEffect);
-                else
-                    terrain.Draw(terrainEffect);
+                graphicsDeviceControl1.GraphicsDevice.Clear(ClearOptions.Target | ClearOptions.DepthBuffer, Microsoft.Xna.Framework.Color.CornflowerBlue, 1.0f, 0);
+
+                GraphicsDevice.BlendState = BlendState.Opaque;
+                GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+                GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
+
+                if (mapModel != null)
+                    foreach (BaseObject obj in mapModel.Objects)
+                        obj.Draw(spriteBatch, false, camera.Direction);
+
+                basicEffect.View = camera.World;
+                basicEffect.Projection = camera.Projection;
+
+                terrain.Draw();
+                //quadTreeTerrain.Update(null);
+                //quadTreeTerrain.Draw(null);
+
+
+                if (editorMode is EditorMode_Terrain)
+                {
+                    if (editorMode is EditorMode_GridPointing)
+                    {
+                        grid.Draw();
+                        gridPointer.Draw(spriteBatch);
+                        text += gridPointer.Text + " " + gridPointers.Count + "\r\n";
+                        foreach (GridPointer gp in gridPointers)
+                            gp.Draw(spriteBatch);
+                    }
+                    else
+                    {
+                        terrainBrush.Draw();
+                        text += terrainBrush.Text;
+                    }
+                }
+
+                for (int x = 0; x < grid.Width; x++)
+                {
+                    for (int y = 0; y < grid.Height; y++)
+                        if (grid.GridObjects[x, y] != null)
+                            grid.GridObjects[x, y].Draw(spriteBatch);
+                }
+                if (Selected != null)
+                {
+                    selectedBoundingBox.Draw(ref basicEffect);
+                    text += selectedBoundingBox.AxisLines.Text + "\r\n";
+                }
+
+                text += camera.Zoom + "\r\n";
+
+                spriteBatch.Begin();
+                foreach (BaseObject obj in mapModel.Objects)
+                    obj.DrawSprite(spriteBatch);
+                if (spriteFont != null)
+                {
+                    text += timer1.Enabled + "\r\n";
+                    if (mouseEventArgs != null)
+                    {
+                        text += mouseEventArgs.X + "," + mouseEventArgs.Y + "\r\n";
+                    }
+                    spriteBatch.DrawString(spriteFont, text, new Vector2(50, 50), Microsoft.Xna.Framework.Color.White, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0.0f);
+                }
+                spriteBatch.End();
+
+                text = "";
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
-                terrain.Draw(basicEffect);
-            }
-
-            if (editorMode is EditorMode_Terrain)
-            {
-                //terrainPointer.Draw(basicEffect, GraphicsDevice);
-                //text += terrainPointer.Text;
-                terrainBrush.Draw(basicEffect);
-                text += terrainBrush.Text;
-            }
-
-            if (selected != null)
-            {
-                selectedBoundingBox.Draw(ref basicEffect);
-                text += selectedBoundingBox.AxisLines.Text + "\r\n";
-            }
-
-            text += camera.Zoom + "\r\n";
-
-            if (spriteFont != null)
-            {
-                spriteBatch.Begin();
-                text += mouseMoving + "\r\n";
-                if (mouseEventArgs != null)
+                if (!DesignMode)
                 {
-                    text += mouseEventArgs.X + "," + mouseEventArgs.Y + "\r\n";
+                    if (mainUserControl != null && mainUserControl.StatusStrip1 != null)
+                        mainUserControl.StatusStrip1.Text = ex.Message + "\r\n" + ex.StackTrace;
+                    else
+                        MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
                 }
-                spriteBatch.DrawString(spriteFont, text, new Vector2(50, 50), Microsoft.Xna.Framework.Color.White, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0.0f);
-                spriteBatch.End();
             }
-
-            text = "";
         }
 
         private void graphicsDeviceControl1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
@@ -390,6 +552,7 @@ namespace View
                 moveRight = true;
             if (moveForward || moveBackward || moveLeft || moveRight)
                 timer1.Enabled = true;
+            editorMode.PreviewKeyDown(sender, e);
         }
 
         private void graphicsDeviceControl1_KeyUp(object sender, KeyEventArgs e)
@@ -408,6 +571,7 @@ namespace View
                 camera.IsMoving = false;
                 camera.Notify();
             }
+            editorMode.KeyUp(sender, e);
         }
 
         private void graphicsDeviceControl1_MouseDown(object sender, MouseEventArgs e)
@@ -429,7 +593,8 @@ namespace View
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                if (!DesignMode)
+                    mainUserControl.StatusStrip1.Text = ex.Message + "\r\n" + ex.StackTrace;
             }
         }
 
@@ -484,13 +649,22 @@ namespace View
                         tempMouseX = mouseEventArgs.X;
                         tempMouseY = mouseEventArgs.Y;
                     }
-
-                    //Thread thread = new Thread(() => editorMode.MouseMove(sender, mouseEventArgs));
-                    //thread.Start();
                 }
             }
-            if (moveRight || moveLeft || moveForward || moveBackward)
-                camera.Notify();
+            if (easeRemain > 0)
+            {
+                camera.Move(easeSpeed);
+                easeRemain--;
+                if (easeRemain == 0)
+                {
+                    easeRemain = 0;
+                    timer1.Enabled = false;
+                }
+                else
+                    timer1.Enabled = true;
+            }
+            //if (moveRight || moveLeft || moveForward || moveBackward || easeRemain > 0)
+            camera.Notify();
         }
 
         private void graphicsDeviceControl1_Resize(object sender, EventArgs e)
@@ -504,26 +678,35 @@ namespace View
 
         private void translateModeToolStripButton_Click(object sender, EventArgs e)
         {
-            if (selected != null)
+            if (Selected != null)
                 selectedBoundingBox.ChangeAxisLines(1);
             CheckActiveTransformMode();
         }
 
         private void rotateModeToolStripButton_Click(object sender, EventArgs e)
         {
-            if (selected != null)
+            if (Selected != null)
                 selectedBoundingBox.ChangeAxisLines(2);
+            CheckActiveTransformMode();
+        }
+
+        private void scaleModeToolStripButton_Click(object sender, EventArgs e)
+        {
+            if (Selected != null)
+                selectedBoundingBox.ChangeAxisLines(3);
             CheckActiveTransformMode();
         }
 
         private void CheckActiveTransformMode()
         {
-            if (selected == null)
+            if (Selected == null)
             {
                 translateModeToolStripButton.Checked = false;
                 translateModeToolStripButton.CheckState = CheckState.Unchecked;
                 rotateModeToolStripButton.Checked = false;
                 rotateModeToolStripButton.CheckState = CheckState.Unchecked;
+                scaleModeToolStripButton.Checked = false;
+                scaleModeToolStripButton.CheckState = CheckState.Unchecked;
             }
             if (selectedBoundingBox.AxisLines.GetType() == typeof(RotationAxisLines))
             {
@@ -531,6 +714,17 @@ namespace View
                 translateModeToolStripButton.CheckState = CheckState.Unchecked;
                 rotateModeToolStripButton.Checked = true;
                 rotateModeToolStripButton.CheckState = CheckState.Checked;
+                scaleModeToolStripButton.Checked = false;
+                scaleModeToolStripButton.CheckState = CheckState.Unchecked;
+            }
+            else if (selectedBoundingBox.AxisLines.GetType() == typeof(ScaleAxisLines))
+            {
+                translateModeToolStripButton.Checked = false;
+                translateModeToolStripButton.CheckState = CheckState.Unchecked;
+                rotateModeToolStripButton.Checked = false;
+                rotateModeToolStripButton.CheckState = CheckState.Unchecked;
+                scaleModeToolStripButton.Checked = true;
+                scaleModeToolStripButton.CheckState = CheckState.Checked;
             }
             else
             {
@@ -538,6 +732,8 @@ namespace View
                 translateModeToolStripButton.CheckState = CheckState.Checked;
                 rotateModeToolStripButton.Checked = false;
                 rotateModeToolStripButton.CheckState = CheckState.Unchecked;
+                scaleModeToolStripButton.Checked = false;
+                scaleModeToolStripButton.CheckState = CheckState.Unchecked;
             }
             camera.Notify();
         }
@@ -574,41 +770,58 @@ namespace View
             CheckEditorMode();
         }
 
+        private void gridStripButton_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                editorMode = new EditorMode_AddRoad(this);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+            }
+            CheckEditorMode();
+        }
+
         private void CheckEditorMode()
         {
-            if (selected != null)
+            if (Selected != null)
             {
-                selected.Detach(mainUserControl.ObjectProperties1);
-                mainUserControl.ObjectProperties1.Model = null;
-                selected = null;
+                Selected.Detach(mainUserControl.ObjectProperties);
+                mainUserControl.ObjectProperties.Model = null;
+                Selected = null;
             }
+
+            selectModeToolStripButton.Checked = false;
+            selectModeToolStripButton.CheckState = CheckState.Unchecked;
+            terrainIncreaseToolStripButton.Checked = false;
+            terrainIncreaseToolStripButton.CheckState = CheckState.Unchecked;
+            terrainDecreaseToolStripButton.Checked = false;
+            terrainDecreaseToolStripButton.CheckState = CheckState.Unchecked;
+            addRoadStripButton.Checked = false;
+            addRoadStripButton.CheckState = CheckState.Unchecked;
+
             if (editorMode.GetType() == typeof(EditorMode_Select))
             {
                 selectModeToolStripButton.Checked = true;
                 selectModeToolStripButton.CheckState = CheckState.Checked;
-                terrainIncreaseToolStripButton.Checked = false;
-                terrainIncreaseToolStripButton.CheckState = CheckState.Unchecked;
-                terrainDecreaseToolStripButton.Checked = false;
-                terrainDecreaseToolStripButton.CheckState = CheckState.Unchecked;
             }
             if (editorMode.GetType() == typeof(EditorMode_Terrain_IncreaseHeight))
             {
-                selectModeToolStripButton.Checked = false;
-                selectModeToolStripButton.CheckState = CheckState.Unchecked;
                 terrainIncreaseToolStripButton.Checked = true;
                 terrainIncreaseToolStripButton.CheckState = CheckState.Checked;
-                terrainDecreaseToolStripButton.Checked = false;
-                terrainDecreaseToolStripButton.CheckState = CheckState.Unchecked;
             }
             if (editorMode.GetType() == typeof(EditorMode_Terrain_DecreaseHeight))
             {
-                selectModeToolStripButton.Checked = false;
-                selectModeToolStripButton.CheckState = CheckState.Unchecked;
-                terrainIncreaseToolStripButton.Checked = false;
-                terrainIncreaseToolStripButton.CheckState = CheckState.Unchecked;
                 terrainDecreaseToolStripButton.Checked = true;
                 terrainDecreaseToolStripButton.CheckState = CheckState.Checked;
             }
+            if (editorMode.GetType() == typeof(EditorMode_AddRoad))
+            {
+                addRoadStripButton.Checked = true;
+                addRoadStripButton.CheckState = CheckState.Checked;
+            }
+
             camera.Notify();
         }
 
@@ -633,23 +846,51 @@ namespace View
             }
         }
 
-        public void SelectObject(DrawingObject temp)
+        public void SelectObject(BaseObject temp)
         {
-            selected = temp;
-            selectedBoundingBox.Model = selected;
-            selected.Attach(mainUserControl.ObjectProperties1);
-            mainUserControl.ObjectProperties1.Model = selected;
-            selected.Notify();
+            Selected = temp;
+            selectedBoundingBox.Model = Selected;
+            Selected.Attach(mainUserControl.ObjectProperties);
+            mainUserControl.ObjectProperties.Model = Selected;
+            Selected.Notify();
         }
 
         public void DeselectObject()
         {
-            if (selected != null)
+            if (Selected != null)
             {
-                selected.Detach(mainUserControl.ObjectProperties1);
-                mainUserControl.ObjectProperties1.Model = null;
-                selected = null;
+                Selected.Detach(mainUserControl.ObjectProperties);
+                mainUserControl.ObjectProperties.Model = null;
+                Selected = null;
             }
+        }
+
+        private void materialCoefficientMixingToolStripComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            mapModel.PhysicsWorld.MaterialCoefficientMixing = (MaterialCoefficientMixing)materialCoefficientMixingToolStripComboBox.SelectedIndex;
+            mapModel.PhysicsWorld.Notify();
+        }
+
+        void SetGravity()
+        {
+            float gravity;
+            if (float.TryParse(gravityToolStripTextBox.Text, out gravity))
+            {
+                mapModel.PhysicsWorld.Gravity = gravity;
+            }
+            mapModel.PhysicsWorld.Notify();
+        }
+
+        public void EaseCamera(Vector3 target)
+        {
+            easeRemain = 500 / timer1.Interval;
+            easeSpeed = (target - camera.Position) / easeRemain;
+            timer1.Enabled = true;
+        }
+
+        private void gravityToolStripTextBox_TextChanged(object sender, EventArgs e)
+        {
+            timer.Change(250, Timeout.Infinite);
         }
     }
 }

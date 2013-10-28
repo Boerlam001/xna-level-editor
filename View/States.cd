@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="View.EditorMode_Terrain_IncreaseHeight" Collapsed="true">
+    <Position X="2.5" Y="5.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAACAAAA=</HashCode>
+      <FileName>EditorMode_Terrain_IncreaseHeight.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="View.EditorMode">
+    <Position X="5" Y="0.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+      <Compartment Name="Properties" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>QAgAAQQAAQBEAEAAQAgAAEAAAAAgEAAIAAAACECAAAA=</HashCode>
+      <FileName>EditorMode.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="View.EditorMode_AddRoad" Collapsed="true">
+    <Position X="6" Y="6.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAAAAAAAgAAAAAAAAAAAgEBAAAAAAAACAAAA=</HashCode>
+      <FileName>EditorMode_AddRoad.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="View.EditorMode_GridPointing" Collapsed="true">
+    <Position X="5.75" Y="5.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAA=</HashCode>
+      <FileName>EditorMode_GridPointing.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="View.EditorMode_Select" Collapsed="true">
+    <Position X="2" Y="4" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAgAAQAAAAAAAEAAAAgAAAAAAAAgEAIAAAAAAACAAAA=</HashCode>
+      <FileName>EditorMode_Select.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="View.EditorMode_Terrain" Collapsed="true">
+    <Position X="6.5" Y="4" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAgABQAAAAAQAAAIAAgAACAAAAAgABAAAAAAAASgAIA=</HashCode>
+      <FileName>EditorMode_Terrain.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="View.EditorMode_Terrain_DecreaseHeight" Collapsed="true">
+    <Position X="8.5" Y="5.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAACAAAA=</HashCode>
+      <FileName>EditorMode_Terrain_DecreaseHeight.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="View.Editor" Collapsed="true">
+    <Position X="8" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>Ai0Dg12FEjMAhABAkmPIRRACjeAYoICuaGWMXkBkggY=</HashCode>
+      <FileName>Editor.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Field Name="editorMode" />
+    </ShowAsAssociation>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

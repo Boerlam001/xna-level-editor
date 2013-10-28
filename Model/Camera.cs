@@ -42,6 +42,20 @@ namespace EditorModel
             }
         }
 
+        public override Vector3 EulerRotation
+        {
+            get
+            {
+                return base.EulerRotation;
+            }
+            set
+            {
+                RotationX = value.X;
+                RotationY = value.Y;
+                RotationZ = value.Z;
+            }
+        }
+
         public override float RotationX
         {
             get { return rotationX; }
@@ -176,7 +190,6 @@ namespace EditorModel
             rotationY += y;
             rotationX += x;
             rotationZ += z;
-            eulerRotation = new Vector3(rotationX, rotationY, rotationZ);
             isMoving = true;
             LookAt();
         }
@@ -187,6 +200,7 @@ namespace EditorModel
             Vector3 transformedReference = Vector3.Transform(rotationReference, rotationMatrix);
             Vector3 lookAtVector = position + transformedReference;
             world = Matrix.CreateScale(scale) * Matrix.CreateLookAt(position, lookAtVector, Vector3.Up);
+            eulerRotation = new Vector3(rotationX, rotationY, rotationZ);
             Vector3 s, t;
             rotationMatrix.Decompose(out s, out rotation, out t);
             OnRotationChanged(this, null);

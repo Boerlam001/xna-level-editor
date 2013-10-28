@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="EditorModel.AxisLines" Collapsed="true">
+    <Position X="4.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAACIAQAQAkBoAAABYEAAAFAAAQAIKEEwCIQCkAg=</HashCode>
+      <FileName>AxisLines.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="EditorModel.RotationAxisLines">
+    <Position X="3.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAABAAAAAAAAAAAAAAAABAAAAAAIAAAAAAAAAA=</HashCode>
+      <FileName>RotationAxisLines.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="EditorModel.ScaleAxisLines">
+    <Position X="5.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAIAAAAAAAAAA=</HashCode>
+      <FileName>ScaleAxisLines.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

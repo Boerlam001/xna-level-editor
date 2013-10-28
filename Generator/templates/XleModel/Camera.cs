@@ -23,17 +23,30 @@ namespace XleModel
                 LookAt();
             }
         }
-
+        
         public override Quaternion Rotation
         {
             get { return rotation; }
             set
             {
-
+                
                 rotation = value;
                 Helper.QuaternionToEuler(rotation, out rotationX, out rotationY, out rotationZ);
                 LookAt();
-                OnRotationChanged(this, null);
+            }
+        }
+
+        public override Vector3 EulerRotation
+        {
+            get
+            {
+                return base.EulerRotation;
+            }
+            set
+            {
+                RotationX = value.X;
+                RotationY = value.Y;
+                RotationZ = value.Z;
             }
         }
 
@@ -50,7 +63,6 @@ namespace XleModel
                 //if (rotationX >= 180 && rotationX < 270)
                 //    rotationX = 270;
                 LookAt();
-                OnRotationChanged(this, null);
             }
         }
 
@@ -63,7 +75,6 @@ namespace XleModel
                 if (rotationY < 0)
                     rotationY = 360 + rotationY;
                 LookAt();
-                OnRotationChanged(this, null);
             }
         }
 
@@ -76,7 +87,6 @@ namespace XleModel
                 if (rotationZ < 0)
                     rotationZ = 360 + rotationZ;
                 LookAt();
-                OnRotationChanged(this, null);
             }
         }
 
@@ -125,8 +135,7 @@ namespace XleModel
             get { return projection; }
         }
 
-        public Camera(Game game)
-            : base(game)
+        public Camera(Game game) : base(game)
         {
             name = "camera";
             fieldOfViewAngle = MathHelper.ToRadians(45);
@@ -147,7 +156,6 @@ namespace XleModel
             rotationY += y;
             rotationX += x;
             rotationZ += z;
-            eulerRotation = new Vector3(rotationX, rotationY, rotationZ);
             LookAt();
         }
 
@@ -159,6 +167,7 @@ namespace XleModel
             world = Matrix.CreateLookAt(position, lookAtVector, Vector3.Up);
             Vector3 s, t;
             rotationMatrix.Decompose(out s, out rotation, out t);
+            OnRotationChanged(this, null);
         }
     }
 }

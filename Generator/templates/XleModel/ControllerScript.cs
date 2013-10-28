@@ -23,5 +23,14 @@ namespace XleModel
         public abstract void Start();
 
         public abstract void Update(GameTime gameTime);
+
+        public virtual void LateUpdate()
+        {
+        }
+
+        public virtual void CollisionDetected(BaseObject other)
+        {
+
+        }
     }
 }

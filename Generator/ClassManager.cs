@@ -11,9 +11,18 @@ using EditorModel;
 using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Jitter;
+using Jitter.Collision;
+using Jitter.Collision.Shapes;
+using Jitter.LinearMath;
 
 namespace XleGenerator
 {
+    internal abstract class EnvDTEConstants
+    {
+        public const string vsProjectItemKindPhysicalFile = "{6BB5F8EE-4483-11D3-8BCF-00C04F8EC28C}";
+    }
+
     public class ClassManager
     {
         #region attributes
@@ -29,10 +38,10 @@ namespace XleGenerator
         private CodeFunction2 loadContentFunction;
         private CodeFunction2 drawFunction;
         private Project currentProject, contentProject, xleModelProject, jitterProject, skinnedModelProject, skinnedModelPipelineProject;
-        private const string xleModelProjectName = "XleModel";
-        private const string jitterProjectName = "Jitter";
-        private const string skinnedModelProjectName = "SkinnedModel";
-        private const string skinnedModelPipelineProjectName = "SkinnedModelPipeline";
+        private static string xleModelProjectName = "XleModel";
+        private static string jitterProjectName = "Jitter";
+        private static string skinnedModelProjectName = "SkinnedModel";
+        private static string skinnedModelPipelineProjectName = "SkinnedModelPipeline";
         private bool xleModelImportStmtExist;
         private static string assemblyDirectory = null;
         private CodeImport lastImportStatement;
@@ -153,6 +162,46 @@ namespace XleGenerator
         }
         #endregion Constructors
 
+        public static List<string> ListProjects()
+        {
+            List<string> projects = new List<string>();
+            if (applicationObject != null)
+            {
+                Solution2 solution = (Solution2)applicationObject.Solution;
+                foreach (Project project in solution.Projects)
+                {
+                    if (project.Name != jitterProjectName &&
+                        project.Name != xleModelProjectName &&
+                        project.Name != skinnedModelProjectName &&
+                        project.Name != skinnedModelPipelineProjectName &&
+                        !project.FullName.Contains(".contentproj"))
+                        projects.Add(project.Name);
+                }
+            }
+            return projects;
+        }
+
+        public static List<string> ListClasses(string projectName)
+        {
+            if (applicationObject == null)
+                return null;
+            List<string> classes = new List<string>();
+            Solution2 solution = (Solution2)applicationObject.Solution;
+            foreach (Project project in solution.Projects)
+            {
+                if (project.Name == projectName)
+                {
+                    foreach (ProjectItem projectItem in project.ProjectItems)
+                    {
+                        if (projectItem.Kind == EnvDTEConstants.vsProjectItemKindPhysicalFile && projectItem.Name.Contains(".cs"))
+                            classes.Add(projectItem.Name.Substring(0, projectItem.Name.Length - 3));
+                    }
+                    break;
+                }
+            }
+            return classes;
+        }
+
         public ProjectItem SelectClass(string className)
         {
             if (applicationObject == null || currentProject == null)
@@ -224,9 +273,9 @@ namespace XleGenerator
             {
                 string scriptsFolderPath = Path.GetDirectoryName(currentProject.FullName) + "\\Scripts";
                 if (!Directory.Exists(scriptsFolderPath))
-                    currentProject.ProjectItems.AddFolder("Scripts");
+                    scriptsFolder = currentProject.ProjectItems.AddFolder("Scripts");
                 else
-                    currentProject.ProjectItems.AddFromDirectory(scriptsFolderPath);
+                    scriptsFolder = currentProject.ProjectItems.AddFromDirectory(scriptsFolderPath);
             }
             if (jitterProject == null)
             {
@@ -239,6 +288,26 @@ namespace XleGenerator
             if (xleModelProject == null)
             {
                 AddXleModelProject();
+            }
+        }
+
+        public string AddScript(string file)
+        {
+            try
+            {
+                string scriptsFolderPath = Path.GetDirectoryName(currentProject.FullName) + "\\Scripts";
+                if (Path.GetDirectoryName(file) != scriptsFolderPath)
+                {
+                    string newFile = Path.Combine(scriptsFolderPath, Path.GetFileName(file));
+                    File.Copy(file, newFile);
+                    file = newFile;
+                }
+                scriptsFolder.ProjectItems.AddFromFile(file);
+                return file;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
             }
         }
 
@@ -426,8 +495,12 @@ namespace XleGenerator
             string constructor = sb.
                        Append("CollisionSystem collisionSystem = new CollisionSystemPersistentSAP();\r\n").
                        Append("world = new World(collisionSystem);\r\n").
-                       Append("world.AllowDeactivation = true;\r\n\r\n").
+                       Append("world.AllowDeactivation = true;\r\n").
+                       Append("world.Gravity = new JVector(0, ").Append(mapModel.PhysicsWorld.Gravity).Append("f, 0);\r\n").
+                       Append("world.ContactSettings.MaterialCoefficientMixing = ContactSettings.MaterialCoefficientMixingType.").Append(mapModel.PhysicsWorld.MaterialCoefficientMixing.ToString()).Append(";\r\n\r\n").
+                       Append("collisionSystem.CollisionDetected += new CollisionDetectedHandler(collisionSystem_CollisionDetected);\r\n").
                        Append("camera = new Camera(this);\r\n").
+                       Append("camera.Name = \"camera\";\r\n").
                        Append("camera.Position = new Vector3(0, 50, 0);\r\n").
                        Append("camera.Rotate(20, 45, 0);\r\n").
                        Append("Components.Add(camera);\r\n\r\n").
@@ -445,14 +518,9 @@ namespace XleGenerator
                        Append("float step = (float)gameTime.ElapsedGameTime.TotalSeconds;\r\n").
                        Append("if (step > 1.0f / 100.0f) step = 1.0f / 100.0f;\r\n").
                        Append("world.Step(step, true);\r\n").
-                       //Append("foreach (GameComponent component in Components)\r\n").
-                       //Append("{\r\n").
-                       //Append("    component.Update(gameTime);\r\n").
-                       //Append("}\r\n").
                        ToString();
             sb.Clear();
             string draw = sb.
-                       //Append("terrain.Draw(terrainEffect);\r\n").
                        ToString();
             sb.Clear();
             foreach (CodeLines codeLines in codeLinesList)
@@ -564,6 +632,16 @@ namespace XleGenerator
              * \s*<variable>\s*\.\s*Position\s*=<instantiationVector3>
              * set a DrawingObject's Rotation value
              * \s*<variable>\s*\.\s*Rotation\s*=<instantiationVector3>
+             * set PhysicsEnabled
+             * \s*<variable>\s*\.\s*PhysicsEnabled\s*=\s*(true|false)\s*
+             * set IsActive
+             * \s*<variable>\s*\.\s*PhysicsAdapter\s*.\s*Body\s*.\s*IsActive\s*=\s*(true|false)\s*
+             * set IsStatic
+             * \s*<variable>\s*\.\s*PhysicsAdapter\s*.\s*Body\s*.\s*IsStatic\s*=\s*(true|false)\s*
+             * set CharacterControllerEnabled
+             * \s*<variable>\s*\.\s*PhysicsAdapter\s*.\s*EnableCharacterController\s*\(\s*\)\s*
+             * change PhysicsAdapter
+             * \s*<variable>\s*\.\s*ChangePhysicsAdapter\s*\(\s*typeof\s*\(\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\)\s*,\s*new\s*object\s*\[\s*\]\s*{[\s\w\,\(\)\-\d\.]*}\s*\)\s*
              * 
              */
             #endregion
@@ -573,10 +651,15 @@ namespace XleGenerator
             const string declarationRegex = "^\\s*DrawingObject\\s+" + variableRegex + "\\s*$";
             const string instantiationRegex = "^\\s*" + variableRegex + "\\s*=\\s*new\\s+DrawingObject\\(\\s*this\\s*,\\s*camera\\s*,\\s*\\\"\\w+\\\"\\s*,\\s*world\\s*\\)\\s*$";
             //const string loadContentRegex = "^\\s*" + variableRegex + "\\s*.\\s*DrawingModel\\s*=\\s*Content\\s*.\\s*Load\\s*<\\s*Model\\s*>\\s*\\(\\s*\\\"\\w+\\\"\\s*\\)\\s*$";
-            const string instantiationVector3 = "\\s*new\\s+Vector3\\s*\\((\\s*(" + variableIntegerFloatRegex + ")\\s*,\\s*(" + variableIntegerFloatRegex + ")\\s*,\\s*(" + variableIntegerFloatRegex + ")\\s*)?\\)\\s*";
-            const string setPositionRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*Position\\s*=" + instantiationVector3 + "$";
-            const string setRotationRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*EulerRotation\\s*=" + instantiationVector3 + "$";
-            Dictionary<string, DrawingObject> objects = new Dictionary<string,DrawingObject>();
+            const string instantiationVector3Regex = "\\s*new\\s+Vector3\\s*\\((\\s*(" + variableIntegerFloatRegex + ")\\s*,\\s*(" + variableIntegerFloatRegex + ")\\s*,\\s*(" + variableIntegerFloatRegex + ")\\s*)?\\)\\s*";
+            const string setPositionRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*Position\\s*=" + instantiationVector3Regex + "$";
+            const string setRotationRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*EulerRotation\\s*=" + instantiationVector3Regex + "$";
+            const string setPhysicsEnabledRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*PhysicsEnabled\\s*=\\s*(true|false)\\s*$";
+            const string setIsActiveRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*PhysicsAdapter\\s*.\\s*Body\\s*.\\s*IsActive\\s*=\\s*(true|false)\\s*$";
+            const string setIsStaticRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*PhysicsAdapter\\s*.\\s*Body\\s*.\\s*IsStatic\\s*=\\s*(true|false)\\s*$";
+            const string enableCharacterControllerRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*PhysicsAdapter\\s*.\\s*EnableCharacterController\\s*\\(\\s*\\)\\s*$";
+            const string changePhysicsAdapterRegex = "^\\s*" + variableRegex + "\\s*\\.\\s*ChangePhysicsAdapter\\s*\\(\\s*typeof\\s*\\(\\s*[a-zA-Z_][a-zA-Z0-9_]*\\s*\\)\\s*,\\s*new\\s*object\\s*\\[\\s*\\]\\s*{.*}\\s*\\)\\s*$";
+            Dictionary<string, DrawingObject> objects = new Dictionary<string, DrawingObject>();
 
             if (codeClass != null)
             {
@@ -589,8 +672,7 @@ namespace XleGenerator
                 {
                     if (Regex.IsMatch(line, declarationRegex))
                     {
-                        string key = line.Replace("DrawingObject", "").Trim();
-                        objects.Add(key, new DrawingObject());
+                        ParseDeclaration(objects, line);
                     }
                 }
             }
@@ -606,78 +688,198 @@ namespace XleGenerator
                 {
                     if (Regex.IsMatch(line, instantiationRegex))
                     {
-                        string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
-                        if (objects.Keys.Contains(varName))
-                        {
-                            string contentWithQuotes = Regex.Match(line, "\\\"\\w+\\\"").Value;
-                            string contentName = Regex.Replace(contentWithQuotes.Trim(), "\\\"", "");
-                            try
-                            {
-                                ProjectItem item = contentProject.ProjectItems.Item(contentName + ".fbx");
-                                objects[varName].SourceFile = Path.GetDirectoryName(contentProject.FullName) + "\\" + contentName + ".fbx";
-                            }
-                            catch
-                            {
-                                objects.Remove(varName);
-                            }
-                        }
+                        ParseInstantiation(variableRegex, objects, line, contentProject);
                     }
-                    //if (Regex.IsMatch(line, loadContentRegex))
-                    //{
-                    //    string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
-                    //    if (objects.Keys.Contains(varName))
-                    //    {
-                    //        string contentName = Regex.Replace(Regex.Match(line, "\\s*\\(.*\\)\\s*$").Value.Trim(), "(^\\(\\s*\\\")|(\\\"\\s*\\)$)", "");
-                    //        try
-                    //        {
-                    //            ProjectItem item = contentProject.ProjectItems.Item(contentName + ".fbx");
-                    //            objects[varName].SourceFile = Path.GetDirectoryName(contentProject.FullName) + "\\" + contentName + ".fbx";
-                    //        }
-                    //        catch
-                    //        {
-                    //            objects.Remove(varName);
-                    //        }
-                    //    }
-                    //}
                     if (Regex.IsMatch(line, setPositionRegex))
                     {
-                        string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
-                        if (objects.Keys.Contains(varName))
-                        {
-                            string values = Regex.Replace(Regex.Match(line, "\\s*\\(.*\\)\\s*$").Value, "[\\(\\)\\sf]", "");
-
-                            if (values != "")
-                            {
-                                string[] valuesArray = values.Split(',');
-                                objects[varName].Position = new Vector3(float.Parse(valuesArray[0], CultureInfo.InvariantCulture), float.Parse(valuesArray[1], CultureInfo.InvariantCulture), float.Parse(valuesArray[2], CultureInfo.InvariantCulture));
-                            }
-                            else
-                            {
-                                objects[varName].Position = Vector3.Zero;
-                            }
-                        }
+                        ParseSetPosition(variableRegex, objects, line);
                     }
                     if (Regex.IsMatch(line, setRotationRegex))
                     {
-                        string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
-                        if (objects.Keys.Contains(varName))
-                        {
-                            string values = Regex.Replace(Regex.Match(line, "\\s*\\(.*\\)\\s*$").Value, "[\\(\\)\\sf]", "");
-
-                            if (values != "")
-                            {
-                                string[] valuesArray = values.Split(',');
-                                objects[varName].EulerRotation = new Vector3(float.Parse(valuesArray[0], CultureInfo.InvariantCulture), float.Parse(valuesArray[1], CultureInfo.InvariantCulture), float.Parse(valuesArray[2], CultureInfo.InvariantCulture));
-                            }
-                            else
-                            {
-                                objects[varName].EulerRotation = Vector3.Zero;
-                            }
-                        }
+                        ParseSetRotation(variableRegex, objects, line);
+                    }
+                    if (Regex.IsMatch(line, setPhysicsEnabledRegex))
+                    {
+                        ParseSetPhysicsEnabled(variableRegex, objects, line);
+                    }
+                    if (Regex.IsMatch(line, setIsActiveRegex))
+                    {
+                        ParseSetIsActiveRegex(variableRegex, objects, line);
+                    }
+                    if (Regex.IsMatch(line, setIsStaticRegex))
+                    {
+                        ParseSetIsStaticRegex(variableRegex, objects, line);
+                    }
+                    if (Regex.IsMatch(line, enableCharacterControllerRegex))
+                    {
+                        ParseEnableCharacterController(variableRegex, objects, line);
+                    }
+                    if (Regex.IsMatch(line, changePhysicsAdapterRegex))
+                    {
+                        ParseChangePhysicsAdapter(variableRegex, integerOrFloatRegex, instantiationVector3Regex, objects, line);
                     }
                 }
             }
             return objects;
+        }
+
+        private static void ParseChangePhysicsAdapter(string variableRegex, string integerOrFloatRegex, string instantiationVector3Regex, Dictionary<string, DrawingObject> objects, string line)
+        {
+            string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+            if (objects.Keys.Contains(varName))
+            {
+                string adapterType = Regex.Replace(Regex.Match(line, "typeof\\s*\\(\\s*[a-zA-Z_][a-zA-Z0-9_]*\\s*\\)").Value, "(typeof)|[\\s*\\(\\)]", "");
+                string values = Regex.Replace(Regex.Match(line, "\\s*{.*}\\s*\\)$").Value, "[{}]", "");
+                MatchCollection matches = Regex.Matches(values, instantiationVector3Regex);
+                if (matches.Count > 0)
+                {
+                    string bodyPositionString = matches[0].Value;
+                    string[] vectorValues = Regex.Replace(Regex.Match(bodyPositionString, "\\(.*\\)").Value, "[\\(\\)\\sf]", "").Split(',');
+                    objects[varName].BodyPosition = new Vector3(float.Parse(vectorValues[0], CultureInfo.InvariantCulture), float.Parse(vectorValues[1], CultureInfo.InvariantCulture), float.Parse(vectorValues[2], CultureInfo.InvariantCulture));
+                }
+                if (adapterType == "BoxAdapter")
+                {
+                    objects[varName].PhysicsShapeKind = PhysicsShapeKind.BoxShape;
+                    string sizeString = matches[1].Value;
+                    string[] vectorValues = Regex.Replace(Regex.Match(sizeString, "\\(.*\\)").Value, "[\\(\\)\\sf]", "").Split(',');
+                    ((BoxShape)objects[varName].Body.Shape).Size = new JVector(float.Parse(vectorValues[0], CultureInfo.InvariantCulture), float.Parse(vectorValues[1], CultureInfo.InvariantCulture), float.Parse(vectorValues[2], CultureInfo.InvariantCulture));
+                }
+                else if (adapterType == "CapsuleAdapter")
+                {
+                    objects[varName].PhysicsShapeKind = PhysicsShapeKind.CapsuleShape;
+                    string withoutVector3 = Regex.Replace(values, instantiationVector3Regex + "|\\)", "");
+                    string[] valuesArray = withoutVector3.Split(',');
+                    ((CapsuleShape)objects[varName].Body.Shape).Length = float.Parse(valuesArray[4].Replace("f", ""), CultureInfo.InvariantCulture);
+                    ((CapsuleShape)objects[varName].Body.Shape).Radius = float.Parse(valuesArray[5].Replace("f", ""), CultureInfo.InvariantCulture);
+                }
+                else if (adapterType == "ConvexHullAdapter")
+                {
+                    objects[varName].PhysicsShapeKind = PhysicsShapeKind.ConvexHullShape;
+                }
+            }
+        }
+
+        private static void ParseEnableCharacterController(string variableRegex, Dictionary<string, DrawingObject> objects, string line)
+        {
+            string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+            if (objects.Keys.Contains(varName))
+            {
+                objects[varName].CharacterControllerEnabled = true;
+            }
+        }
+
+        private static void ParseSetIsStaticRegex(string variableRegex,Dictionary<string,DrawingObject> objects,string line)
+        {
+            string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+            if (objects.Keys.Contains(varName))
+            {
+                string value = line.Substring(line.LastIndexOf("=") + 1).Trim();
+                if (value == "true")
+                {
+                    objects[varName].IsStatic = true;
+                }
+                else if (value == "false")
+                {
+                    objects[varName].IsStatic = false;
+                }
+            }
+        }
+
+        private static void ParseSetIsActiveRegex(string variableRegex, Dictionary<string, DrawingObject> objects, string line)
+        {
+            string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+            if (objects.Keys.Contains(varName))
+            {
+                string value = line.Substring(line.LastIndexOf("=") + 1).Trim();
+                if (value == "true")
+                {
+                    objects[varName].IsActive = true;
+                }
+                else if (value == "false")
+                {
+                    objects[varName].IsActive = false;
+                }
+            }
+        }
+
+        private static void ParseSetPhysicsEnabled(string variableRegex, Dictionary<string, DrawingObject> objects, string line)
+        {
+            string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+            if (objects.Keys.Contains(varName))
+            {
+                string value = line.Substring(line.LastIndexOf("=") + 1).Trim();
+                if (value == "true")
+                {
+                    objects[varName].PhysicsEnabled = true;
+                }
+                else if (value == "false")
+                {
+                    objects[varName].PhysicsEnabled = false;
+                }
+            }
+        }
+
+        private static void ParseSetRotation(string variableRegex, Dictionary<string, DrawingObject> objects, string line)
+        {
+            string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+            if (objects.Keys.Contains(varName))
+            {
+                string values = Regex.Replace(Regex.Match(line, "\\s*\\(.*\\)\\s*$").Value, "[\\(\\)\\sf]", "");
+
+                if (values != "")
+                {
+                    string[] valuesArray = values.Split(',');
+                    objects[varName].EulerRotation = new Vector3(float.Parse(valuesArray[0], CultureInfo.InvariantCulture), float.Parse(valuesArray[1], CultureInfo.InvariantCulture), float.Parse(valuesArray[2], CultureInfo.InvariantCulture));
+                }
+                else
+                {
+                    objects[varName].EulerRotation = Vector3.Zero;
+                }
+            }
+        }
+
+        private static void ParseSetPosition(string variableRegex, Dictionary<string, DrawingObject> objects, string line)
+        {
+            string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+            if (objects.Keys.Contains(varName))
+            {
+                string values = Regex.Replace(Regex.Match(line, "\\s*\\(.*\\)\\s*$").Value, "[\\(\\)\\sf]", "");
+
+                if (values != "")
+                {
+                    string[] valuesArray = values.Split(',');
+                    objects[varName].Position = new Vector3(float.Parse(valuesArray[0], CultureInfo.InvariantCulture), float.Parse(valuesArray[1], CultureInfo.InvariantCulture), float.Parse(valuesArray[2], CultureInfo.InvariantCulture));
+                }
+                else
+                {
+                    objects[varName].Position = Vector3.Zero;
+                }
+            }
+        }
+
+        private static void ParseInstantiation(string variableRegex, Dictionary<string, DrawingObject> objects, string line, Project contentProject)
+        {
+            string varName = Regex.Match(line, "^\\s*" + variableRegex).Value.Trim();
+            if (objects.Keys.Contains(varName))
+            {
+                string contentWithQuotes = Regex.Match(line, "\\\"\\w+\\\"").Value;
+                string contentName = Regex.Replace(contentWithQuotes.Trim(), "\\\"", "");
+                try
+                {
+                    ProjectItem item = contentProject.ProjectItems.Item(contentName + ".fbx");
+                    objects[varName].SourceFile = Path.GetDirectoryName(contentProject.FullName) + "\\" + contentName + ".fbx";
+                }
+                catch
+                {
+                    objects.Remove(varName);
+                }
+            }
+        }
+
+        private static void ParseDeclaration(Dictionary<string, DrawingObject> objects, string line)
+        {
+            string key = line.Replace("DrawingObject", "").Trim();
+            objects.Add(key, new DrawingObject());
         }
 
         public void ImportModelSourceToContentProject()

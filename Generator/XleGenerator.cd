@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="XleGenerator.ClassManager" Collapsed="true">
+    <Position X="1.25" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAFgAkEQyAICAAAIAKBIJAaASLAEiogkAAWABEIDEIA=</HashCode>
+      <FileName>ClassManager.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Field Name="codeLinesList" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="XleGenerator.CodeLines" Collapsed="true">
+    <Position X="3.75" Y="1" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACAAAAAAAAAAAAAAAAAgAAAAIAAEAAAAAAgAAAAIAAA=</HashCode>
+      <FileName>CodeLines.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

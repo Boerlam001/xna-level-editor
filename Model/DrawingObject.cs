@@ -45,6 +45,13 @@ namespace EditorModel
                 }
             }
         }
+
+        [Browsable(false)]
+        public Vector3 Center
+        {
+            get { return center; }
+            set { center = value; }
+        }
         #endregion
 
         public DrawingObject() : base()
@@ -52,7 +59,7 @@ namespace EditorModel
             
         }
 
-        public void Draw(Matrix view, Matrix projection, bool lightDirectionEnabled = false, Vector3 lightDirection = new Vector3())
+        public override void Draw(SpriteBatch spriteBatch, bool lightDirectionEnabled = false, Vector3 lightDirection = new Vector3())
         {
             if (drawingModel == null)
                 return;
@@ -61,8 +68,8 @@ namespace EditorModel
                 foreach (BasicEffect effect in mesh.Effects)
                 {
                     effect.World = boneTransforms[mesh.ParentBone.Index] * world;
-                    effect.View = view;
-                    effect.Projection = projection;
+                    effect.View = Camera.World;
+                    effect.Projection = Camera.Projection;
                     effect.EnableDefaultLighting();
                     effect.PreferPerPixelLighting = true;
                     effect.SpecularPower = 16;
@@ -118,7 +125,7 @@ namespace EditorModel
             //}
         }
 
-        public bool RayIntersects(Ray ray)
+        public override bool RayIntersects(Ray ray, float mouseX, float mouseY)
         {
             foreach (ModelMesh mesh in drawingModel.Meshes)
             {

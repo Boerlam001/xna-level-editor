@@ -34,24 +34,24 @@ namespace View
         {
             Form3 form = new Form3();
 
-            form.terrain = mainUserControl1.Editor1.Terrain;
+            form.terrain = mainUserControl1.Editor.Terrain;
             form.terrain.TerrainIndexer.Attach(form);
             form.Show();
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
-            if (mainUserControl1.Editor1.openFileDialog1.ShowDialog() != DialogResult.OK)
+            if (mainUserControl1.Editor.openFileDialog1.ShowDialog() != DialogResult.OK)
             {
                 return;
             }
-            mainUserControl1.Editor1.ImportHeightmap(mainUserControl1.Editor1.openFileDialog1.FileName);
+            mainUserControl1.Editor.ImportHeightmap(mainUserControl1.Editor.openFileDialog1.FileName);
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            mainUserControl1.Editor1.Camera.Zoom += 50;
-            mainUserControl1.Editor1.Camera.Notify();
+            mainUserControl1.Editor.Camera.Zoom += 50;
+            mainUserControl1.Editor.Camera.Notify();
         }
     }
 }

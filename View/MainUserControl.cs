@@ -11,14 +11,22 @@ using EnvDTE;
 using EnvDTE80;
 using XleGenerator;
 using System.IO;
+using Microsoft.Xna.Framework;
 
 namespace View
 {
     public partial class MainUserControl : UserControl, IObserver
     {
         MapModel mapModel;
-
+        private ClassManager classManager;
         DTE2 applicationObject;
+        private Window window;
+        private bool isOpen;
+        ProjectItem projectItem;
+        private static string assemblyDirectory;
+        private FileSystemWatcher fileSystemWatcher;
+        private TreeNode scriptsNode;
+        private TreeNode modelsNode;
 
         public DTE2 ApplicationObject
         {
@@ -28,8 +36,6 @@ namespace View
                 applicationObject = value;
             }
         }
-
-        private Window window;
         
         public Window Window
         {
@@ -40,23 +46,21 @@ namespace View
             }
         }
 
-        public ObjectProperties ObjectProperties1
+        public ObjectProperties ObjectProperties
         {
             get
             {
-                return objectProperties1;
+                return objectProperties;
             }
         }
 
-        public Editor Editor1
+        public Editor Editor
         {
             get
             {
-                return editor1;
+                return editor;
             }
         }
-
-        private ClassManager classManager;
 
         public ClassManager _ClassManager
         {
@@ -67,11 +71,6 @@ namespace View
                 classManager.MapModel = mapModel;
                 if (applicationObject != null && window != null)
                 {
-                    //ChooseClassForm form = new ChooseClassForm();
-                    //while (form.ShowDialog() != DialogResult.OK) ;
-                    //ClassManager.applicationObject = applicationObject;
-                    //classManager = new Generator.ClassManager(form.ProjectName, form.ClassName, form.IsOpen);
-
                     string heightMapFile = Path.GetDirectoryName(classManager.ContentProject.FullName) + "\\heightmap_" + classManager.Name + ".png";
 
                     if (isOpen)
@@ -81,20 +80,33 @@ namespace View
                         {
                             string file = objects[key].SourceFile;
                             string name = System.IO.Path.GetFileNameWithoutExtension(file);
-                            editor1.AddObject(file, name, objects[key].Position, objects[key].EulerRotation);
+                            if (objects[key].PhysicsShapeKind == PhysicsShapeKind.ConvexHullShape)
+                                editor.AddObject(file, key, objects[key].Position, objects[key].EulerRotation, objects[key].PhysicsEnabled, objects[key].IsActive, objects[key].IsStatic, objects[key].CharacterControllerEnabled, objects[key].PhysicsShapeKind, objects[key].BodyPosition);
+                            else
+                                editor.AddObject(file, key, objects[key]);
+                            
                         }
                         if (File.Exists(heightMapFile))
-                            editor1.ImportHeightmap(heightMapFile);
-                        fileSystemWatcher.Path = Path.GetDirectoryName(classManager.CurrentProject.FullName) + "\\Scripts";
+                            editor.ImportHeightmap(heightMapFile);
                     }
+
+                    string scriptDir = Path.GetDirectoryName(classManager.CurrentProject.FullName) + "\\Scripts";
+                    if (!Directory.Exists(scriptDir))
+                        Directory.CreateDirectory(scriptDir);
+                    fileSystemWatcher = new FileSystemWatcher(scriptDir);
+                    fileSystemWatcher.IncludeSubdirectories = true;
+                    fileSystemWatcher.Changed += new FileSystemEventHandler(fileSystemWatcher_Changed);
+                    fileSystemWatcher.Created += new FileSystemEventHandler(fileSystemWatcher_Created);
+                    fileSystemWatcher.Deleted += new FileSystemEventHandler(fileSystemWatcher_Deleted);
+                    fileSystemWatcher.Renamed += new RenamedEventHandler(fileSystemWatcher_Renamed);
+                    fileSystemWatcher.EnableRaisingEvents = true;
+                    UpdateScriptAssets();
                     
-                    classManager.AddHeightMapToContentProject(editor1.Terrain, isOpen, heightMapFile);
+                    classManager.AddHeightMapToContentProject(editor.Terrain, isOpen, heightMapFile);
                     window.Caption = classManager.Name + ".cs";
                 }
             }
         }
-
-        private bool isOpen;
 
         public bool IsOpen
         {
@@ -102,14 +114,24 @@ namespace View
             set { isOpen = value; }
         }
 
-        ProjectItem projectItem;
-        private static string assemblyDirectory;
-        private FileSystemWatcher fileSystemWatcher;
-
         public ProjectItem ProjectItem
         {
             get { return projectItem; }
             set { projectItem = value; }
+        }
+
+        public ToolStripStatusLabel StatusStrip1
+        {
+            get
+            {
+                return toolStripStatusLabel1;
+            }
+        }
+
+        public FileSystemWatcher FileSystemWatcher
+        {
+            get { return fileSystemWatcher; }
+            set { fileSystemWatcher = value; }
         }
 
         public MainUserControl()
@@ -121,17 +143,19 @@ namespace View
         {
             try
             {
+                objectProperties.MainUserControl = this;
+                
                 mapModel = new MapModel();
                 mapModel.Attach(this);
-                editor1.MapModel = mapModel;
+                editor.MapModel = mapModel;
                 TrueModel.Instance.MapModels.Add(mapModel);
 
-                editor1.MainUserControl = this;
-                editor1.Camera.Notify();
+                editor.MainUserControl = this;
+                editor.Camera.Notify();
                 
                 classManager = new ClassManager();
-                assetTreeView.Nodes.Add("Models");
-                assetTreeView.Nodes.Add("Scripts");
+                modelsNode = assetTreeView.Nodes.Add("Models");
+                scriptsNode = assetTreeView.Nodes.Add("Scripts");
 
                 string scriptDir = AssemblyDirectory + "\\Scripts";
                 if (!Directory.Exists(scriptDir))
@@ -144,10 +168,13 @@ namespace View
                 fileSystemWatcher.Renamed += new RenamedEventHandler(fileSystemWatcher_Renamed);
                 fileSystemWatcher.EnableRaisingEvents = true;
                 UpdateScriptAssets();
+
+                UpdateObserver();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                if (!DesignMode)
+                    toolStripStatusLabel1.Text = ex.Message + "\r\n" + ex.StackTrace;
             }
         }
 
@@ -176,19 +203,22 @@ namespace View
         void AddScriptNode(TreeNodeCollection nodes, string value)
         {
             if (!assetTreeView.InvokeRequired)
-                nodes.Add(value);
+            {
+                TreeNode node = nodes.Add(Path.GetFileName(value));
+                node.Tag = value;
+            }
             else
                 assetTreeView.Invoke(new AddScriptNodeDelegate(AddScriptNode), new object[2] { nodes, value });
         }
 
         private delegate void ClearScriptsNodeDelegate(TreeNodeCollection nodes);
 
-        void ClearScripsNode(TreeNodeCollection nodes)
+        void ClearScriptsNode(TreeNodeCollection nodes)
         {
             if (!assetTreeView.InvokeRequired)
                 nodes.Clear();
             else
-                assetTreeView.Invoke(new ClearScriptsNodeDelegate(ClearScripsNode), new object[1] { nodes });
+                assetTreeView.Invoke(new ClearScriptsNodeDelegate(ClearScriptsNode), new object[1] { nodes });
         }
 
         private void UpdateScriptAssets()
@@ -197,15 +227,15 @@ namespace View
             {
                 try
                 {
-                    ClearScripsNode(assetTreeView.Nodes[1].Nodes);
+                    ClearScriptsNode(scriptsNode.Nodes);
                     foreach (string file in Directory.EnumerateFiles(fileSystemWatcher.Path))
                     {
-                        AddScriptNode(assetTreeView.Nodes[1].Nodes, file);
+                        AddScriptNode(scriptsNode.Nodes, file);
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                    toolStripStatusLabel1.Text = ex.Message + "\r\n" + ex.StackTrace;
                 }
             }
         }
@@ -233,26 +263,30 @@ namespace View
 
         private void saveHeightmapToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            classManager.AddHeightMapToContentProject(editor1.Terrain);
+            classManager.AddHeightMapToContentProject(editor.Terrain);
         }
 
         public void UpdateObserver()
         {
             objectTreeView.Nodes.Clear();
-            foreach (DrawingObject obj in mapModel.Objects)
+            foreach (BaseObject obj in mapModel.Objects)
             {
+                DrawingObject dObj = (obj is DrawingObject) ? obj as DrawingObject : null;
                 objectTreeView.Nodes.Add(obj.Name);
+                if (dObj == null)
+                    continue;
                 bool assetListed = false;
-                foreach (TreeNode node in assetTreeView.Nodes[0].Nodes)
+                foreach (TreeNode node in modelsNode.Nodes)
                 {
-                    if (node.Text == obj.SourceFile)
+                    if (node.Tag as string == dObj.SourceFile)
                     {
                         assetListed = true;
                     }
                 }
                 if (!assetListed)
                 {
-                    assetTreeView.Nodes[0].Nodes.Add(obj.SourceFile);
+                    TreeNode node = modelsNode.Nodes.Add(Path.GetFileName(dObj.SourceFile));
+                    node.Tag = dObj.SourceFile;
                 }
             }
         }
@@ -274,11 +308,52 @@ namespace View
 
         private void objectTreeView_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            DrawingObject temp = mapModel.getObjectByName(e.Node.Text);
+
+        }
+
+        private void cameraPropertiesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            CameraProperties cameraProperties = new CameraProperties();
+            cameraProperties.ObjectProperties.Model = editor.Camera;
+            editor.Camera.Attach(cameraProperties.ObjectProperties);
+            cameraProperties.ObjectProperties.MainUserControl = this;
+            cameraProperties.Show();
+        }
+
+        private void assetTreeView_ItemDrag(object sender, ItemDragEventArgs e)
+        {
+            if (e.Item is TreeNode)
+            {
+                TreeNode node = e.Item as TreeNode;
+                DataObject data = new DataObject();
+                data.SetData(DataFormats.FileDrop, true, new object[] { node.Tag });
+                DoDragDrop(data, DragDropEffects.Copy);
+            }
+        }
+
+        private void assetTreeView_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.Copy;
+        }
+
+        private void objectTreeView_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            BaseObject temp = mapModel.getObjectByName(e.Node.Text);
             if (temp != null)
             {
-                editor1.DeselectObject();
-                editor1.SelectObject(temp);
+                editor.DeselectObject();
+                editor.SelectObject(temp);
+                editor.Camera.Notify();
+            }
+        }
+
+        private void objectTreeView_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            BaseObject temp = mapModel.getObjectByName(e.Node.Text);
+            if (temp != null)
+            {
+                Vector3 target = temp.Position - editor.Camera.Direction * 10;
+                editor.EaseCamera(target);
             }
         }
     }

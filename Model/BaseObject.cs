@@ -1,15 +1,37 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using EditorModel.PropertyModel;
+using Jitter;
+using Jitter.Collision;
+using Jitter.Dynamics;
+using Jitter.Collision.Shapes;
+using Jitter.LinearMath;
 
 namespace EditorModel
 {
+    public enum PhysicsShapeKind
+    {
+        BoxShape,
+        ConvexHullShape,
+        CapsuleShape
+    }
+
     public class BaseObject : Subject
     {
         #region attributes
+        public delegate void RotationChangedEventHandler(object sender, EventArgs e);
+        public RotationChangedEventHandler RotationChanged;
+
+        public delegate void PositionChangedEventHandler(object sender, EventArgs e);
+        public RotationChangedEventHandler PositionChanged;
+
         private Vector3 direction;
         protected float rotationX;
         protected float rotationY;
@@ -24,14 +46,16 @@ namespace EditorModel
         public static Vector3 rotationReference = new Vector3(0, 0, 10);
         protected bool isActive;
         protected bool isStatic;
-        private List<string> scripts;
+        private ScriptCollection scripts;
+        PhysicsShapeKind physicsShapeKind;
+        protected Shape physicsShape;
+        RigidBody body;
+        Vector3 bodyPosition;
+        bool characterControllerEnabled;
+        bool physicsEnabled;
+        private GraphicsDevice graphicsDevice;
+        private Camera camera;
         #endregion
-
-        public delegate void RotationChangedEventHandler(object sender, EventArgs e);
-        public RotationChangedEventHandler RotationChanged;
-
-        public delegate void PositionChangedEventHandler(object sender, EventArgs e);
-        public RotationChangedEventHandler PositionChanged;
 
         #region setters and getters
         [Browsable(false)]
@@ -55,11 +79,13 @@ namespace EditorModel
             {
                 scale = value;
                 world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
+
+                OnPositionChanged(this, null);
             }
         }
 
         [Category("Transform")]
-        public Vector3 EulerRotation
+        public virtual Vector3 EulerRotation
         {
             get { return eulerRotation; }
             set
@@ -185,11 +211,107 @@ namespace EditorModel
         }
 
         [Description("The controller scripts")]
-        [EditorAttribute("System.Windows.Forms.Design.StringCollectionEditor, System.Design, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", typeof(System.Drawing.Design.UITypeEditor))]
-        public List<string> Scripts
+        [EditorAttribute(typeof(CollectionEditor), typeof(System.Drawing.Design.UITypeEditor))]
+        [TypeConverter(typeof(ExpandableObjectConverter))]
+        public ScriptCollection Scripts
         {
             get { return scripts; }
             set { scripts = value; }
+        }
+
+        [Category("Body")]
+        [TypeConverter(typeof(ExpandableObjectConverter))]
+        public Shape PhysicsShape
+        {
+            get { return physicsShape; }
+        }
+
+        [Category("Body")]
+        public PhysicsShapeKind PhysicsShapeKind
+        {
+            get { return physicsShapeKind; }
+            set
+            {
+                if (!(this is DrawingObject) && value == PhysicsShapeKind.ConvexHullShape)
+                    return;
+
+                physicsShapeKind = value;
+                if (value == EditorModel.PhysicsShapeKind.BoxShape)
+                    physicsShape = new BoxShape(JVector.One);
+                else if (value == EditorModel.PhysicsShapeKind.CapsuleShape)
+                    physicsShape = new CapsuleShape(1, 1);
+                else if (value == EditorModel.PhysicsShapeKind.ConvexHullShape)
+                {
+                    DrawingObject obj = this as DrawingObject;
+                    if (obj.DrawingModel == null)
+                        return;
+                    BoundingBox parentBoundingBox = obj.CreateBoundingBox();
+                    Vector3 parentShift = obj.Center - new Vector3(0, parentBoundingBox.Min.Y, 0);
+                    physicsShape = ConvexHullHelper.BuildConvexHullShape(obj.DrawingModel);
+                    //bodyPosition = -Helper.ToXNAVector(((ConvexHullShape)physicsShape).Shift) - parentShift;
+                }
+
+                body = new RigidBody(physicsShape);
+                body.Orientation = Helper.ToJitterMatrix(Matrix.CreateFromQuaternion(rotation));
+                Vector3 v = Vector3.Transform(bodyPosition, Matrix.CreateFromQuaternion(rotation));
+                body.Position = Helper.ToJitterVector(position + v);
+            }
+        }
+
+        [Browsable(false)]
+        public RigidBody Body
+        {
+            get { return body; }
+        }
+
+        [Category("Body")]
+        public Vector3 BodyPosition
+        {
+            get { return bodyPosition; }
+            set
+            {
+                bodyPosition = value;
+                Vector3 v = Vector3.Transform(bodyPosition, Matrix.CreateFromQuaternion(rotation));
+                body.Position = Helper.ToJitterVector(position + v);
+            }
+        }
+
+        [Category("Body")]
+        public bool CharacterControllerEnabled
+        {
+            get { return characterControllerEnabled; }
+            set
+            {
+                characterControllerEnabled = value;
+                if (characterControllerEnabled)
+                    isStatic = false;
+            }
+        }
+
+        [Category("Body")]
+        public bool PhysicsEnabled
+        {
+            get { return physicsEnabled; }
+            set
+            {
+                physicsEnabled = value;
+                if (physicsEnabled == false)
+                    characterControllerEnabled = false;
+            }
+        }
+
+        [Browsable(false)]
+        public GraphicsDevice GraphicsDevice
+        {
+            get { return graphicsDevice; }
+            set { graphicsDevice = value; }
+        }
+
+        [Browsable(false)]
+        public virtual Camera Camera
+        {
+            get { return camera; }
+            set { camera = value; }
         }
         #endregion
 
@@ -201,6 +323,10 @@ namespace EditorModel
             scale = Vector3.One;
             world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
             world.Decompose(out scale, out rotation, out position);
+
+            scripts = new ScriptCollection();
+
+            PhysicsShapeKind = EditorModel.PhysicsShapeKind.BoxShape;
 
             OnRotationChanged(this, null);
         }
@@ -245,11 +371,32 @@ namespace EditorModel
             Position = v;
         }
 
+        public void Move(Vector3 speed)
+        {
+            Position += speed;
+        }
+
+        public virtual bool RayIntersects(Ray ray, float mouseX, float mouseY)
+        {
+            return false;
+        }
+
+        public virtual void Draw(SpriteBatch spriteBatch, bool lightDirectionEnabled = false, Vector3 lightDirection = new Vector3())
+        {
+        }
+
+        public virtual void DrawSprite(SpriteBatch spriteBatch)
+        {
+        }
+
         protected virtual void OnRotationChanged(object sender, EventArgs e)
         {
             direction = new Vector3(0, 0, 1);
             direction = Vector3.Transform(direction, Matrix.CreateFromQuaternion(rotation));
             direction.Normalize();
+
+            if (body != null)
+                body.Orientation = Helper.ToJitterMatrix(Matrix.CreateFromQuaternion(rotation));
 
             if (RotationChanged != null)
                 RotationChanged(sender, e);
@@ -257,6 +404,9 @@ namespace EditorModel
 
         protected virtual void OnPositionChanged(object sender, EventArgs e)
         {
+            if (body != null)
+                body.Position = Helper.ToJitterVector(position);
+
             if (PositionChanged != null)
                 PositionChanged(sender, e);
         }

@@ -13,6 +13,15 @@ using SkinnedModel;
 
 namespace XleModel
 {
+    public class BodyGeoEventArgs : EventArgs
+    {
+        public bool SetBodyGeo { get; set; }
+        public BodyGeoEventArgs(bool setBodyGeo = true)
+        {
+            SetBodyGeo = setBodyGeo;
+        }
+    }
+
     public class DrawingObject : BaseObject
     {
         #region attributes
@@ -22,8 +31,6 @@ namespace XleModel
         private Matrix[] worldTransforms;
         private string sourceFile;
         private Vector3 center;
-        private RigidBody body;
-        private World physicsWorld;
         private string assetName;
         private Camera camera;
         private bool lightDirectionEnabled;
@@ -35,14 +42,6 @@ namespace XleModel
         private int currentKeyframe;
         private string[] clipNames;
         private int currentClip;
-        class BodyGeoEventArgs : EventArgs
-        {
-            public bool SetBodyGeo { get; set; }
-            public BodyGeoEventArgs(bool setBodyGeo = true)
-            {
-                SetBodyGeo = setBodyGeo;
-            }
-        }
         #endregion
 
         #region getters and setters
@@ -77,12 +76,6 @@ namespace XleModel
                 if (drawingModel != null)
                 {
                     MeasureModel();
-                    ConvexHullShape shape = ConvexHullHelper.BuildConvexHullShape(drawingModel);
-                    body = new RigidBody(shape);
-                    body.Position = Helper.ToJitterVector(position);
-                    body.Orientation = Helper.ToJitterMatrix(Matrix.CreateFromQuaternion(rotation));
-                    Center = -Helper.ToXNAVector(shape.Shift);
-                    physicsWorld.AddBody(body);
 
                     if (drawingModel.Tag is SkinningData)
                     {
@@ -99,12 +92,6 @@ namespace XleModel
                     }
                 }
             }
-        }
-
-        public RigidBody Body
-        {
-            get { return body; }
-            set { body = value; }
         }
 
         public Camera Camera
@@ -127,10 +114,9 @@ namespace XleModel
         #endregion
 
         public DrawingObject(Game game, Camera camera, string assetName, World physicsWorld)
-            : base(game)
+            : base(game, physicsWorld)
         {
             this.camera = camera;
-            this.physicsWorld = physicsWorld;
             this.assetName = assetName;
             lightDirectionEnabled = false;
             lightDirection = new Vector3();
@@ -144,15 +130,6 @@ namespace XleModel
 
         public override void Update(GameTime gameTime)
         {
-            ConvexHullShape convexHullShape = body.Shape as ConvexHullShape;
-            position = Helper.ToXNAVector(body.Position);
-            Matrix rotationMatrix = Helper.ToXNAMatrix(body.Orientation);
-            Vector3 scale, translation;
-            rotationMatrix.Decompose(out scale, out rotation, out translation);
-            center = -Helper.ToXNAVector(convexHullShape.Shift);
-            OnRotationChanged(this, new BodyGeoEventArgs(false));
-            OnPositionChanged(this, new BodyGeoEventArgs(false));
-
             if (drawingModel.Tag is SkinningData)
             {
                 UpdateBoneTransforms(gameTime.ElapsedGameTime, true);
@@ -404,22 +381,25 @@ namespace XleModel
             {
                 try
                 {
-                    int temp = -1, i = 0;
-                    foreach (string name in clipNames)
+                    if (clip != skinningData.AnimationClips[key])
                     {
-                        if (name == key)
+                        int temp = -1, i = 0;
+                        foreach (string name in clipNames)
                         {
-                            temp = i;
-                            break;
+                            if (name == key)
+                            {
+                                temp = i;
+                                break;
+                            }
+                            i++;
                         }
-                        i++;
+                        if (temp == -1)
+                            return;
+                        currentClip = temp;
+                        clip = skinningData.AnimationClips[key];
+                        currentKeyframe = 0;
+                        currentTimeValue = TimeSpan.Zero;
                     }
-                    if (temp == -1)
-                        return;
-                    currentClip = temp;
-                    clip = skinningData.AnimationClips[key];
-                    currentKeyframe = 0;
-                    currentTimeValue = TimeSpan.Zero;
                 }
                 catch { }
             }
@@ -462,8 +442,6 @@ namespace XleModel
             base.OnRotationChanged(sender, e);
             Vector3 v = Vector3.Transform(center, rotation);
             world = Matrix.CreateScale(scale) * Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position - v);
-            if (body != null && (e == null || (e != null && e is BodyGeoEventArgs && (e as BodyGeoEventArgs).SetBodyGeo)))
-                body.Orientation = Helper.ToJitterMatrix(Matrix.CreateFromQuaternion(rotation));
         }
 
         protected override void OnPositionChanged(object sender, EventArgs e)
@@ -471,8 +449,6 @@ namespace XleModel
             base.OnPositionChanged(sender, e);
             Vector3 v = Vector3.Transform(center, rotation);
             world = Matrix.CreateScale(scale) * Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position - v);
-            if (body != null && (e == null || (e != null && e is BodyGeoEventArgs && (e as BodyGeoEventArgs).SetBodyGeo)))
-                body.Position = Helper.ToJitterVector(position);
         }
     }
 }

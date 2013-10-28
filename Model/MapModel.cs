@@ -10,19 +10,44 @@ namespace EditorModel
 {
     public class MapModel : Subject
     {
-        ObservableCollection<DrawingObject> objects;
-        //List<DrawingObject> objects;
+        ObservableCollection<BaseObject> objects;
+        DrawingCamera mainCamera;
+        PhysicsWorld physicsWorld;
+        private BaseObject selected;
 
-        public ObservableCollection<DrawingObject> Objects
+        public ObservableCollection<BaseObject> Objects
         {
             get { return objects; }
             set { objects = value; }
         }
 
+        public DrawingCamera MainCamera
+        {
+            get { return mainCamera; }
+        }
+
+        public PhysicsWorld PhysicsWorld
+        {
+            get { return physicsWorld; }
+        }
+
+        public BaseObject Selected
+        {
+            get { return selected; }
+            set { selected = value; }
+        }
+
         public MapModel()
         {
-            objects = new ObservableCollection<DrawingObject>();
+            objects = new ObservableCollection<BaseObject>();
             objects.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(objects_CollectionChanged);
+            mainCamera = new DrawingCamera();
+            mainCamera.Name = "Main Camera";
+            mainCamera.Position = new Vector3(64, 5, 64);
+            mainCamera.MapModel = this;
+            objects.Add(mainCamera);
+
+            physicsWorld = new PhysicsWorld();
         }
 
         void objects_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -30,9 +55,9 @@ namespace EditorModel
             Notify();
         }
 
-        public DrawingObject getObjectByName(string name)
+        public BaseObject getObjectByName(string name)
         {
-            foreach (DrawingObject obj in objects)
+            foreach (BaseObject obj in objects)
             {
                 if (obj.Name == name)
                     return obj;
@@ -44,68 +69,36 @@ namespace EditorModel
         {
             return getObjectByName(name) != null;
         }
+    }
 
-        /*
-        public void AddObject(string file, string name, Vector3 position)
+    public enum MaterialCoefficientMixing
+    {
+        TakeMaximum = 0,
+        TakeMinimum = 1,
+        UseAverage = 2
+    }
+
+    public class PhysicsWorld : Subject
+    {
+        float gravity;
+        MaterialCoefficientMixing materialCoefficientMixing;
+
+        public float Gravity
         {
-            DrawingObject obj = new DrawingObject();
-
-            string originalName = name;
-
-            for (int i = 1; ; ++i)
-            {
-                if (!mapModel.NameExists(name))
-                    break;
-                name = originalName + "_" + i;
-            }
-
-            obj.DrawingModel = OpenModel(file);
-            obj.Name = name;
-            obj.Position = position;
-            obj.SourceFile = file;
-            obj.Attach(this);
-            mapModel.Objects.Add(obj);
-            Generator.CodeLines codeLines = new Generator.CodeLines();
-            codeLines.Model = obj;
-            mainUserControl._ClassManager.CodeLinesList.Add(codeLines);
-            obj.Notify();
+            get { return gravity; }
+            set { gravity = value; }
         }
 
-        public Model OpenModel(string path)
+        public MaterialCoefficientMixing MaterialCoefficientMixing
         {
-            bool isAdded = false;
-            foreach (Microsoft.Build.Evaluation.ProjectItem item in contentBuilder.ProjectItems)
-            {
-                foreach (Microsoft.Build.Evaluation.ProjectMetadata metadata in item.Metadata)
-                {
-                    if (metadata.Name == "Link" && metadata.EvaluatedValue == System.IO.Path.GetFileName(path))
-                    {
-                        isAdded = true;
-                    }
-                }
-            }
-
-            string name = System.IO.Path.GetFileNameWithoutExtension(path);
-
-            if (!isAdded)
-            {
-                contentBuilder.Add(path, name, null, "ModelProcessor");
-                string errorBuild = contentBuilder.Build();
-                if (string.IsNullOrEmpty(errorBuild))
-                {
-                    Model model = contentManager.Load<Model>(name);
-                    graphicsDeviceControl1.Invalidate();
-                    return model;
-                }
-            }
-            else
-            {
-                Model model = contentManager.Load<Model>(name);
-                graphicsDeviceControl1.Invalidate();
-                return model;
-            }
-            return null;
+            get { return materialCoefficientMixing; }
+            set { materialCoefficientMixing = value; }
         }
-         */
+
+        public PhysicsWorld()
+        {
+            gravity = -30;
+            materialCoefficientMixing = EditorModel.MaterialCoefficientMixing.TakeMaximum;
+        }
     }
 }

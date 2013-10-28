@@ -20,7 +20,7 @@ namespace View
         {
         }
 
-        private bool OutOfBounds(Vector2 pos)
+        protected bool OutOfBounds(Vector2 pos)
         {
             return !(pos.X >= 0 && pos.X <= editor.GraphicsDevice.Viewport.Bounds.Width && pos.Y >= 0 && pos.Y <= editor.GraphicsDevice.Viewport.Bounds.Height);
         }
@@ -35,62 +35,8 @@ namespace View
             {
                 return;
             }
-            //List<int> vertexIndices = new List<int>();
-            //
-            //try
-            //{
-            //    Terrain terrain = editor.Terrain;
-            //    TerrainIndexer terrainIndexer = editor.Terrain.TerrainIndexer;
-            //    HashSet<Vector2> markedIndices = new HashSet<Vector2>();
-            //    vertexIndices = DfsClosestIndex(pos, pos, 1, ref markedIndices);
-            //}
-            //catch (Exception ex)
-            //{
-            //    throw ex;
-            //}
-            //
-            //Ray ray = Helper.Pick(editor.GraphicsDevice, editor.Camera, e.X, e.Y);
-            //float minDist = float.MaxValue;
-            //int closestVertex = -1;
-            //
-            //foreach (int i in vertexIndices)
-            //{
-            //    float dist = (editor.Terrain.Vertices[i].Position - ray.Position).Length();
-            //    if (dist < minDist)
-            //    {
-            //        minDist = dist;
-            //        closestVertex = i;
-            //    }
-            //}
-            //try
-            //{
-                //int ia = editor.Terrain.Indices[editor.Terrain.TerrainIndexer.Indices[e.X, e.Y] * 3],
-                //    ib = editor.Terrain.Indices[editor.Terrain.TerrainIndexer.Indices[e.X, e.Y] * 3 + 1],
-                //    ic = editor.Terrain.Indices[editor.Terrain.TerrainIndexer.Indices[e.X, e.Y] * 3 + 2];
-                //Vector3 a3 = editor.Terrain.TerrainIndexer.ScreenLocations[ia],
-                //        b3 = editor.Terrain.TerrainIndexer.ScreenLocations[ib],
-                //        c3 = editor.Terrain.TerrainIndexer.ScreenLocations[ic];
-                //Vector2 a = new Vector2(a3.X, a3.Y),
-                //        b = new Vector2(b3.X, b3.Y),
-                //        c = new Vector2(c3.X, c3.Y);
-                //float dist = (pos - a).Length(), dist2;
-                //int closestVertex = ia;
-                //dist2 = (pos - b).Length();
-                //if (dist2 < dist)
-                //{
-                //    closestVertex = ib;
-                //}
-                //dist2 = (pos - c).Length();
-                //if (dist2 < dist)
-                //{
-                //    closestVertex = ic;
-                //}
-                editor.TerrainBrush.OnMouseMove(editor.Terrain.TerrainIndexer.Indices[e.X, e.Y]);
-                editor.Camera.Notify();
-            //}
-            //catch
-            //{
-            //}
+            editor.TerrainBrush.OnMouseMove(editor.Terrain.TerrainIndexer.Indices[e.X, e.Y]);
+            editor.Camera.Notify();
         }
 
         private List<int> DfsClosestIndex(Vector2 start, Vector2 root, float threshold, ref HashSet<Vector2> markedIndices)

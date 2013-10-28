@@ -139,9 +139,8 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\..\..\Addins\XnaLevelEditor - For Testing.AddIn">
+    <Content Include="..\..\..\..\..\Visual Studio 2010\Addins\XnaLevelEditor - For Testing.AddIn">
       <Link>XnaLevelEditor - For Testing.AddIn</Link>
-      <SubType>Designer</SubType>
     </Content>
     <Content Include="XnaLevelEditor.AddIn">
       <SubType>Designer</SubType>
@@ -160,6 +159,9 @@
       <Project>{D1E45B3F-2420-4549-AEEB-4549143A40BC}</Project>
       <Name>View</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="XnaLevelEditor.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
   <PropertyGroup>

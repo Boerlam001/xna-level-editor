@@ -237,5 +237,19 @@ namespace XleModel
         {
             return new Vector3(vector.X, vector.Y, vector.Z);
         }
+
+        public static BaseObject FindObject(GameComponentCollection components, string name)
+        {
+            foreach (GameComponent component in components)
+            {
+                if (component is BaseObject)
+                {
+                    BaseObject obj = component as BaseObject;
+                    if (obj.Name == name)
+                        return obj;
+                }
+            }
+            return null;
+        }
     }
 }
