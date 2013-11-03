@@ -40,7 +40,6 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.createFileStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveHeightmapToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cameraPropertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip = new System.Windows.Forms.MenuStrip();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -64,6 +63,7 @@
             // objectTreeView
             // 
             this.objectTreeView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.objectTreeView.HideSelection = false;
             this.objectTreeView.Location = new System.Drawing.Point(3, 16);
             this.objectTreeView.Name = "objectTreeView";
             this.objectTreeView.Size = new System.Drawing.Size(222, 164);
@@ -204,29 +204,22 @@
             // createFileStripMenuItem
             // 
             this.createFileStripMenuItem.Name = "createFileStripMenuItem";
-            this.createFileStripMenuItem.Size = new System.Drawing.Size(64, 20);
-            this.createFileStripMenuItem.Text = "Save File";
+            this.createFileStripMenuItem.Size = new System.Drawing.Size(66, 20);
+            this.createFileStripMenuItem.Text = "Generate";
             this.createFileStripMenuItem.Click += new System.EventHandler(this.createFileStripMenuItem_Click);
-            // 
-            // saveHeightmapToolStripMenuItem
-            // 
-            this.saveHeightmapToolStripMenuItem.Name = "saveHeightmapToolStripMenuItem";
-            this.saveHeightmapToolStripMenuItem.Size = new System.Drawing.Size(106, 20);
-            this.saveHeightmapToolStripMenuItem.Text = "Save Heightmap";
-            this.saveHeightmapToolStripMenuItem.Click += new System.EventHandler(this.saveHeightmapToolStripMenuItem_Click);
             // 
             // cameraPropertiesToolStripMenuItem
             // 
             this.cameraPropertiesToolStripMenuItem.Name = "cameraPropertiesToolStripMenuItem";
             this.cameraPropertiesToolStripMenuItem.Size = new System.Drawing.Size(116, 20);
             this.cameraPropertiesToolStripMenuItem.Text = "Camera Properties";
+            this.cameraPropertiesToolStripMenuItem.Visible = false;
             this.cameraPropertiesToolStripMenuItem.Click += new System.EventHandler(this.cameraPropertiesToolStripMenuItem_Click);
             // 
             // menuStrip
             // 
             this.menuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.createFileStripMenuItem,
-            this.saveHeightmapToolStripMenuItem,
             this.cameraPropertiesToolStripMenuItem});
             this.menuStrip.Location = new System.Drawing.Point(0, 0);
             this.menuStrip.Name = "menuStrip";
@@ -281,7 +274,6 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.ToolStripMenuItem createFileStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem saveHeightmapToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cameraPropertiesToolStripMenuItem;
         private System.Windows.Forms.MenuStrip menuStrip;
     }

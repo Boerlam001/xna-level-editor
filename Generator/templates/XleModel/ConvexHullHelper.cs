@@ -94,7 +94,7 @@ namespace XleModel
             }
         }
 
-        public static ConvexHullShape BuildConvexHullShape(Model model)
+        public static ConvexHullShape BuildConvexHullShape(Model model, Vector3 scale)
         {
             List<JVector> jvecs = new List<JVector>();
             List<TriangleVertexIndices> indices = new List<TriangleVertexIndices>();
@@ -106,7 +106,7 @@ namespace XleModel
             List<JVector> hullPoints = new List<JVector>();
             for (int i = 0; i < convexHullIndices.Length; i++)
             {
-                hullPoints.Add(jvecs[convexHullIndices[i]]);
+                hullPoints.Add(Helper.ToJitterVector(Helper.ToXNAVector(jvecs[convexHullIndices[i]]) * scale));
             }
 
             return new ConvexHullShape(hullPoints);

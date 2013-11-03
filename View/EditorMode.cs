@@ -62,6 +62,7 @@ namespace View
 
         protected static float diffX;
         protected static float diffY;
+        private bool isMove;
 
         public EditorMode()
         {
@@ -78,8 +79,15 @@ namespace View
             text = "";
         }
 
-        public abstract void PreviewKeyDown(object sender, PreviewKeyDownEventArgs e);
-        public abstract void KeyUp(object sender, KeyEventArgs e);
+        public virtual void PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            
+        }
+
+        public virtual void KeyUp(object sender, KeyEventArgs e)
+        {
+            
+        }
 
         public virtual void MouseDown(object sender, MouseEventArgs e)
         {
@@ -90,14 +98,9 @@ namespace View
             {
                 isRotate = true;
             }
-            if (e.Button == System.Windows.Forms.MouseButtons.Left)
+            if (e.Button == System.Windows.Forms.MouseButtons.Middle)
             {
-                //if (editor.TrueModel.Objects.Count == 0)
-                //    return;
-                //Ray ray = editor.Pick(e.X, e.Y);
-                //DrawingObject obj = editor.TrueModel.Objects[0];
-                //obj.Position = editor.Put(e.X, e.Y, 3);
-                //obj.Notify();
+                isMove = true;
             }
         }
         
@@ -114,6 +117,10 @@ namespace View
                 editor.Camera.Rotate(diffY / 10, -diffX / 10, 0);
                 editor.Camera.Notify();
             }
+            if (isMove)
+            {
+                editor.Camera.MoveTopRight(new Vector2(diffX / 5, diffY / 5));
+            }
         }
 
         public virtual void MouseUp(object sender, MouseEventArgs e)
@@ -122,6 +129,12 @@ namespace View
             if (e.Button == System.Windows.Forms.MouseButtons.Right)
             {
                 isRotate = false;
+                editor.Camera.IsMoving = false;
+                editor.Camera.Notify();
+            }
+            if (e.Button == System.Windows.Forms.MouseButtons.Middle)
+            {
+                isMove = false;
                 editor.Camera.IsMoving = false;
                 editor.Camera.Notify();
             }

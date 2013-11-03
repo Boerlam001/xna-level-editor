@@ -53,6 +53,7 @@ namespace View
         private System.Threading.Timer timer;
         private int easeRemain = 0;
         Vector3 easeSpeed;
+        Vector3 easeAngularSpeed;
         #endregion
 
         public MapModel MapModel
@@ -217,6 +218,7 @@ namespace View
                 contentManager = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
                 heightmapContent = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
                 spriteBatch = new SpriteBatch(graphicsDeviceControl1.GraphicsDevice);
+                //MessageBox.Show(GraphicsDevice.Adapter.Description);
 
                 effectFile = AssemblyDirectory + "\\Assets\\effects.fx";
                 //importer reference: http://msdn.microsoft.com/en-us/library/bb447762%28v=xnagamestudio.20%29.aspx
@@ -332,29 +334,39 @@ namespace View
             camera.Notify();
         }
 
-        public void AddObject(string file, string name, Vector3 position, Vector3 eulerRotation, bool physicsEnabled, bool isActive, bool isStatic, bool characterControllerEnabled, PhysicsShapeKind physicsShapeKind, Vector3 bodyPosition)
+        public BaseObject AddObject(string file, string name, Vector3 position, Vector3 eulerRotation, Vector3 scale, bool physicsEnabled, bool isActive, bool isStatic, bool characterControllerEnabled, EditorModel.PropertyModel.ScriptCollection scripts, PhysicsShapeKind physicsShapeKind, Vector3 bodyPosition)
         {
             DrawingObject obj = new DrawingObject();
-            obj.Position = position;
-            obj.EulerRotation = eulerRotation;
+            SetPositionRotationScale(ref position, ref eulerRotation, ref scale, obj);
             obj.PhysicsEnabled = physicsEnabled;
             obj.IsActive = isActive;
             obj.IsStatic = isStatic;
             obj.CharacterControllerEnabled = characterControllerEnabled;
+            obj.Scripts = scripts;
             obj.PhysicsShapeKind = physicsShapeKind;
             obj.BodyPosition = bodyPosition;
-            AddObject(file, name, obj);
+            return AddObject(file, name, obj);
         }
 
-        public void AddObject(string file, string name, Vector3 position, Vector3 eulerRotation)
+        public BaseObject AddObject(string file, string name, Vector3 position, Vector3 eulerRotation, Vector3 scale)
         {
             DrawingObject obj = new DrawingObject();
-            obj.Position = position;
-            obj.EulerRotation = eulerRotation;
-            AddObject(file, name, obj);
+            SetPositionRotationScale(ref position, ref eulerRotation, ref scale, obj);
+            return AddObject(file, name, obj);
         }
 
-        public void AddObject(string file, string name, DrawingObject obj)
+        private static void SetPositionRotationScale(ref Vector3 position, ref Vector3 eulerRotation, ref Vector3 scale, DrawingObject obj)
+        {
+            obj.Position = position;
+            obj.EulerRotation = eulerRotation;
+            obj.Scale = scale;
+        }
+
+        private void SetPositionRotationScale(DrawingObject obj, Vector3 position, Vector3 eulerRotation, Vector3 scale)
+        {
+        }
+
+        public BaseObject AddObject(string file, string name, DrawingObject obj)
         {
             string originalName = name;
 
@@ -367,6 +379,10 @@ namespace View
             try
             {
                 obj.DrawingModel = OpenModel(file);
+                if (obj.PhysicsShapeKind == PhysicsShapeKind.ConvexHullShape)
+                    obj.PhysicsShapeKind = obj.PhysicsShapeKind;
+                else
+                    obj.PhysicsShape = obj.PhysicsShape;
                 obj.Name = name;
                 obj.SourceFile = file;
                 obj.Camera = camera;
@@ -377,10 +393,12 @@ namespace View
                 codeLines.Model = obj;
                 mainUserControl._ClassManager.CodeLinesList.Add(codeLines);
                 obj.Notify();
+                return obj;
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message + "\r\n" + ex.StackTrace);
+                return null;
             }
         }
 
@@ -456,7 +474,6 @@ namespace View
                 graphicsDeviceControl1.Invalidate();
                 return model;
             }
-            return null;
         }
         
         private void graphicsDeviceControl1_Paint(object sender, PaintEventArgs e)
@@ -479,7 +496,6 @@ namespace View
                 terrain.Draw();
                 //quadTreeTerrain.Update(null);
                 //quadTreeTerrain.Draw(null);
-
 
                 if (editorMode is EditorMode_Terrain)
                 {
@@ -522,7 +538,7 @@ namespace View
                     {
                         text += mouseEventArgs.X + "," + mouseEventArgs.Y + "\r\n";
                     }
-                    spriteBatch.DrawString(spriteFont, text, new Vector2(50, 50), Microsoft.Xna.Framework.Color.White, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0.0f);
+                    //spriteBatch.DrawString(spriteFont, text, new Vector2(50, 50), Microsoft.Xna.Framework.Color.White, 0.0f, Vector2.Zero, 1.0f, SpriteEffects.None, 0.0f);
                 }
                 spriteBatch.End();
 
@@ -622,13 +638,17 @@ namespace View
                 camera.MoveRight(-speed);
             if (moveForward)
             {
-                camera.MoveForward(speed);
-                camera.Zoom += 5;
+                if (!camera.IsOrthographic)
+                    camera.MoveForward(speed);
+                else
+                    camera.Zoom -= 5;
             }
             if (moveBackward)
             {
-                camera.MoveForward(-speed);
-                camera.Zoom -= 5;
+                if (!camera.IsOrthographic)
+                    camera.MoveForward(-speed);
+                else
+                    camera.Zoom += 5;
             }
             if (mouseMoving)
             {
@@ -653,12 +673,16 @@ namespace View
             }
             if (easeRemain > 0)
             {
-                camera.Move(easeSpeed);
+                if (easeAngularSpeed == Vector3.Zero)
+                    camera.Move(easeSpeed);
+                else
+                    camera.Move(easeSpeed, easeAngularSpeed);
                 easeRemain--;
                 if (easeRemain == 0)
                 {
                     easeRemain = 0;
                     timer1.Enabled = false;
+                    camera.IsMoving = false;
                 }
                 else
                     timer1.Enabled = true;
@@ -829,6 +853,21 @@ namespace View
         {
             camera.IsOrthographic = !camera.IsOrthographic;
             CheckIsOrthographic();
+            if (Selected != null && (camera.Position - Selected.Position).Length() < 10)
+            {
+                float length = 10;
+                Vector3 target = Selected.Position;
+                if (Selected == selectedBoundingBox.Model && Selected is DrawingObject)
+                {
+                    DrawingObject obj = Selected as DrawingObject;
+                    BoundingBox bbox = selectedBoundingBox.BoundingBoxBuffer.BoundingBox;
+                    length = ((bbox.Max - bbox.Min) * obj.Scale).Length();
+                    if (length < 10)
+                        length = 10;
+                }
+
+                camera.Position -= camera.Direction * length;
+            }
             camera.Notify();
         }
 
@@ -881,16 +920,85 @@ namespace View
             mapModel.PhysicsWorld.Notify();
         }
 
-        public void EaseCamera(Vector3 target)
+        public void EaseCamera(Vector3 targetPosition)
         {
-            easeRemain = 500 / timer1.Interval;
-            easeSpeed = (target - camera.Position) / easeRemain;
+            EaseCamera(false, targetPosition);
+        }
+
+        public void EaseCamera(Vector3 targetPosition, Vector3 targetRotation)
+        {
+            EaseCamera(true, targetPosition, targetRotation);
+        }
+
+        public void EaseCamera(bool easeAngular, Vector3 targetPosition, Vector3 targetRotation = new Vector3())
+        {
+            Vector3 dist = targetPosition - camera.Position;
+            easeSpeed = Vector3.Normalize(targetPosition - camera.Position) * 10.0f;
+            easeRemain = (int)(dist.Length() / easeSpeed.Length());
+            if (easeRemain < 5)
+                easeRemain = 5;
+            else if (easeRemain > 500 / timer1.Interval)
+                easeRemain = 500 / timer1.Interval;
+
+            easeSpeed = (targetPosition - camera.Position) / easeRemain;
+            if (easeAngular)
+            {
+                targetRotation = new Vector3(targetRotation.X % 360, targetRotation.Y % 360, targetRotation.Z % 360);
+                if (targetRotation.X < 0)
+                    targetRotation.X = 360 + targetRotation.X;
+                if (targetRotation.Y < 0)
+                    targetRotation.Y = 360 + targetRotation.Y;
+                if (targetRotation.Z < 0)
+                    targetRotation.Z = 360 + targetRotation.Z;
+                easeAngularSpeed = (targetRotation - camera.EulerRotation) / easeRemain;
+            }
+            else
+            {
+                easeAngularSpeed = Vector3.Zero;
+            }
+            
             timer1.Enabled = true;
         }
 
         private void gravityToolStripTextBox_TextChanged(object sender, EventArgs e)
         {
             timer.Change(250, Timeout.Infinite);
+        }
+
+        private void graphicsDeviceControl1_MouseEnter(object sender, EventArgs e)
+        {
+            graphicsDeviceControl1.Focus();
+        }
+
+        private void xOrthogonalStripButton_Click(object sender, EventArgs e)
+        {
+            OrthographicsThenEase(new Vector3(0, -90, 0));
+        }
+
+        private void yOrthogonalStripButton_Click(object sender, EventArgs e)
+        {
+            OrthographicsThenEase(new Vector3(90, 0, 0));
+        }
+
+        private void zOrthogonalStripButton_Click(object sender, EventArgs e)
+        {
+            OrthographicsThenEase(new Vector3(0, 180, 0));
+        }
+
+        private void OrthographicsThenEase(Vector3 targetRotation)
+        {
+            if (Selected == selectedBoundingBox.Model && Selected is DrawingObject)
+            {
+                DrawingObject obj = Selected as DrawingObject;
+                BoundingBox bbox = selectedBoundingBox.BoundingBoxBuffer.BoundingBox;
+                float length = ((bbox.Max - bbox.Min) * obj.Scale).Length();
+                if (length < 10)
+                    length = 10;
+                camera.Zoom = length * 3.5f;
+            }
+            camera.IsOrthographic = true;
+            CheckIsOrthographic();
+            EaseCamera((Selected == null) ? camera.Position : Selected.Position, targetRotation);
         }
     }
 }

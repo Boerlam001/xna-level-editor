@@ -21,7 +21,7 @@ namespace XleModel
         {
             this.drawingModel = (parent as DrawingObject).DrawingModel;
             
-            ConvexHullShape shape = ConvexHullHelper.BuildConvexHullShape(drawingModel);
+            ConvexHullShape shape = ConvexHullHelper.BuildConvexHullShape(drawingModel, parent.Scale);
 
             body = new RigidBody(shape);
 
@@ -46,7 +46,7 @@ namespace XleModel
         {
             this.drawingModel = (parent as DrawingObject).DrawingModel;
 
-            ConvexHullShape shape = ConvexHullHelper.BuildConvexHullShape(drawingModel);
+            ConvexHullShape shape = ConvexHullHelper.BuildConvexHullShape(drawingModel, parent.Scale);
 
             body = new RigidBody(shape);
 

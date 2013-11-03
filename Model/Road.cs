@@ -10,6 +10,8 @@ namespace EditorModel
     public class Road : GridObject
     {
         DrawingObject drawingObject;
+        Vector3 min1, max1, min2, max2;
+        private BasicEffect basicEffect;
 
         public override Vector2 GridPosition
         {
@@ -40,6 +42,7 @@ namespace EditorModel
                 Vector3 pos = position;
                 pos.X += grid.Size / 2;
                 pos.Z += grid.Size / 2;
+                pos.Y += 0.1f;
                 drawingObject.Position = pos;
             }
         }
@@ -53,10 +56,22 @@ namespace EditorModel
             set
             {
                 drawingObject.RotationY = base.RotationY = value;
+                BoundingBox bbox = drawingObject.CreateBoundingBox();
+                Vector3 center = Vector3.Transform(drawingObject.Center * drawingObject.Scale, Matrix.CreateFromQuaternion(drawingObject.Rotation));
+                min1 = drawingObject.Position - center + bbox.Min * drawingObject.Scale;
+                min1.Y += 0.1f;
+                max1 = drawingObject.Position - center + bbox.Max * drawingObject.Scale;
+                max1.Y += 0.1f;
+                min2 = drawingObject.Position + bbox.Min * drawingObject.Scale;
+                min2.Y += 0.1f;
+                max2 = drawingObject.Position + bbox.Max * drawingObject.Scale;
+                max2.Y += 0.1f;
+                drawingObject.Position += (position * (Vector3.UnitX + Vector3.UnitZ) - min1 * (Vector3.UnitX + Vector3.UnitZ));
+                //drawingObject.Position += -drawingObject.Center;
             }
         }
 
-        public Road(Grid grid, Model roadModel)
+        public Road(Grid grid, Model roadModel, BasicEffect basicEffect)
             : base(grid)
         {
             drawingObject = new DrawingObject();
@@ -65,6 +80,7 @@ namespace EditorModel
             drawingObject.Scale = new Vector3(grid.Size / 2);
             drawingObject.Camera = grid.Camera;
             drawingObject.GraphicsDevice = grid.GraphicsDevice;
+            this.basicEffect = basicEffect;
         }
 
         public override void UpdateObserver()
@@ -74,7 +90,29 @@ namespace EditorModel
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            drawingObject.Draw(spriteBatch);
+            GraphicsDevice.BlendState = BlendState.AlphaBlend;
+            drawingObject.Draw(spriteBatch, false, Vector3.Zero, true);
+
+            GraphicsDevice.BlendState = BlendState.Opaque;
+            GraphicsDevice.DepthStencilState = DepthStencilState.Default;
+            GraphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
+
+            //basicEffect.World = Matrix.Identity;
+            //basicEffect.View = Camera.World;
+            //basicEffect.Projection = Camera.Projection;
+            //basicEffect.VertexColorEnabled = true;
+            //VertexPositionColor[] verts = new VertexPositionColor[4]
+            //{
+            //    new VertexPositionColor(min1, Color.White),
+            //    new VertexPositionColor(max1, Color.Red),
+            //    new VertexPositionColor(min2, Color.White),
+            //    new VertexPositionColor(max2, Color.Red)
+            //};
+            //foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+            //{
+            //    pass.Apply();
+            //    GraphicsDevice.DrawUserPrimitives(PrimitiveType.LineList, verts, 0, 2);
+            //}
         }
 
         public override void CheckOrientation()
@@ -87,7 +125,7 @@ namespace EditorModel
                  bottomExists = !grid.GridOutOfBounds(bottom) && grid.GridObjects[(int)bottom.X, (int)bottom.Y] != null,
                  leftExists = !grid.GridOutOfBounds(left) && grid.GridObjects[(int)left.X, (int)left.Y] != null,
                  rightExists = !grid.GridOutOfBounds(right) && grid.GridObjects[(int)right.X, (int)right.Y] != null;
-
+            RotationY = 0;
             if (topExists || bottomExists)
             {
                 if (rotationY != 0)

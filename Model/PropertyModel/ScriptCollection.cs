@@ -8,6 +8,38 @@ using System.ComponentModel.Design;
 
 namespace EditorModel.PropertyModel
 {
+    //reference http://www.codeproject.com/Articles/4448/Customized-display-of-collection-data-in-a-Propert
+    //TODO: null exception saat delete script dari property grid
+
+    public class ItemCollectionEditor : CollectionEditor
+    {
+        public static event EventHandler ItemsChanged;
+
+        public ItemCollectionEditor(Type t)
+            : base(t)
+        {
+        }
+
+        protected override void DestroyInstance(object instance)
+        {
+            base.DestroyInstance(instance);
+            OnItemsChanged(this);
+        }
+
+        protected override object CreateInstance(Type itemType)
+        {
+            object instance = base.CreateInstance(itemType);
+            OnItemsChanged(this);
+            return instance;
+        }
+
+        protected static void OnItemsChanged(ItemCollectionEditor sender)
+        {
+            if (ItemsChanged != null)
+                ItemsChanged(sender, EventArgs.Empty);
+        }
+    }
+
     public class ScriptCollectionPropertyDescriptor : PropertyDescriptor
     {
         ScriptCollection scripts;
@@ -23,7 +55,9 @@ namespace EditorModel.PropertyModel
         {
             get
             {
-                return scripts[index].Name;
+                if (index < scripts.Count)
+                    return scripts[index].Name;
+                return null;
             }
         }
 
@@ -44,7 +78,7 @@ namespace EditorModel.PropertyModel
 
         public override bool IsReadOnly
         {
-            get { return true; }
+            get { return false; }
         }
 
         public override Type PropertyType
@@ -58,7 +92,7 @@ namespace EditorModel.PropertyModel
 
         public override void SetValue(object component, object value)
         {
-            //scripts[index] = value;
+            scripts[index] = (Script)value;
         }
 
         public override bool ShouldSerializeValue(object component)
@@ -76,6 +110,10 @@ namespace EditorModel.PropertyModel
                 if (index < List.Count)
                     return (Script)List[index];
                 return null;
+            }
+            set
+            {
+                List[index] = value;
             }
         }
 

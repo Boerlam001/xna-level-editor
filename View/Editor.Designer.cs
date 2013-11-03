@@ -44,6 +44,9 @@
             this.addRoadStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.orthogonalStripButton = new System.Windows.Forms.ToolStripButton();
+            this.xOrthogonalStripButton = new System.Windows.Forms.ToolStripButton();
+            this.yOrthogonalStripButton = new System.Windows.Forms.ToolStripButton();
+            this.zOrthogonalStripButton = new System.Windows.Forms.ToolStripButton();
             this.miniToolStrip = new System.Windows.Forms.ToolStrip();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.toolStripContainer1 = new System.Windows.Forms.ToolStripContainer();
@@ -84,10 +87,13 @@
             this.toolStripSeparator2,
             this.addRoadStripButton,
             this.toolStripSeparator3,
-            this.orthogonalStripButton});
+            this.orthogonalStripButton,
+            this.xOrthogonalStripButton,
+            this.yOrthogonalStripButton,
+            this.zOrthogonalStripButton});
             this.toolStrip.Location = new System.Drawing.Point(3, 0);
             this.toolStrip.Name = "toolStrip";
-            this.toolStrip.Size = new System.Drawing.Size(185, 25);
+            this.toolStrip.Size = new System.Drawing.Size(277, 25);
             this.toolStrip.TabIndex = 1;
             this.toolStrip.Text = "toolStrip1";
             // 
@@ -186,9 +192,44 @@
             this.orthogonalStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.orthogonalStripButton.Name = "orthogonalStripButton";
             this.orthogonalStripButton.Size = new System.Drawing.Size(23, 22);
-            this.orthogonalStripButton.Text = "orthogonalStripButton";
-            this.orthogonalStripButton.Visible = false;
+            this.orthogonalStripButton.Text = "Is Orthogonal";
             this.orthogonalStripButton.Click += new System.EventHandler(this.orthogonalStripButton_Click);
+            // 
+            // xOrthogonalStripButton
+            // 
+            this.xOrthogonalStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.xOrthogonalStripButton.Image = ((System.Drawing.Image)(resources.GetObject("xOrthogonalStripButton.Image")));
+            this.xOrthogonalStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+            this.xOrthogonalStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.xOrthogonalStripButton.Margin = new System.Windows.Forms.Padding(0);
+            this.xOrthogonalStripButton.Name = "xOrthogonalStripButton";
+            this.xOrthogonalStripButton.Size = new System.Drawing.Size(23, 25);
+            this.xOrthogonalStripButton.Text = "orthogonal-x";
+            this.xOrthogonalStripButton.Click += new System.EventHandler(this.xOrthogonalStripButton_Click);
+            // 
+            // yOrthogonalStripButton
+            // 
+            this.yOrthogonalStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.yOrthogonalStripButton.Image = ((System.Drawing.Image)(resources.GetObject("yOrthogonalStripButton.Image")));
+            this.yOrthogonalStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+            this.yOrthogonalStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.yOrthogonalStripButton.Margin = new System.Windows.Forms.Padding(0);
+            this.yOrthogonalStripButton.Name = "yOrthogonalStripButton";
+            this.yOrthogonalStripButton.Size = new System.Drawing.Size(23, 25);
+            this.yOrthogonalStripButton.Text = "orthogonal-y";
+            this.yOrthogonalStripButton.Click += new System.EventHandler(this.yOrthogonalStripButton_Click);
+            // 
+            // zOrthogonalStripButton
+            // 
+            this.zOrthogonalStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.zOrthogonalStripButton.Image = ((System.Drawing.Image)(resources.GetObject("zOrthogonalStripButton.Image")));
+            this.zOrthogonalStripButton.ImageScaling = System.Windows.Forms.ToolStripItemImageScaling.None;
+            this.zOrthogonalStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.zOrthogonalStripButton.Margin = new System.Windows.Forms.Padding(0);
+            this.zOrthogonalStripButton.Name = "zOrthogonalStripButton";
+            this.zOrthogonalStripButton.Size = new System.Drawing.Size(23, 25);
+            this.zOrthogonalStripButton.Text = "orthogonal-z";
+            this.zOrthogonalStripButton.Click += new System.EventHandler(this.zOrthogonalStripButton_Click);
             // 
             // miniToolStrip
             // 
@@ -241,7 +282,7 @@
             this.materialCoefficientMixingToolStripComboBox});
             this.physicsWorldToolStrip.Location = new System.Drawing.Point(3, 0);
             this.physicsWorldToolStrip.Name = "physicsWorldToolStrip";
-            this.physicsWorldToolStrip.Size = new System.Drawing.Size(380, 25);
+            this.physicsWorldToolStrip.Size = new System.Drawing.Size(349, 25);
             this.physicsWorldToolStrip.TabIndex = 2;
             // 
             // gravityStripLabel
@@ -289,6 +330,7 @@
             this.graphicsDeviceControl1.DragEnter += new System.Windows.Forms.DragEventHandler(this.graphicsDeviceControl1_DragEnter);
             this.graphicsDeviceControl1.Paint += new System.Windows.Forms.PaintEventHandler(this.graphicsDeviceControl1_Paint);
             this.graphicsDeviceControl1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.graphicsDeviceControl1_MouseDown);
+            this.graphicsDeviceControl1.MouseEnter += new System.EventHandler(this.graphicsDeviceControl1_MouseEnter);
             this.graphicsDeviceControl1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.graphicsDeviceControl1_MouseMove);
             this.graphicsDeviceControl1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.graphicsDeviceControl1_MouseUp);
             this.graphicsDeviceControl1.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.graphicsDeviceControl1_PreviewKeyDown);
@@ -342,5 +384,8 @@
         private System.Windows.Forms.ToolStripTextBox gravityToolStripTextBox;
         private System.Windows.Forms.ToolStripLabel materialCoefficientMixingtoolStripLabel;
         private System.Windows.Forms.ToolStripComboBox materialCoefficientMixingToolStripComboBox;
+        private System.Windows.Forms.ToolStripButton xOrthogonalStripButton;
+        private System.Windows.Forms.ToolStripButton yOrthogonalStripButton;
+        private System.Windows.Forms.ToolStripButton zOrthogonalStripButton;
     }
 }

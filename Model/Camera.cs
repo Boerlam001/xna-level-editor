@@ -15,7 +15,6 @@ namespace EditorModel
         protected Matrix projection;
         protected float aspectRatio;
         private bool isOrthographic;
-        private GraphicsDevice graphicsDevice;
         private float zoom;
 
         public override Vector3 Position
@@ -160,7 +159,13 @@ namespace EditorModel
         public float Zoom
         {
             get { return zoom; }
-            set { zoom = value; }
+            set
+            {
+                zoom = value;
+                if (zoom < 1) zoom = 1;
+                if (isOrthographic)
+                    CalculateProjection();
+            }
         }
 
         public Camera(GraphicsDevice graphicsDevice) : base()
@@ -171,7 +176,7 @@ namespace EditorModel
             farPlaneDistance = 2000f;
             aspectRatio = 16 / 9;
             isOrthographic = false;
-            this.graphicsDevice = graphicsDevice;
+            this.GraphicsDevice = graphicsDevice;
             CalculateProjection();
             isMoving = false;
             zoom = 100f;
@@ -182,7 +187,11 @@ namespace EditorModel
             if (!isOrthographic)
                 projection = Matrix.CreatePerspectiveFieldOfView(fieldOfViewAngle, aspectRatio, nearPlaneDistance, farPlaneDistance);
             else
-                projection = Matrix.CreateOrthographicOffCenter(-zoom / 2, zoom, -zoom / 2, zoom / 2, nearPlaneDistance, farPlaneDistance);
+                //projection = Matrix.CreateOrthographicOffCenter(-zoom / 2, zoom, -zoom / 2, zoom / 2, nearPlaneDistance, farPlaneDistance);
+                projection = Matrix.CreateOrthographic(zoom, zoom / aspectRatio, -farPlaneDistance, farPlaneDistance);
+                //projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(1), aspectRatio, nearPlaneDistance, farPlaneDistance);
+
+            LookAt();
         }
 
         public override void Rotate(float x, float y, float z)
@@ -199,7 +208,8 @@ namespace EditorModel
             Matrix rotationMatrix = Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ));
             Vector3 transformedReference = Vector3.Transform(rotationReference, rotationMatrix);
             Vector3 lookAtVector = position + transformedReference;
-            world = Matrix.CreateScale(scale) * Matrix.CreateLookAt(position, lookAtVector, Vector3.Up);
+            Vector3 up = Vector3.Transform(Vector3.Up, rotationMatrix);
+            world = Matrix.CreateScale(scale) * Matrix.CreateLookAt(position, lookAtVector, up);
             eulerRotation = new Vector3(rotationX, rotationY, rotationZ);
             Vector3 s, t;
             rotationMatrix.Decompose(out s, out rotation, out t);

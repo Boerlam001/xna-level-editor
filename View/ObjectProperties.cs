@@ -12,6 +12,7 @@ using EditorModel.PropertyModel;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+using System.ComponentModel.Design;
 
 namespace View
 {
@@ -48,6 +49,7 @@ namespace View
         public ObjectProperties()
         {
             InitializeComponent();
+            EditorModel.PropertyModel.ItemCollectionEditor.ItemsChanged += new System.EventHandler(propertyGrid_PropertyValueChanged);
         }
 
         public void UpdateObserver()
@@ -55,7 +57,7 @@ namespace View
             propertyGrid1.Refresh();
         }
 
-        private void propertyGrid_PropertyValueChanged(object s, PropertyValueChangedEventArgs e)
+        private void propertyGrid_PropertyValueChanged(object s, EventArgs e)
         {
             if (propertyGrid1.SelectedObject is BaseObject)
             {
@@ -63,17 +65,22 @@ namespace View
                 if (propertyGrid1.SelectedObject is DrawingObject)
                 {
                     DrawingObject obj = bObj as DrawingObject;
-                    if (e.ChangedItem.Label == "SourceFile")
+                    if (e is PropertyValueChangedEventArgs)
                     {
-                        if (mainUserControl != null)
-                            obj.DrawingModel = mainUserControl.Editor.OpenModel(e.ChangedItem.Value.ToString());
-                        else
-                            obj.SourceFile = e.OldValue.ToString();
+                        PropertyValueChangedEventArgs pe = e as PropertyValueChangedEventArgs;
+                        if (pe != null && pe.ChangedItem.Label == "SourceFile")
+                        {
+                            if (mainUserControl != null)
+                                obj.DrawingModel = mainUserControl.Editor.OpenModel(pe.ChangedItem.Value.ToString());
+                            else
+                                obj.SourceFile = pe.OldValue.ToString();
+                        }
                     }
                 }
                 bObj.Notify();
                 mainUserControl.Editor.Camera.Notify();
             }
+            propertyGrid1.Refresh();
         }
 
         private void propertyGrid1_DragEnter(object sender, DragEventArgs e)

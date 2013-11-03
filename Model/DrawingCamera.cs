@@ -12,6 +12,7 @@ namespace EditorModel
         Texture2D texture;
         Vector2 origin;
         float textureScale = 1;
+        float drawingScale = 0.5f;
         private Vector2 screenPos;
         float layerDepth = 0;
         private Vector3 screenPos3;
@@ -65,16 +66,33 @@ namespace EditorModel
             }
         }
 
+        public float DrawingScale
+        {
+            get { return drawingScale; }
+            set
+            {
+                drawingScale = value;
+                vertices = new VertexPositionColor[5]
+                {
+                    new VertexPositionColor(Vector3.Zero, Color.LightBlue),
+                    new VertexPositionColor(new Vector3(-1, 1, 1)  * drawingScale,  Color.LightBlue),
+                    new VertexPositionColor(new Vector3(1, 1, 1)   * drawingScale,   Color.LightBlue),
+                    new VertexPositionColor(new Vector3(1, -1, 1)  * drawingScale,  Color.LightBlue),
+                    new VertexPositionColor(new Vector3(-1, -1, 1) * drawingScale, Color.LightBlue)
+                };
+            }
+        }
+
         public DrawingCamera()
             : base()
         {
             vertices = new VertexPositionColor[5]
             {
                 new VertexPositionColor(Vector3.Zero, Color.LightBlue),
-                new VertexPositionColor(new Vector3(-1, 1, 1),  Color.LightBlue),
-                new VertexPositionColor(new Vector3(1, 1, 1),   Color.LightBlue),
-                new VertexPositionColor(new Vector3(1, -1, 1),  Color.LightBlue),
-                new VertexPositionColor(new Vector3(-1, -1, 1), Color.LightBlue)
+                new VertexPositionColor(new Vector3(-1, 1, 1)  * drawingScale,  Color.LightBlue),
+                new VertexPositionColor(new Vector3(1, 1, 1)   * drawingScale,   Color.LightBlue),
+                new VertexPositionColor(new Vector3(1, -1, 1)  * drawingScale,  Color.LightBlue),
+                new VertexPositionColor(new Vector3(-1, -1, 1) * drawingScale, Color.LightBlue)
             };
             indices = new short[]
             {
@@ -86,6 +104,10 @@ namespace EditorModel
         {
             screenPos3 = GraphicsDevice.Viewport.Project(position, Camera.Projection, Camera.World, Matrix.Identity);
             screenPos = new Vector2(screenPos3.X, screenPos3.Y);
+            if (Camera.IsOrthographic)
+                DrawingScale = Camera.Zoom / 13f;
+            else if (drawingScale != 0.5f)
+                DrawingScale = 0.5f;
         }
 
         public override bool RayIntersects(Ray ray, float mouseX, float mouseY)
@@ -96,7 +118,7 @@ namespace EditorModel
                    mouseY <= screenPos.Y + (texture.Height - origin.Y) * textureScale;
         }
 
-        public override void Draw(SpriteBatch spriteBatch, bool lightDirectionEnabled = false, Vector3 lightDirection = new Vector3())
+        public override void Draw(SpriteBatch spriteBatch, bool lightDirectionEnabled = false, Vector3 lightDirection = new Vector3(), bool alpha = false)
         {
             if (mapModel == null || mapModel.Selected != this)
                 return;

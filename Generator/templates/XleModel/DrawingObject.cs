@@ -447,7 +447,7 @@ namespace XleModel
         protected override void OnPositionChanged(object sender, EventArgs e)
         {
             base.OnPositionChanged(sender, e);
-            Vector3 v = Vector3.Transform(center, rotation);
+            Vector3 v = Vector3.Transform(scale * center, rotation);
             world = Matrix.CreateScale(scale) * Matrix.CreateFromQuaternion(rotation) * Matrix.CreateTranslation(position - v);
         }
     }

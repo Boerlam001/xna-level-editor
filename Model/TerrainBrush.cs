@@ -224,6 +224,7 @@ namespace EditorModel
                     GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertices, 0, vertices.Length, indices, 0, indices.Length / 3);
                 }
 
+                GraphicsDevice.BlendState = BlendState.Opaque;
                 GraphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
             }
             catch (Exception ex)

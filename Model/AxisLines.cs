@@ -11,7 +11,47 @@ namespace EditorModel
 {
     public class AxisLines : IObserver
     {
+        float scale = 1;
+        protected Vector3 xOffset;
+        protected Vector3 yOffset;
+        protected Vector3 zOffset;
+        protected Vector3 xxOffset;
+        protected Vector3 yyOffset;
+        protected Vector3 zzOffset;
+        protected BoundingBoxBuffer[] axisBoundingBoxBuffers;
+        protected Vector3 posistionStart;
+        protected Vector2 point0Start;
         protected ModelBoundingBox parent;
+        Vector3 position;
+        protected BoundingBox[] axisBoundingBoxes;
+        protected int axisCount;
+        protected VertexPositionColor[] axisVertices;
+        protected string text;
+
+        #region atribut yang terproyeksi di screen 2D
+        protected Vector2 point0, pointX, pointY, pointZ, dragStart;
+        protected int min;
+        protected float mouseX, mouseY, mouseX2, mouseY2;
+        protected bool dragStarted;
+        private float zProjection = 0;
+        #endregion
+
+        public float Scale
+        {
+            get { return scale; }
+            set 
+            {
+                scale = value;
+
+                xOffset = new Vector3(0.5f, 0, 0) * scale;
+                yOffset = new Vector3(0, 0.5f, 0) * scale;
+                zOffset = new Vector3(0, 0, 0.5f) * scale;
+
+                xxOffset = new Vector3(0f, 0.02f, 0.02f) * scale;
+                yyOffset = new Vector3(0.02f, 0f, 0.02f) * scale;
+                zzOffset = new Vector3(0.02f, 0.02f, 0f) * scale;
+            }
+        }
 
         public ModelBoundingBox Parent
         {
@@ -19,25 +59,17 @@ namespace EditorModel
             set { parent = value; }
         }
 
-        protected VertexPositionColor[] axisVertices;
-
         public VertexPositionColor[] AxisVertices
         {
             get { return axisVertices; }
             set { axisVertices = value; }
         }
 
-        protected int axisCount;
-
-        protected BoundingBox[] axisBoundingBoxes;
-
         public BoundingBox[] AxisBoundingBoxes
         {
             get { return axisBoundingBoxes; }
             set { axisBoundingBoxes = value; }
         }
-
-        Vector3 position;
 
         public Vector3 Position
         {
@@ -56,34 +88,10 @@ namespace EditorModel
             }
         }
 
-        protected string text;
-
         public string Text
         {
             get { return text; }
         }
-
-        protected Vector3 xOffset;
-        protected Vector3 yOffset;
-        protected Vector3 zOffset;
-        protected Vector3 xxOffset;
-        protected Vector3 yyOffset;
-        protected Vector3 zzOffset;
-        protected BoundingBoxBuffer[] axisBoundingBoxBuffers;
-        protected Vector3 posistionStart;
-        protected Vector2 point0Start;
-
-
-        #region atribut yang terproyeksi di screen 2D
-
-        protected Vector2 point0, pointX, pointY, pointZ, dragStart;
-        protected int min;
-        protected float mouseX, mouseY, mouseX2, mouseY2;
-        protected bool dragStarted;
-        private float zProjection = 0;
-
-        #endregion
-
         
         public AxisLines()
         {
@@ -97,13 +105,13 @@ namespace EditorModel
 
             axisBoundingBoxBuffers = new BoundingBoxBuffer[3];
 
-            xOffset = new Vector3(0.5f, 0, 0);
-            yOffset = new Vector3(0, 0.5f, 0);
-            zOffset = new Vector3(0, 0, 0.5f);
+            xOffset = new Vector3(0.5f, 0, 0) * scale;
+            yOffset = new Vector3(0, 0.5f, 0) * scale;
+            zOffset = new Vector3(0, 0, 0.5f) * scale;
 
-            xxOffset = new Vector3(0f, 0.02f, 0.02f);
-            yyOffset = new Vector3(0.02f, 0f, 0.02f);
-            zzOffset = new Vector3(0.02f, 0.02f, 0f);
+            xxOffset = new Vector3(0f, 0.02f, 0.02f) * scale;
+            yyOffset = new Vector3(0.02f, 0f, 0.02f) * scale;
+            zzOffset = new Vector3(0.02f, 0.02f, 0f) * scale;
 
             //2d
             point0 = new Vector2();
@@ -165,6 +173,10 @@ namespace EditorModel
 
         public void UpdateObserver()
         {
+            if (parent.Camera.IsOrthographic)
+                Scale = parent.Camera.Zoom / 6.5f;
+            else if (scale != 1)
+                Scale = 1;
             try
             {
                 Position = position;
@@ -176,8 +188,8 @@ namespace EditorModel
 
                 Ray ray = Helper.Pick(parent.GraphicsDevice.Viewport, parent.Camera, x1.X, x1.Y);
                 Vector3 screenToAxis = ray.Direction * 2;
-                if (screenToAxis.Length() < (axisVertices[0].Position - ray.Position).Length())
-                {
+                //if (screenToAxis.Length() < (axisVertices[0].Position - ray.Position).Length())
+                //{
                     Vector3 temp = axisVertices[0].Position;
                     axisVertices[0].Position = ray.Position + screenToAxis;
                     temp = axisVertices[0].Position - temp;
@@ -187,7 +199,7 @@ namespace EditorModel
                     }
 
                     CreateAxisBoundingBox();
-                }
+                //}
 
                 point0.X = x1.X;
                 point0.Y = x1.Y;
@@ -261,7 +273,7 @@ namespace EditorModel
                 float sf = (proj - dragStart).Length(),
                       f0 = (proj - point0Start).Length(),
                       s0 = (dragStart - point0Start).Length(),
-                      ratio = (parent.Camera.Position - parent.Model.Position).Length() * 0.002f;
+                      ratio = (!parent.Camera.IsOrthographic) ? (parent.Camera.Position - parent.Model.Position).Length() * 0.002f : parent.Camera.Zoom * 0.001f;
 
                 float diff = sf * ratio;
 

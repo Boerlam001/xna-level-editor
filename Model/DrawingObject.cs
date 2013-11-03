@@ -59,7 +59,7 @@ namespace EditorModel
             
         }
 
-        public override void Draw(SpriteBatch spriteBatch, bool lightDirectionEnabled = false, Vector3 lightDirection = new Vector3())
+        public override void Draw(SpriteBatch spriteBatch, bool lightDirectionEnabled = false, Vector3 lightDirection = new Vector3(), bool alpha = false)
         {
             if (drawingModel == null)
                 return;
@@ -73,6 +73,8 @@ namespace EditorModel
                     effect.EnableDefaultLighting();
                     effect.PreferPerPixelLighting = true;
                     effect.SpecularPower = 16;
+                    if (alpha)
+                        effect.Alpha = 1;
                     if (lightDirectionEnabled)
                     {
                         effect.DirectionalLight0.Enabled = lightDirectionEnabled;
@@ -190,14 +192,14 @@ namespace EditorModel
         protected override void OnRotationChanged(object sender, EventArgs e)
         {
             base.OnRotationChanged(sender, e);
-            Vector3 v = Vector3.Transform(center, rotation);
+            Vector3 v = Vector3.Transform(scale * center, rotation);
             world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position - v);
         }
 
         protected override void OnPositionChanged(object sender, EventArgs e)
         {
             base.OnPositionChanged(sender, e);
-            Vector3 v = Vector3.Transform(center, rotation);
+            Vector3 v = Vector3.Transform(scale * center, rotation);
             world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position - v);
         }
     }

@@ -148,8 +148,10 @@ namespace EditorModel
             if (roadModel != null)
                 if (!GridOutOfBounds(gridPosition) && gridObjects[(int)gridPosition.X, (int)gridPosition.Y] == null)
                 {
-                    Road newRoad = new Road(this, roadModel);
+                    Road newRoad = new Road(this, roadModel, basicEffect);
                     newRoad.GridPosition = gridPosition;
+                    newRoad.Camera = camera;
+                    newRoad.GraphicsDevice = graphicsDevice;
                     gridObjects[(int)gridPosition.X, (int)gridPosition.Y] = newRoad;
 
                     newRoad.CheckOrientation();

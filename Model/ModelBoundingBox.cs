@@ -115,9 +115,14 @@ namespace EditorModel
 
         public void UpdateObserver()
         {
-            if (model is DrawingObject)
-                boundingBoxBuffer.BoundingBox = (model as DrawingObject).CreateBoundingBox();
             axisLines.Position = model.Position;
+
+            if (model is DrawingObject)
+            {
+                DrawingObject obj = model as DrawingObject;
+                boundingBoxBuffer.BoundingBox = obj.CreateBoundingBox();
+                axisLines.Position = obj.Position;
+            }
         }
 
         public void ChangeAxisLines(int mode)

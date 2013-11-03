@@ -14,6 +14,8 @@ namespace View
     {
         //flag for dragging object
         int isDrag;
+        private bool snapToTerrain = false;
+        private Vector3 originalPosition;
 
         public EditorMode_Select(Editor editor) : base(editor)
         {
@@ -27,15 +29,38 @@ namespace View
 
         public override void PreviewKeyDown(object sender, System.Windows.Forms.PreviewKeyDownEventArgs e)
         {
+            base.PreviewKeyDown(sender, e);
         }
 
         public override void KeyUp(object sender, System.Windows.Forms.KeyEventArgs e)
         {
+            base.KeyUp(sender, e);
+            
             if (editor.Selected != null && e.KeyCode == Keys.Delete)
             {
                 BaseObject obj = editor.Selected;
                 editor.DeselectObject();
                 editor.DeleteObject(obj);
+            }
+
+            if (e.KeyCode == Keys.ShiftKey && editor.Selected != null)
+            {
+                if (!snapToTerrain)
+                {
+                    //Vector3 rotationTarget = new Vector3(30, 45, 0);
+                    //Matrix rotationMatrixTarget = Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationTarget.Y), MathHelper.ToRadians(rotationTarget.X), MathHelper.ToRadians(rotationTarget.Z));
+                    //Vector3 directionTarget = Vector3.Transform(Vector3.UnitZ, rotationMatrixTarget);
+                    //Vector3 target = editor.Selected.Position - directionTarget * 10;
+                    //editor.EaseCamera(target, rotationTarget);
+                    snapToTerrain = true;
+                    originalPosition = editor.Selected.Position;
+                }
+                else
+                {
+                    snapToTerrain = false;
+                    editor.Selected.Position = originalPosition;
+                    editor.Selected.Notify();
+                }
             }
         }
 
@@ -51,6 +76,12 @@ namespace View
                 
                 if (editor.Selected != null)
                 {
+                    if (snapToTerrain)
+                    {
+                        snapToTerrain = false;
+                        return;
+                    }
+
                     isDrag = editor.SelectedBoundingBox.AxisLines.OnMouseDown(e.X, e.Y);
 
                     if (isDrag != -1)
@@ -84,10 +115,7 @@ namespace View
 
         public override void MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            //editor.Text1 += e.X + " " + e.Y + "\r\n";
-            //base.MouseMove(sender, e);
-            diffX = (float)(e.X - mouseX);
-            diffY = (float)(e.Y - mouseY);
+            base.MouseMove(sender, e);
 
             if (editor.Selected != null)
             {
@@ -97,14 +125,28 @@ namespace View
                     editor.Selected.Notify();
                     editor.Camera.Notify();
                 }
-            }
-            mouseX = e.X;
-            mouseY = e.Y;
 
-            if (isRotate)
-            {
-                editor.Camera.Rotate(diffY / 10, -diffX / 10, 0);
-                editor.Camera.Notify();
+                if (snapToTerrain)
+                {
+                    int[,] indices = editor.Terrain.TerrainIndexer.Indices;
+                    if (e.X >= 0 && e.X < indices.GetLength(0) && e.Y >= 0 && e.Y < indices.GetLength(1))
+                    {
+                        int index = indices[e.X, e.Y];
+                        if (index != -1)
+                        {
+                            Vector3 pos = editor.Terrain.Vertices[index].Position;
+                            if (editor.Selected is DrawingObject)
+                            {
+                                DrawingObject obj = editor.Selected as DrawingObject;
+                                BoundingBox bbox = editor.SelectedBoundingBox.BoundingBoxBuffer.BoundingBox;
+                                Vector3 center = Vector3.Transform(obj.Scale * obj.Center, obj.Rotation);
+                                pos.Y += center.Y - (bbox.Min * obj.Scale).Y;
+                            }
+                            editor.Selected.Position = pos;
+                            editor.Selected.Notify();
+                        }
+                    }
+                }
             }
         }
 
@@ -134,7 +176,20 @@ namespace View
                 foreach (string file in files)
                 {
                     string name = System.IO.Path.GetFileName(file).Replace(".", "_");
-                    editor.AddObject(file, name, Helper.Put(editor.GraphicsDevice.Viewport, editor.Camera, e.X, e.Y, 3), Vector3.Zero);
+                    Vector3 put = Helper.Put(editor.GraphicsDevice.Viewport, editor.Camera, e.X, e.Y, 10);
+                    BaseObject obj = editor.AddObject(file, name, put, Vector3.Zero, Vector3.One);
+                    if (obj != null)
+                    {
+                        editor.SelectObject(obj);
+                        //if (editor.SelectedBoundingBox.Model == obj && obj is DrawingObject)
+                        //{
+                        //    BoundingBox bbox = editor.SelectedBoundingBox.BoundingBoxBuffer.BoundingBox;
+                        //    float length = (bbox.Max - bbox.Min).Length();
+                        //    put = Helper.Put(editor.GraphicsDevice.Viewport, editor.Camera, e.X, e.Y, length);
+                        //    editor.Selected.Position = put;
+                        //    editor.Selected.Notify();
+                        //}
+                    }
                 }
             }
         }

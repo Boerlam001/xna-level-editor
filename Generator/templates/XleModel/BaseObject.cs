@@ -63,6 +63,7 @@ namespace XleModel
             {
                 scale = value;
                 world = Matrix.CreateScale(scale) * Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians(rotationY), MathHelper.ToRadians(rotationX), MathHelper.ToRadians(rotationZ)) * Matrix.CreateTranslation(position);
+                OnPositionChanged(this, null);
             }
         }
 

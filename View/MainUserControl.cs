@@ -75,16 +75,25 @@ namespace View
 
                     if (isOpen)
                     {
-                        Dictionary<string, DrawingObject> objects = classManager.ReadCodeLines();
+                        Dictionary<string, BaseObject> objects = classManager.ReadCodeLines();
                         foreach (string key in objects.Keys)
                         {
-                            string file = objects[key].SourceFile;
-                            string name = System.IO.Path.GetFileNameWithoutExtension(file);
-                            if (objects[key].PhysicsShapeKind == PhysicsShapeKind.ConvexHullShape)
-                                editor.AddObject(file, key, objects[key].Position, objects[key].EulerRotation, objects[key].PhysicsEnabled, objects[key].IsActive, objects[key].IsStatic, objects[key].CharacterControllerEnabled, objects[key].PhysicsShapeKind, objects[key].BodyPosition);
-                            else
-                                editor.AddObject(file, key, objects[key]);
-                            
+                            if (objects[key] is DrawingObject)
+                            {
+                                DrawingObject obj = objects[key] as DrawingObject;
+                                string file = obj.SourceFile;
+                                string name = System.IO.Path.GetFileNameWithoutExtension(file);
+                                if (obj.PhysicsShapeKind == PhysicsShapeKind.ConvexHullShape)
+                                    editor.AddObject(file, key, obj.Position, obj.EulerRotation, obj.Scale, obj.PhysicsEnabled, obj.IsActive, obj.IsStatic, obj.CharacterControllerEnabled, obj.Scripts, obj.PhysicsShapeKind, obj.BodyPosition);
+                                else
+                                    editor.AddObject(file, key, obj);
+                            }
+                            else if (objects[key] is DrawingCamera)
+                            {
+                                DrawingCamera cam = objects[key] as DrawingCamera;
+                                mapModel.MainCamera.Position = cam.Position;
+                                mapModel.MainCamera.EulerRotation = cam.EulerRotation;
+                            }
                         }
                         if (File.Exists(heightMapFile))
                             editor.ImportHeightmap(heightMapFile);
@@ -255,15 +264,11 @@ namespace View
         private void createFileStripMenuItem_Click(object sender, EventArgs e)
         {
             classManager.GenerateClass();
+            classManager.AddHeightMapToContentProject(editor.Terrain);
         }
 
         private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-        }
-
-        private void saveHeightmapToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            classManager.AddHeightMapToContentProject(editor.Terrain);
         }
 
         public void UpdateObserver()
@@ -352,7 +357,20 @@ namespace View
             BaseObject temp = mapModel.getObjectByName(e.Node.Text);
             if (temp != null)
             {
-                Vector3 target = temp.Position - editor.Camera.Direction * 10;
+                float length = 10;
+                Vector3 target = temp.Position;
+                if (temp == editor.SelectedBoundingBox.Model && temp is DrawingObject)
+                {
+                    DrawingObject obj = temp as DrawingObject;
+                    target -= obj.Center * obj.Scale * obj.Direction;
+                    BoundingBox bbox = editor.SelectedBoundingBox.BoundingBoxBuffer.BoundingBox;
+                    length = ((bbox.Max - bbox.Min) * obj.Scale).Length();
+                    if (length < 10)
+                        length = 10;
+                }
+
+                target -= editor.Camera.Direction * length;
+                
                 editor.EaseCamera(target);
             }
         }
