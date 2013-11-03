@@ -40,8 +40,17 @@ namespace View
                     start = editor.GridPointer.GridPosition;
                 if (step == 2)
                 {
+                    //int i = 0;
+                    //float posY = 0;
                     foreach (GridPointer gp in editor.GridPointers)
                     {
+                        //Vector3 pos = editor.Terrain.Vertices[(int)(gp.GridPosition.X + gp.GridPosition.Y * editor.Terrain.Width)].Position;
+                        //if (i == 0)
+                        //{
+                        //    posY = pos.Y;
+                        //}
+                        //pos.Y = posY;
+                        //gp.GridPosition = pos;
                         editor.Grid.AddRoad(gp.GridPosition);
                         editor.Grid.Detach(gp);
                     }
@@ -99,6 +108,23 @@ namespace View
             {
                 editor.GridPointers.RemoveRange(i, editor.GridPointers.Count - i);
             }
+        }
+
+        private bool GridAvailable(Vector3 pointerPosition)
+        {
+            Grid grid = editor.Grid;
+            for (int x = 0; x < grid.Width; x++)
+            {
+                for (int y = 0; y < grid.Height; y++)
+                    if (grid.GridObjects[x, y] != null)
+                    {
+                        if (grid.GridObjects[x, y].Position.Y == pointerPosition.Y)
+                            return true;
+                        else
+                            return false;
+                    }
+            }
+            return true;
         }
     }
 }

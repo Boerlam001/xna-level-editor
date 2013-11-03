@@ -20,6 +20,7 @@ namespace EditorModel
         private int height;
         GridObject[,] gridObjects;
         Model roadModel, roadModel_belok;
+        float positionY = 0;
 
         public Terrain Terrain
         {
@@ -83,6 +84,12 @@ namespace EditorModel
             get { return height; }
         }
 
+        public float PositionY
+        {
+            get { return positionY; }
+            set { positionY = value; }
+        }
+
         public Grid(Terrain terrain, int size, Camera camera, GraphicsDevice graphicsDevice, BasicEffect basicEffect)
         {
             this.terrain = terrain;
@@ -104,17 +111,17 @@ namespace EditorModel
                 if (i < width * 2)
                 {
                     int x = i / 2;
-                    vertices[i] = new VertexPositionColor(new Vector3(x * size, 0.1f, 0), Color.Yellow);
+                    vertices[i] = new VertexPositionColor(new Vector3(x * size, positionY + 0.1f, 0), Color.Yellow);
                     i++;
-                    vertices[i] = new VertexPositionColor(new Vector3(x * size, 0.1f, (height - 1) * size), Color.Yellow);
+                    vertices[i] = new VertexPositionColor(new Vector3(x * size, positionY + 0.1f, (height - 1) * size), Color.Yellow);
                     i++;
                 }
                 else
                 {
                     int z = i / 2 - width;
-                    vertices[i] = new VertexPositionColor(new Vector3(0, 0.1f, z * size), Color.Yellow);
+                    vertices[i] = new VertexPositionColor(new Vector3(0, positionY + 0.1f, z * size), Color.Yellow);
                     i++;
-                    vertices[i] = new VertexPositionColor(new Vector3((width - 1) * size, 0.1f, z * size), Color.Yellow);
+                    vertices[i] = new VertexPositionColor(new Vector3((width - 1) * size, positionY + 0.1f, z * size), Color.Yellow);
                     i++;
                 }
             }
@@ -146,8 +153,9 @@ namespace EditorModel
         public void AddRoad(Vector2 gridPosition)
         {
             if (roadModel != null)
-                if (!GridOutOfBounds(gridPosition) && gridObjects[(int)gridPosition.X, (int)gridPosition.Y] == null)
+                if (!GridOutOfBounds(gridPosition))// && gridObjects[(int)gridPosition.X, (int)gridPosition.Y] == null)
                 {
+                    FlattenPointedTerrain(gridPosition);
                     Road newRoad = new Road(this, roadModel, basicEffect);
                     newRoad.GridPosition = gridPosition;
                     newRoad.Camera = camera;
@@ -169,6 +177,36 @@ namespace EditorModel
                     if (!GridOutOfBounds(right) && gridObjects[(int)right.X, (int)right.Y] != null)
                         gridObjects[(int)right.X, (int)right.Y].CheckOrientation();
                 }
+        }
+
+
+
+        public void FlattenPointedTerrain(Vector2 gridPosition)
+        {
+            float startX = gridPosition.X * size, startY = gridPosition.Y * size;
+            for (int x = 0; x < size + 1; x++)
+            {
+                for (int y = 0; y < size + 1; y++)
+                {
+                    float tempX = startX + x, tempY = startY + y;
+                    int i = x + y * (size + 1), j = (int)(tempX + tempY * terrain.Width);
+                    if (j < terrain.Vertices.Length)
+                    {
+                        float newHeight = positionY;
+                        float newHeightColor = (newHeight - terrain.MinHeight) / terrain.HeightColorFactor;
+                        if (newHeightColor >= 0 && newHeightColor <= 255)
+                        {
+                            terrain.Vertices[j].Position.Y = terrain.HeightData[(int)tempX, (int)tempY] = newHeight;
+                            terrain.HeightMapColors[j].R = (byte)newHeightColor;
+                            terrain.HeightMapColors[j].G = (byte)newHeightColor;
+                            terrain.HeightMapColors[j].B = (byte)newHeightColor;
+                            terrain.HeightMapColors[j].A = 255;
+                        }
+                    }
+                }
+            }
+            terrain.CalculateNormals();
+            terrain.CopyToBuffers();
         }
     }
 }
