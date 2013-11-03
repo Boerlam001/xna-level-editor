@@ -170,10 +170,10 @@ namespace XleModel
                                 effect.EnableDefaultLighting();
                                 effect.PreferPerPixelLighting = true;
                             }
-                            //if (GraphicsDevice.BlendState == BlendState.AlphaBlend)
-                            //{
-                            //    effect.Alpha = 1;
-                            //}
+                            if (GraphicsDevice.BlendState == BlendState.AlphaBlend)
+                            {
+                                effect.Alpha = 1;
+                            }
                             //else
                             //{
                             //    effect.Alpha = 0;
@@ -199,10 +199,10 @@ namespace XleModel
                                 effect.EnableDefaultLighting();
                                 effect.PreferPerPixelLighting = true;
                             }
-                            //if (GraphicsDevice.BlendState == BlendState.AlphaBlend)
-                            //{
-                            //    effect.Alpha = 1;
-                            //}
+                            if (GraphicsDevice.BlendState == BlendState.AlphaBlend)
+                            {
+                                effect.Alpha = 1;
+                            }
                             //else
                             //{
                             //    effect.Alpha = 0;
