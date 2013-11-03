@@ -41,6 +41,7 @@ namespace XleModel
         private object[] physicsAdapterParameters;
         protected BaseObject parent;
         protected Vector3 relativePosition;
+        bool isInitialized = false;
         #endregion
 
         #region setters and getters
@@ -88,6 +89,12 @@ namespace XleModel
         {
             get { return direction; }
             set { direction = value; }
+        }
+
+        public bool IsInitialized
+        {
+            get { return isInitialized; }
+            set { isInitialized = value; }
         }
 
         public virtual Vector3 Position
@@ -178,7 +185,10 @@ namespace XleModel
         public bool PhysicsEnabled
         {
             get { return physicsEnabled; }
-            set { physicsEnabled = value; }
+            set
+            {
+                physicsEnabled = value;
+            }
         }
 
         public PhysicsAdapter PhysicsAdapter
@@ -239,6 +249,8 @@ namespace XleModel
             {
                 script.Start();
             }
+
+            isInitialized = true;
         }
 
         public override void Update(GameTime gameTime)
@@ -261,10 +273,13 @@ namespace XleModel
                 script.Update(gameTime);
             }
 
-            if (physicsEnabled)
+            if (physicsAdapter != null)
             {
-                if (physicsAdapter != null)
+                if (physicsEnabled)
                 {
+                    if (!physicsWorld.RigidBodies.Contains(physicsAdapter.Body))
+                        physicsWorld.AddBody(physicsAdapter.Body);
+
                     physicsAdapter.Update(gameTime);
                     Vector3 v = Vector3.Transform(physicsAdapter.RelativePosition, Matrix.CreateFromQuaternion(physicsAdapter.Rotation));
                     position = physicsAdapter.Position - v;
@@ -273,13 +288,10 @@ namespace XleModel
                     OnRotationChanged(this, new BodyGeoEventArgs(false));
                     OnPositionChanged(this, new BodyGeoEventArgs(false));
                 }
-            }
-            else
-            {
-                if (physicsAdapter != null)
+                else
                 {
-                    physicsAdapter.Position = position;
-                    physicsAdapter.Rotation = rotation;
+                    if (physicsWorld.RigidBodies.Contains(physicsAdapter.Body))
+                        physicsWorld.RemoveBody(physicsAdapter.Body);
                 }
             }
 

@@ -71,7 +71,7 @@ namespace XleModel
         {
             this.drawingModel = drawingModel;
 
-            ConvexHullShape shape = ConvexHullHelper.BuildConvexHullShape(drawingModel);
+            ConvexHullShape shape = ConvexHullHelper.BuildConvexHullShape(drawingModel, parent.Scale);
             body.Shape = shape;
 
             //((DrawingObject)parent).Center = -Helper.ToXNAVector(shape.Shift);

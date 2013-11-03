@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using System.IO;
 using EditorModel;
 using EditorModel.QuadTreeTerrain;
 using Microsoft.Xna.Framework;
@@ -27,7 +28,6 @@ namespace View
         private EditorMode editorMode;
         private SpriteBatch spriteBatch;
         private SpriteFont spriteFont;
-        private Terrain terrain;
         private string text;
         private TerrainBrush terrainBrush;
         private BasicEffect basicEffect;
@@ -45,7 +45,6 @@ namespace View
         private ContentManager heightmapContent;
         private string effectFile;
         private Texture2D grassTexture;
-        private Grid grid;
         private GridPointer gridPointer;
         private List<GridPointer> gridPointers;
         private QuadTree quadTreeTerrain;
@@ -54,6 +53,7 @@ namespace View
         private int easeRemain = 0;
         Vector3 easeSpeed;
         Vector3 easeAngularSpeed;
+        private string terrainTextureFile;
         #endregion
 
         public MapModel MapModel
@@ -136,15 +136,25 @@ namespace View
             get { return spriteFont; }
         }
 
-        public Terrain Terrain
-        {
-            get { return terrain; }
-        }
-
         public string Text1
         {
             get { return text; }
             set { text = value; }
+        }
+
+        public Terrain Terrain
+        {
+            get
+            {
+                if (mapModel == null)
+                    return null;
+                return mapModel.Terrain;
+            }
+            set
+            {
+                if (mapModel != null)
+                    mapModel.Terrain = value;
+            }
         }
 
         public TerrainBrush TerrainBrush
@@ -161,8 +171,17 @@ namespace View
 
         public Grid Grid
         {
-            get { return grid; }
-            set { grid = value; }
+            get
+            {
+                if (mapModel == null)
+                    return null;
+                return mapModel.Grid;
+            }
+            set
+            {
+                if (mapModel != null)
+                    mapModel.Grid = value;
+            }
         }
 
         public GridPointer GridPointer
@@ -209,6 +228,8 @@ namespace View
             string errorBuild = "";
             try
             {
+                mapModel = new EditorModel.MapModel();
+
                 mouseMoving = false;
                 mouseEventArgs = null;
                 tempMouseX = tempMouseY = -1;
@@ -221,11 +242,12 @@ namespace View
                 //MessageBox.Show(GraphicsDevice.Adapter.Description);
 
                 effectFile = AssemblyDirectory + "\\Assets\\effects.fx";
+                terrainTextureFile = AssemblyDirectory + "\\Assets\\Textures\\grass.dds";
                 //importer reference: http://msdn.microsoft.com/en-us/library/bb447762%28v=xnagamestudio.20%29.aspx
                 contentBuilder.Add(AssemblyDirectory + "\\Assets\\SegoeUI.spritefont", "SegoeUI.spritefont", null, "FontDescriptionProcessor");
                 contentBuilder.Add(effectFile, "effects", null, "EffectProcessor");
                 contentBuilder.Add(AssemblyDirectory + "\\Assets\\brush.bmp", "brush", null, "TextureProcessor");
-                contentBuilder.Add(AssemblyDirectory + "\\Assets\\Textures\\grass.dds", "grass", null, "TextureProcessor");
+                contentBuilder.Add(terrainTextureFile, "grass", null, "TextureProcessor");
                 contentBuilder.Add(AssemblyDirectory + "\\Assets\\video_camera.png", "video_camera", null, "TextureProcessor");
                 contentBuilder.Add(AssemblyDirectory + "\\Assets\\Roads\\jalan_raya.fbx", "jalan_raya", null, "ModelProcessor");
                 contentBuilder.Add(AssemblyDirectory + "\\Assets\\Roads\\jalan_raya_belok.fbx", "jalan_raya_belok", null, "ModelProcessor");
@@ -250,8 +272,8 @@ namespace View
                 CheckIsOrthographic();
 
                 string heightMapFile = AssemblyDirectory + "\\test_HeightMap.png";
-                terrain = new Terrain(GraphicsDevice, camera, heightMapFile, effectFile, 128, 128);
-                terrain.Texture = grassTexture;
+                Terrain = new Terrain(GraphicsDevice, camera, heightMapFile, effectFile, terrainTextureFile, 128, 128);
+                Terrain.Texture = grassTexture;
 
                 //heightmapContent = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
                 //quadTreeTerrain = new QuadTree(Vector3.Zero, 1025, 1025, camera, GraphicsDevice, 1);
@@ -265,23 +287,26 @@ namespace View
                 selectedBoundingBox.SpriteFont = spriteFont;
                 CheckActiveTransformMode();
 
-                grid = new Grid(terrain, 8, camera, GraphicsDevice, basicEffect);
-                grid.RoadModel = contentManager.Load<Model>("jalan_raya");
-                grid.RoadModel_belok = contentManager.Load<Model>("jalan_raya_belok");
-
-                terrainBrush = new TerrainBrush(GraphicsDevice, terrain, brushHeightMap);
+                terrainBrush = new TerrainBrush(GraphicsDevice, Terrain, brushHeightMap);
                 terrainBrush.BasicEffect = basicEffect;
 
-                gridPointer = new GridPointer(grid);
+                Grid = new Grid(Terrain, 8, camera, GraphicsDevice, basicEffect);
+                Grid.RoadModel = contentManager.Load<Model>("jalan_raya");
+                Grid.RoadModel_belok = contentManager.Load<Model>("jalan_raya_belok");
+                Grid.GridMapFile = AssemblyDirectory + "\\Assets\\gridmap.png";
+                Grid.ExportGridMap();
+                Grid.RoadAssetFiles.Add(AssemblyDirectory + "\\Assets\\Roads\\jalan_raya.fbx");
+                Grid.RoadAssetFiles.Add(AssemblyDirectory + "\\Assets\\Roads\\jalan_raya_belok.fbx");
+                Grid.RoadAssetFiles.Add(AssemblyDirectory + "\\Assets\\Roads\\texture_jalan_raya.png");
+                Grid.RoadAssetFiles.Add(AssemblyDirectory + "\\Assets\\Roads\\texture_jalan_raya_belok.png");
+
+                gridPointer = new GridPointer(Grid);
                 gridPointers = new List<GridPointer>();
 
-                if (mapModel != null)
-                {
-                    mapModel.MainCamera.Texture = contentManager.Load<Texture2D>("video_camera");
-                    mapModel.MainCamera.GraphicsDevice = GraphicsDevice;
-                    mapModel.MainCamera.Camera = camera;
-                    mapModel.MainCamera.BasicEffect = basicEffect;
-                }
+                mapModel.MainCamera.Texture = contentManager.Load<Texture2D>("video_camera");
+                mapModel.MainCamera.GraphicsDevice = GraphicsDevice;
+                mapModel.MainCamera.Camera = camera;
+                mapModel.MainCamera.BasicEffect = basicEffect;
 
                 timer = new System.Threading.Timer((c) => SetGravity(), null, Timeout.Infinite, Timeout.Infinite);
 
@@ -319,19 +344,40 @@ namespace View
             graphicsDeviceControl1.Invalidate();
         }
 
-        public void ImportHeightmap(string heightmapFile)
+        public void ImportHeightMapAndGridMap(string heightmapFile, string gridmapFile = null)
         {
-            heightmapContent = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
-            contentBuilder.Add(heightmapFile, "heightmap", null, "TextureProcessor");
-            contentBuilder.Build();
-            camera.Detach(terrain.TerrainIndexer);
-            terrain = new Terrain(GraphicsDevice, camera, heightmapContent.Load<Texture2D>("heightmap"), heightmapFile, effectFile);
-            terrain.Texture = grassTexture;
+            if (File.Exists(heightmapFile))
+            {
+                heightmapContent = new ContentManager(graphicsDeviceControl1.Services, contentBuilder.OutputDirectory);
+                contentBuilder.Add(heightmapFile, "heightmap", null, "TextureProcessor");
+                bool gridmapFileExists = !string.IsNullOrEmpty(gridmapFile) && File.Exists(gridmapFile);
+                if (gridmapFileExists)
+                    contentBuilder.Add(gridmapFile, "gridmap", null, "TextureProcessor");
+                contentBuilder.Build();
+                camera.Detach(Terrain.TerrainIndexer);
+                Terrain = new Terrain(GraphicsDevice, camera, heightmapContent.Load<Texture2D>("heightmap"), heightmapFile, effectFile, terrainTextureFile);
+                Terrain.Texture = grassTexture;
 
-            terrainBrush.Terrain = terrain;
+                terrainBrush.Terrain = Terrain;
 
-            camera.Attach(terrain.TerrainIndexer);
-            camera.Notify();
+                if (gridmapFileExists)
+                {
+                    List<string> assets = Grid.RoadAssetFiles;
+                    Grid = new Grid(Terrain, 8, camera, GraphicsDevice, basicEffect);
+                    Grid.RoadModel = contentManager.Load<Model>("jalan_raya");
+                    Grid.RoadModel_belok = contentManager.Load<Model>("jalan_raya_belok");
+                    Grid.GridMapFile = gridmapFile;
+                    Grid.GridMap = heightmapContent.Load<Texture2D>("gridmap");
+                    Grid.ImportGridMap();
+                    Grid.RoadAssetFiles = assets;
+
+                    gridPointer = new GridPointer(Grid);
+                    gridPointers = new List<GridPointer>();
+                }
+
+                camera.Attach(Terrain.TerrainIndexer);
+                camera.Notify();
+            }
         }
 
         public BaseObject AddObject(string file, string name, Vector3 position, Vector3 eulerRotation, Vector3 scale, bool physicsEnabled, bool isActive, bool isStatic, bool characterControllerEnabled, EditorModel.PropertyModel.ScriptCollection scripts, PhysicsShapeKind physicsShapeKind, Vector3 bodyPosition)
@@ -493,7 +539,7 @@ namespace View
                 basicEffect.View = camera.World;
                 basicEffect.Projection = camera.Projection;
 
-                terrain.Draw();
+                Terrain.Draw();
                 //quadTreeTerrain.Update(null);
                 //quadTreeTerrain.Draw(null);
 
@@ -501,7 +547,7 @@ namespace View
                 {
                     if (editorMode is EditorMode_GridPointing)
                     {
-                        grid.Draw();
+                        Grid.Draw();
                         gridPointer.Draw(spriteBatch);
                         text += gridPointer.Text + " " + gridPointers.Count + "\r\n";
                         foreach (GridPointer gp in gridPointers)
@@ -514,11 +560,11 @@ namespace View
                     }
                 }
 
-                for (int x = 0; x < grid.Width; x++)
+                for (int x = 0; x < Grid.Width; x++)
                 {
-                    for (int y = 0; y < grid.Height; y++)
-                        if (grid.GridObjects[x, y] != null)
-                            grid.GridObjects[x, y].Draw(spriteBatch);
+                    for (int y = 0; y < Grid.Height; y++)
+                        if (Grid.GridObjects[x, y] != null)
+                            Grid.GridObjects[x, y].Draw(spriteBatch);
                 }
                 if (Selected != null)
                 {
@@ -696,7 +742,7 @@ namespace View
             if (camera == null || graphicsDeviceControl1.GraphicsDevice == null)
                 return;
             camera.AspectRatio = graphicsDeviceControl1.GraphicsDevice.Viewport.AspectRatio;
-            terrain.TerrainIndexer.Resize();
+            Terrain.TerrainIndexer.Resize();
             camera.Notify();
         }
 
@@ -972,17 +1018,26 @@ namespace View
 
         private void xOrthogonalStripButton_Click(object sender, EventArgs e)
         {
-            OrthographicsThenEase(new Vector3(0, -90, 0));
+            if (camera.EulerRotation != new Vector3(0, 270, 0))
+                OrthographicsThenEase(new Vector3(0, 270, 0));
+            else
+                OrthographicsThenEase(new Vector3(0, 90, 0));
         }
 
         private void yOrthogonalStripButton_Click(object sender, EventArgs e)
         {
-            OrthographicsThenEase(new Vector3(90, 0, 0));
+            if (camera.EulerRotation != new Vector3(90, 0, 0))
+                OrthographicsThenEase(new Vector3(90, 0, 0));
+            else
+                OrthographicsThenEase(new Vector3(270, 0, 0));
         }
 
         private void zOrthogonalStripButton_Click(object sender, EventArgs e)
         {
-            OrthographicsThenEase(new Vector3(0, 180, 0));
+            if (camera.EulerRotation != new Vector3(0, 180, 0))
+                OrthographicsThenEase(new Vector3(0, 180, 0));
+            else
+                OrthographicsThenEase(new Vector3(0, 0, 0));
         }
 
         private void OrthographicsThenEase(Vector3 targetRotation)

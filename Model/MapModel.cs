@@ -14,6 +14,8 @@ namespace EditorModel
         DrawingCamera mainCamera;
         PhysicsWorld physicsWorld;
         private BaseObject selected;
+        Terrain terrain;
+        Grid grid;
 
         public ObservableCollection<BaseObject> Objects
         {
@@ -35,6 +37,18 @@ namespace EditorModel
         {
             get { return selected; }
             set { selected = value; }
+        }
+
+        public Terrain Terrain
+        {
+            get { return terrain; }
+            set { terrain = value; }
+        }
+
+        public Grid Grid
+        {
+            get { return grid; }
+            set { grid = value; }
         }
 
         public MapModel()

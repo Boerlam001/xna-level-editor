@@ -52,6 +52,8 @@ namespace XleGenerator
         private CodeFunction2 constructorFunction;
         private bool open;
         private ProjectItem scriptsFolder;
+        private string textureAsset;
+        private string gridMapAsset;
         #endregion
 
         #region properties
@@ -453,25 +455,54 @@ namespace XleGenerator
             }
         }
 
-        public void AddHeightMapToContentProject(Terrain terrain, bool isOpen = false, string target = "")
-        {            
-            terrain.SaveHeightMap();
-            if (target == "")
+        public void AddHeightMapToContentProject(bool isOpen = false, string target = null)
+        {
+            mapModel.Terrain.SaveHeightMap();
+            if (string.IsNullOrEmpty(target))
                 return;
             if (!File.Exists(target))
             {
-                File.Copy(terrain.HeightMapFile, target);
+                File.Copy(mapModel.Terrain.HeightMapFile, target);
             }
             contentProject.ProjectItems.AddFromFile(target);
-            terrain.HeightMapFile = target;
-            heightMapAsset = Path.GetFileNameWithoutExtension(terrain.HeightMapFile);
+            mapModel.Terrain.HeightMapFile = target;
+            mapModel.Terrain.SaveHeightMap();
+            heightMapAsset = Path.GetFileNameWithoutExtension(mapModel.Terrain.HeightMapFile);
 
-            //target = Path.GetDirectoryName(contentProject.FullName) + "\\" + Path.GetFileName(terrain.EffectFile);
-            //if (!File.Exists(target))
-            //{
-            //    File.Copy(terrain.EffectFile, target);
-            //}
+            textureAsset = Path.GetDirectoryName(contentProject.FullName) + "\\" + Path.GetFileName(mapModel.Terrain.TextureFile);
+            if (!File.Exists(textureAsset))
+            {
+                File.Copy(mapModel.Terrain.TextureFile, textureAsset);
+            }
+            contentProject.ProjectItems.AddFromFile(textureAsset);
+            textureAsset = Path.GetFileNameWithoutExtension(textureAsset);
+        }
+
+        public void AddGridMapToContentProject(bool isOpen = false, string target = null)
+        {
+            mapModel.Grid.ExportGridMap();
+            if (string.IsNullOrEmpty(target))
+                return;
+            if (!File.Exists(target))
+            {
+                File.Copy(mapModel.Grid.GridMapFile, target);
+            }
             contentProject.ProjectItems.AddFromFile(target);
+            mapModel.Grid.GridMapFile = target;
+            mapModel.Grid.ExportGridMap();
+            gridMapAsset = Path.GetFileNameWithoutExtension(target);
+
+            for (int i = 0; i < mapModel.Grid.RoadAssetFiles.Count; i++)
+            {
+                target = Path.GetDirectoryName(contentProject.FullName) + "\\" + Path.GetFileName(mapModel.Grid.RoadAssetFiles[i]);
+                if (!File.Exists(target))
+                {
+                    File.Copy(mapModel.Grid.RoadAssetFiles[i], target);
+                }
+                if (Path.GetExtension(target) == ".fbx")
+                    contentProject.ProjectItems.AddFromFile(target);
+                mapModel.Grid.RoadAssetFiles[i] = target;
+            }
         }
 
         public void GenerateClass()
@@ -489,6 +520,7 @@ namespace XleGenerator
                        Append("Terrain terrain;\r\n").
                        Append("Texture2D heightMap;\r\n").
                        Append("World world;\r\n").
+                       Append("Grid grid;\r\n").
                        ToString();
             sb.Clear();
             Vector3 cameraPos = mapModel.MainCamera.Position;
@@ -498,8 +530,8 @@ namespace XleGenerator
                 Append("world = new World(collisionSystem);\r\n").
                 Append("world.AllowDeactivation = true;\r\n").
                 Append("world.Gravity = new JVector(0, ").Append(mapModel.PhysicsWorld.Gravity).Append("f, 0);\r\n").
-                Append("world.ContactSettings.MaterialCoefficientMixing = ContactSettings.MaterialCoefficientMixingType.").Append(mapModel.PhysicsWorld.MaterialCoefficientMixing.ToString()).Append(";\r\n\r\n").
-                Append("collisionSystem.CollisionDetected += new CollisionDetectedHandler(collisionSystem_CollisionDetected);\r\n").
+                Append("world.ContactSettings.MaterialCoefficientMixing = ContactSettings.MaterialCoefficientMixingType.").Append(mapModel.PhysicsWorld.MaterialCoefficientMixing.ToString()).Append(";\r\n").
+                Append("collisionSystem.CollisionDetected += new CollisionDetectedHandler(collisionSystem_CollisionDetected);\r\n\r\n").
                 Append("camera = new Camera(this);\r\n").
                 Append("camera.Name = \"camera\";\r\n").
                 Append("camera.Position = new Vector3(").Append(cameraPos.X).Append("f, ").Append(cameraPos.Y).Append("f, ").Append(cameraPos.Z).Append("f);\r\n").
@@ -511,11 +543,17 @@ namespace XleGenerator
             sb.Append("Components.Add(camera);\r\n\r\n");
             string constructor = sb.ToString();
             sb.Clear();
-            string loadContent = sb.
-                       Append("heightMap = Content.Load<Texture2D>(\"" + heightMapAsset + "\");\r\n").
-                       Append("terrain = new Terrain(GraphicsDevice, camera, heightMap, this, world);\r\n").
-                       Append("Components.Add(terrain);\r\n\r\n").
-                       ToString();
+            sb.
+                Append("heightMap = Content.Load<Texture2D>(\"" + heightMapAsset + "\");\r\n").
+                Append("terrain = new Terrain(GraphicsDevice, camera, heightMap, this, world);\r\n").
+                Append("terrain.Texture = Content.Load<Texture2D>(\"" + textureAsset + "\");\r\n").
+                Append("Components.Add(terrain);\r\n\r\n").
+                Append("grid = new Grid(this, terrain, 8, camera, GraphicsDevice, new BasicEffect(GraphicsDevice), world);\r\n").
+                Append("grid.RoadModel = Content.Load<Model>(\"jalan_raya\");\r\n").
+                Append("grid.RoadModel_belok = Content.Load<Model>(\"jalan_raya_belok\");\r\n").
+                Append("grid.GridMap = Content.Load<Texture2D>(\"gridmap_Game2\");\r\n").
+                Append("grid.ImportGridMap();\r\n\r\n");
+            string loadContent = sb.ToString();
             sb.Clear();
             string update = sb.
                        Append("float step = (float)gameTime.ElapsedGameTime.TotalSeconds;\r\n").

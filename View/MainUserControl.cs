@@ -17,7 +17,6 @@ namespace View
 {
     public partial class MainUserControl : UserControl, IObserver
     {
-        MapModel mapModel;
         private ClassManager classManager;
         DTE2 applicationObject;
         private Window window;
@@ -27,6 +26,18 @@ namespace View
         private FileSystemWatcher fileSystemWatcher;
         private TreeNode scriptsNode;
         private TreeNode modelsNode;
+
+        public MapModel MapModel
+        {
+            get
+            {
+                return editor.MapModel;
+            }
+            set
+            {
+                editor.MapModel = value;
+            }
+        }
 
         public DTE2 ApplicationObject
         {
@@ -68,10 +79,11 @@ namespace View
             set
             {
                 classManager = value;
-                classManager.MapModel = mapModel;
+                classManager.MapModel = MapModel;
                 if (applicationObject != null && window != null)
                 {
-                    string heightMapFile = Path.GetDirectoryName(classManager.ContentProject.FullName) + "\\heightmap_" + classManager.Name + ".png";
+                    string heightMapFile = Path.GetDirectoryName(classManager.ContentProject.FullName) + "\\heightmap_" + classManager.Name + ".png",
+                           gridMapFile = Path.GetDirectoryName(classManager.ContentProject.FullName) + "\\gridmap_" + classManager.Name + ".png";
 
                     if (isOpen)
                     {
@@ -91,12 +103,11 @@ namespace View
                             else if (objects[key] is DrawingCamera)
                             {
                                 DrawingCamera cam = objects[key] as DrawingCamera;
-                                mapModel.MainCamera.Position = cam.Position;
-                                mapModel.MainCamera.EulerRotation = cam.EulerRotation;
+                                MapModel.MainCamera.Position = cam.Position;
+                                MapModel.MainCamera.EulerRotation = cam.EulerRotation;
                             }
                         }
-                        if (File.Exists(heightMapFile))
-                            editor.ImportHeightmap(heightMapFile);
+                        editor.ImportHeightMapAndGridMap(heightMapFile, gridMapFile);
                     }
 
                     string scriptDir = Path.GetDirectoryName(classManager.CurrentProject.FullName) + "\\Scripts";
@@ -111,7 +122,8 @@ namespace View
                     fileSystemWatcher.EnableRaisingEvents = true;
                     UpdateScriptAssets();
                     
-                    classManager.AddHeightMapToContentProject(editor.Terrain, isOpen, heightMapFile);
+                    classManager.AddHeightMapToContentProject(isOpen, heightMapFile);
+                    classManager.AddGridMapToContentProject(isOpen, gridMapFile);
                     window.Caption = classManager.Name + ".cs";
                 }
             }
@@ -154,10 +166,8 @@ namespace View
             {
                 objectProperties.MainUserControl = this;
                 
-                mapModel = new MapModel();
-                mapModel.Attach(this);
-                editor.MapModel = mapModel;
-                TrueModel.Instance.MapModels.Add(mapModel);
+                MapModel.Attach(this);
+                //TrueModel.Instance.MapModels.Add(MapModel);
 
                 editor.MainUserControl = this;
                 editor.Camera.Notify();
@@ -264,7 +274,8 @@ namespace View
         private void createFileStripMenuItem_Click(object sender, EventArgs e)
         {
             classManager.GenerateClass();
-            classManager.AddHeightMapToContentProject(editor.Terrain);
+            classManager.AddHeightMapToContentProject();
+            classManager.AddGridMapToContentProject();
         }
 
         private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -274,7 +285,7 @@ namespace View
         public void UpdateObserver()
         {
             objectTreeView.Nodes.Clear();
-            foreach (BaseObject obj in mapModel.Objects)
+            foreach (BaseObject obj in MapModel.Objects)
             {
                 DrawingObject dObj = (obj is DrawingObject) ? obj as DrawingObject : null;
                 objectTreeView.Nodes.Add(obj.Name);
@@ -343,7 +354,7 @@ namespace View
 
         private void objectTreeView_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            BaseObject temp = mapModel.getObjectByName(e.Node.Text);
+            BaseObject temp = MapModel.getObjectByName(e.Node.Text);
             if (temp != null)
             {
                 editor.DeselectObject();
@@ -354,7 +365,7 @@ namespace View
 
         private void objectTreeView_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            BaseObject temp = mapModel.getObjectByName(e.Node.Text);
+            BaseObject temp = MapModel.getObjectByName(e.Node.Text);
             if (temp != null)
             {
                 float length = 10;

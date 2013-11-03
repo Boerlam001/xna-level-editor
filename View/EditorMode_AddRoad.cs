@@ -40,22 +40,14 @@ namespace View
                     start = editor.GridPointer.GridPosition;
                 if (step == 2)
                 {
-                    //int i = 0;
-                    //float posY = 0;
                     foreach (GridPointer gp in editor.GridPointers)
                     {
-                        //Vector3 pos = editor.Terrain.Vertices[(int)(gp.GridPosition.X + gp.GridPosition.Y * editor.Terrain.Width)].Position;
-                        //if (i == 0)
-                        //{
-                        //    posY = pos.Y;
-                        //}
-                        //pos.Y = posY;
-                        //gp.GridPosition = pos;
                         editor.Grid.AddRoad(gp.GridPosition);
                         editor.Grid.Detach(gp);
                     }
                     editor.GridPointers.Clear();
                     editor.Grid.AddRoad(editor.GridPointer.GridPosition);
+                    editor.Grid.ExportGridMap();
                     step = 0;
                     editor.Camera.Notify();
                 }

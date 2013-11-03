@@ -65,6 +65,7 @@ namespace EditorModel
         protected float heightColorFactor;
         private TerrainIndexer terrainIndexer;
         private string heightMapFile;
+        private string textureFile;
         private string effectFile;
         VertexPositionNormalTexture[] vertices;
         protected short[] indices;
@@ -161,6 +162,12 @@ namespace EditorModel
             set { heightMapFile = value; }
         }
 
+        public string TextureFile
+        {
+            get { return textureFile; }
+            set { textureFile = value; }
+        }
+
         public Texture2D Texture
         {
             get { return texture; }
@@ -200,28 +207,31 @@ namespace EditorModel
                 InitializeAll();
         }
 
-        public Terrain(GraphicsDevice graphicsDevice, Camera camera, string heightMapFile, string effectFile)
+        public Terrain(GraphicsDevice graphicsDevice, Camera camera, string heightMapFile, string effectFile, string textureFile)
             : this(graphicsDevice, camera, 128, 128)
         {
             terrainIndexer = new TerrainIndexer(this, camera, graphicsDevice);
             this.heightMapFile = heightMapFile;
             this.effectFile = effectFile;
+            this.textureFile = textureFile;
         }
 
-        public Terrain(GraphicsDevice graphicsDevice, Camera camera, Texture2D heightMap, string heightMapFile, string effectFile)
+        public Terrain(GraphicsDevice graphicsDevice, Camera camera, Texture2D heightMap, string heightMapFile, string effectFile, string textureFile)
             : this(graphicsDevice, camera, heightMap)
         {
             terrainIndexer = new TerrainIndexer(this, camera, graphicsDevice);
             this.heightMapFile = heightMapFile;
             this.effectFile = effectFile;
+            this.textureFile = textureFile;
         }
 
-        public Terrain(GraphicsDevice graphicsDevice, Camera camera, string heightMapFile, string effectFile, int width, int height)
+        public Terrain(GraphicsDevice graphicsDevice, Camera camera, string heightMapFile, string effectFile, string textureFile, int width, int height)
             : this(graphicsDevice, camera, width, height)
         {
             terrainIndexer = new TerrainIndexer(this, camera, graphicsDevice);
             this.heightMapFile = heightMapFile;
             this.effectFile = effectFile;
+            this.textureFile = textureFile;
         }
 
         protected void InitializeAll()

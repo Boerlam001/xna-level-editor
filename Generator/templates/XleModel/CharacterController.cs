@@ -111,7 +111,7 @@ namespace XleModel
                 Body1.ApplyImpulse(JumpVelocity * JVector.Up * Body1.Mass);
                 System.Diagnostics.Debug.WriteLine("JUMP! " + DateTime.Now.Second.ToString());
 
-                if (!BodyWalkingOn.IsStatic)
+                if (!BodyWalkingOn.IsStatic && World.RigidBodies.Contains(BodyWalkingOn))
                 {
                     BodyWalkingOn.IsActive = true;
                     // apply the negative impulse to the other body

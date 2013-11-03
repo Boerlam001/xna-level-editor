@@ -5,9 +5,9 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace EditorModel
+namespace XleModel
 {
-    public class Grid : Subject
+    public class Grid : GameComponent
     {
         VertexPositionColor[] vertices;
         Terrain terrain;
@@ -20,10 +20,10 @@ namespace EditorModel
         private int height;
         GridObject[,] gridObjects;
         Model roadModel, roadModel_belok;
-        List<string> roadAssetFiles = new List<string>();
-        float positionY = 0;
+        float positionY = 0.0f;
         string gridMapFile;
         Texture2D gridMap;
+        private Jitter.World physicsWorld;
 
         public Terrain Terrain
         {
@@ -105,13 +105,8 @@ namespace EditorModel
             set { gridMap = value; }
         }
 
-        public List<string> RoadAssetFiles
-        {
-            get { return roadAssetFiles; }
-            set { roadAssetFiles = value; }
-        }
-
-        public Grid(Terrain terrain, int size, Camera camera, GraphicsDevice graphicsDevice, BasicEffect basicEffect)
+        public Grid(Game game, Terrain terrain, int size, Camera camera, GraphicsDevice graphicsDevice, BasicEffect basicEffect, Jitter.World physicsWorld)
+            : base(game)
         {
             this.terrain = terrain;
             this.size = size;
@@ -120,6 +115,7 @@ namespace EditorModel
             this.basicEffect = basicEffect;
             InitializeVertices();
             this.gridObjects = new GridObject[width, height];
+            this.physicsWorld = physicsWorld;
         }
 
         public void InitializeVertices()
@@ -177,16 +173,17 @@ namespace EditorModel
                 if (!GridOutOfBounds(gridPosition))// && gridObjects[(int)gridPosition.X, (int)gridPosition.Y] == null)
                 {
                     FlattenPointedTerrain(gridPosition);
+
                     if (gridObjects[(int)gridPosition.X, (int)gridPosition.Y] != null)
-                        Detach(gridObjects[(int)gridPosition.X, (int)gridPosition.Y]);
-                    Road newRoad = new Road(this, roadModel, basicEffect);
+                        Game.Components.Remove(gridObjects[(int)gridPosition.X, (int)gridPosition.Y]);
+
+                    Road newRoad = new Road(Game, physicsWorld, this, roadModel, basicEffect);
                     newRoad.GridPosition = gridPosition;
-                    newRoad.Camera = camera;
-                    newRoad.GraphicsDevice = graphicsDevice;
                     gridObjects[(int)gridPosition.X, (int)gridPosition.Y] = newRoad;
 
+                    Game.Components.Add(newRoad);
+
                     newRoad.CheckOrientation();
-                    Attach(newRoad);
                     
                     Vector2 top =    newRoad.GridPosition + new Vector2(0, -1),
                             bottom = newRoad.GridPosition + new Vector2(0, 1),
@@ -202,8 +199,6 @@ namespace EditorModel
                         gridObjects[(int)right.X, (int)right.Y].CheckOrientation();
                 }
         }
-
-
 
         public void FlattenPointedTerrain(Vector2 gridPosition)
         {
@@ -275,7 +270,6 @@ namespace EditorModel
                     {
                         if (heightMapColors[x + y * width].R == 0)
                         {
-                            Detach(gridObjects[x, y]);
                             gridObjects[x, y] = null;
                         }
                     }

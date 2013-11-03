@@ -45,7 +45,7 @@ namespace View
             {
                 return;
             }
-            mainUserControl1.Editor.ImportHeightmap(mainUserControl1.Editor.openFileDialog1.FileName);
+            mainUserControl1.Editor.ImportHeightMapAndGridMap(mainUserControl1.Editor.openFileDialog1.FileName);
         }
 
         private void button2_Click(object sender, EventArgs e)

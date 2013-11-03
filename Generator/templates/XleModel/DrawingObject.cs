@@ -67,6 +67,12 @@ namespace XleModel
             set { sourceFile = value; }
         }
 
+        public string AssetName
+        {
+            get { return assetName; }
+            set { assetName = value; }
+        }
+
         public Model DrawingModel
         {
             get { return drawingModel; }
@@ -124,7 +130,8 @@ namespace XleModel
 
         protected override void LoadContent()
         {
-            DrawingModel = Game.Content.Load<Model>(assetName);
+            if (!string.IsNullOrEmpty(assetName))
+                DrawingModel = Game.Content.Load<Model>(assetName);
             base.LoadContent();
         }
 
@@ -163,6 +170,14 @@ namespace XleModel
                                 effect.EnableDefaultLighting();
                                 effect.PreferPerPixelLighting = true;
                             }
+                            //if (GraphicsDevice.BlendState == BlendState.AlphaBlend)
+                            //{
+                            //    effect.Alpha = 1;
+                            //}
+                            //else
+                            //{
+                            //    effect.Alpha = 0;
+                            //}
                         }
                     }
                     else
@@ -184,6 +199,14 @@ namespace XleModel
                                 effect.EnableDefaultLighting();
                                 effect.PreferPerPixelLighting = true;
                             }
+                            //if (GraphicsDevice.BlendState == BlendState.AlphaBlend)
+                            //{
+                            //    effect.Alpha = 1;
+                            //}
+                            //else
+                            //{
+                            //    effect.Alpha = 0;
+                            //}
                         }
                     }
                     mesh.Draw();

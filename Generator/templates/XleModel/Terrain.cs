@@ -64,7 +64,7 @@ namespace XleModel
         private int width;
         private int height;
         private float[,] heightData;
-        private VertexPositionColorNormal[] vertices;
+        private VertexPositionNormalTexture[] vertices;
         private short[] indices;
         private VertexBuffer vertexBuffer;
         private Color[] heightMapColors;
@@ -84,10 +84,52 @@ namespace XleModel
         #endregion
 
         #region getters and setters
+        public int Width
+        {
+            get { return width; }
+            set { width = value; }
+        }
+
+        public int Height
+        {
+            get { return height; }
+            set { height = value; }
+        }
+
+        public float MinHeight
+        {
+            get { return minHeight; }
+            set { minHeight = value; }
+        }
+
+        public float MaxHeight
+        {
+            get { return maxHeight; }
+            set { maxHeight = value; }
+        }
+
+        public float HeightColorFactor
+        {
+            get { return heightColorFactor; }
+            set { heightColorFactor = value; }
+        }
+
+        public VertexPositionNormalTexture[] Vertices
+        {
+            get { return vertices; }
+            set { vertices = value; }
+        }
+
         public string EffectFile
         {
             get { return effectFile; }
             set { effectFile = value; }
+        }
+
+        public float[,] HeightData
+        {
+            get { return heightData; }
+            set { heightData = value; }
         }
 
         public string HeightMapFile
@@ -112,6 +154,12 @@ namespace XleModel
         {
             get { return texture; }
             set { texture = value; }
+        }
+
+        public Color[] HeightMapColors
+        {
+            get { return heightMapColors; }
+            set { heightMapColors = value; }
         }
         #endregion
 
@@ -223,13 +271,14 @@ namespace XleModel
 
         protected virtual void InitializeVertices()
         {
-            vertices = new VertexPositionColorNormal[width * height];
+            vertices = new VertexPositionNormalTexture[width * height];
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
                 {
                     vertices[x + y * width].Position = new Vector3(x, heightData[x, y], y);
-                    vertices[x + y * width].Color = Color.White;
+                    vertices[x + y * width].TextureCoordinate.X = (float)x / 30.0f;
+                    vertices[x + y * width].TextureCoordinate.Y = (float)y / 30.0f;
                 }
             }
         }
@@ -289,7 +338,7 @@ namespace XleModel
 
         public void CopyToBuffers()
         {
-            vertexBuffer = new VertexBuffer(graphicsDevice, VertexPositionColorNormal.VertexDeclaration, vertices.Length, BufferUsage.WriteOnly);
+            vertexBuffer = new VertexBuffer(graphicsDevice, VertexPositionNormalTexture.VertexDeclaration, vertices.Length, BufferUsage.WriteOnly);
             vertexBuffer.SetData(vertices);
 
             indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, indices.Length, BufferUsage.WriteOnly);
@@ -339,12 +388,16 @@ namespace XleModel
                 basicEffect.DirectionalLight0.Enabled = true;
                 basicEffect.DirectionalLight0.Direction = lightDirection;
                 basicEffect.AmbientLightColor = new Vector3(0.1f);
-                basicEffect.VertexColorEnabled = true;
-                
+
                 if (texture != null)
                 {
                     basicEffect.TextureEnabled = true;
                     basicEffect.Texture = texture;
+                    basicEffect.VertexColorEnabled = false;
+                }
+                else
+                {
+                    basicEffect.VertexColorEnabled = true;
                 }
                 foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
                 {

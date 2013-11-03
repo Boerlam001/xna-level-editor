@@ -100,6 +100,15 @@
     <Compile Include="FileHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SolutionManager.cs" />
+    <None Include="templates\XleModel\Grid.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\XleModel\GridObject.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="templates\XleModel\Road.cs">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="templates\XleModel\BoxAdapter.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
