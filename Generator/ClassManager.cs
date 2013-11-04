@@ -947,8 +947,16 @@ namespace XleGenerator
                 string contentName = Regex.Replace(contentWithQuotes.Trim(), "\\\"", "");
                 try
                 {
-                    ProjectItem item = contentProject.ProjectItems.Item(contentName + ".fbx");
-                    (objects[varName] as DrawingObject).SourceFile = Path.GetDirectoryName(contentProject.FullName) + "\\" + contentName + ".fbx";
+                    foreach (string file in Directory.EnumerateFiles(Path.GetDirectoryName(contentProject.FullName)))
+                    {
+                        if (Path.GetFileNameWithoutExtension(file) == contentName)
+                        {
+                            contentName = Path.GetFileName(file);
+                            break;
+                        }
+                    }
+                    ProjectItem item = contentProject.ProjectItems.Item(contentName);
+                    (objects[varName] as DrawingObject).SourceFile = Path.GetDirectoryName(contentProject.FullName) + "\\" + contentName;
                 }
                 catch
                 {

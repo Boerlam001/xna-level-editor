@@ -259,12 +259,19 @@ namespace XleModel
 
             if (physicsAdapterChangeRequested)
             {
-                bool reenableCharacterController = false;
-                if (physicsAdapter != null && physicsAdapter.CharacterController != null)
-                    reenableCharacterController = true;
+                bool reenableCharacterController = false, isStatic = false, isActive = false;
+                if (physicsAdapter != null)
+                {
+                    if (physicsAdapter.CharacterController != null)
+                        reenableCharacterController = true;
+                    isStatic = physicsAdapter.Body.IsStatic;
+                    isActive = physicsAdapter.Body.IsActive;
+                }
                 physicsAdapter = (PhysicsAdapter)Activator.CreateInstance(physicsAdapterType, physicsAdapterParameters);
                 if (reenableCharacterController)
                     physicsAdapter.EnableCharacterController();
+                physicsAdapter.Body.IsActive = isActive;
+                physicsAdapter.Body.IsStatic = isStatic;
                 physicsAdapterChangeRequested = false;
             }
 

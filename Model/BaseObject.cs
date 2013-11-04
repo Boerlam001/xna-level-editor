@@ -251,6 +251,21 @@ namespace EditorModel
             }
         }
 
+        public Vector3 BoxShapeSize
+        {
+            get
+            {
+                if (physicsShape is BoxShape)
+                    return Helper.ToXNAVector((physicsShape as BoxShape).Size);
+                return Vector3.Zero;
+            }
+            set
+            {
+                if (physicsShape is BoxShape)
+                    (physicsShape as BoxShape).Size = Helper.ToJitterVector(value);
+            }
+        }
+
         [Category("Body")]
         public PhysicsShapeKind PhysicsShapeKind
         {

@@ -92,7 +92,8 @@ namespace XleModel
         public override void Iterate()
         {
             deltaVelocity = TargetVelocity - Body1.LinearVelocity;
-            deltaVelocity.Y = 0.0f;
+            if (deltaVelocity.Y > 0 || isJumping)
+                deltaVelocity.Y = 0;
 
             // determine how 'stiff' the character follows the target velocity
             deltaVelocity *= Stiff;
