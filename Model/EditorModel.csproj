@@ -123,7 +123,7 @@
     <None Include="model.cd" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Visual Studio 2010\Projects\XnaLevelEditor\Jitter\Jitter.csproj">
+    <ProjectReference Include="..\Jitter\Jitter.csproj">
       <Project>{AA03EF1A-94F7-4D30-AB14-2092863FF923}</Project>
       <Name>Jitter</Name>
     </ProjectReference>
